@@ -165,6 +165,9 @@ body{font-family:'Tajawal',sans-serif;direction:rtl;background:#0d1117;color:#e6
 .appt-item.rejected{background:#1f0d0d;opacity:.85;}
 .appt-item.approved .appt-date-badge{border-color:#16a34a;color:#4ade80;background:#0d1f14;}
 .appt-item.rejected .appt-date-badge{border-color:#dc2626;color:#f87171;background:#1f0d0d;}
+#natMenu{background:#1c2128!important;color:#e6edf3!important;}
+#natMenu button{color:#e6edf3!important;background:none!important;}
+#natMenu button:hover{background:#21262d!important;}
 #saveIndicator{position:fixed;top:12px;left:12px;background:#059669;color:#fff;padding:6px 14px;border-radius:20px;font-size:12px;font-family:'Tajawal',sans-serif;font-weight:700;z-index:9999;display:none;box-shadow:0 2px 12px rgba(0,0,0,.4);}
 #loadingOverlay{position:fixed;inset:0;background:#0d1117;z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1rem;}
 .loading-spinner{width:40px;height:40px;border:3px solid #21262d;border-top-color:#1a6fa8;border-radius:50%;animation:spin .8s linear infinite;}
@@ -261,6 +264,7 @@ body{font-family:'Tajawal',sans-serif;direction:rtl;background:#0d1117;color:#e6
     <div class="stat approved"><div class="stat-num" id="statApproved">0</div><div class="stat-label">✅ مقبولين</div></div>
     <div class="stat rejected"><div class="stat-num" id="statRejected">0</div><div class="stat-label">❌ مرفوضين</div></div>
     <div class="stat"><div class="stat-num" id="statPending">0</div><div class="stat-label">⏳ قيد المراجعة</div></div>
+    <div class="stat" style="cursor:pointer;border:1px solid rgba(220,38,38,0.4);" onclick="setFilter('deleted',document.getElementById('fb-deleted'))"><div class="stat-num" id="statDeleted" style="color:#f87171;">0</div><div class="stat-label">🗑 محذوفين</div></div>
   </div>
   <div class="stats-bar" style="margin-top:.6rem;">
     <div class="stat" style="cursor:pointer" onclick="setFilterFromStat('ig',this)"><div class="stat-num" id="statIg">0</div><div class="stat-label" style="display:flex;align-items:center;justify-content:center;gap:4px;"><svg width="12" height="12" viewBox="0 0 24 24" fill="url(#ig-g1)"><defs><linearGradient id="ig-g1" x1="0%" y1="100%" x2="100%" y2="0%"><stop offset="0%" style="stop-color:#f09433"/><stop offset="50%" style="stop-color:#dc2743"/><stop offset="100%" style="stop-color:#bc1888"/></linearGradient></defs><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>انستاجرام</div></div>
@@ -297,6 +301,19 @@ body{font-family:'Tajawal',sans-serif;direction:rtl;background:#0d1117;color:#e6
     <button class="filter-btn" id="fb-all3" onclick="setFilter('all3',this)">🌐 جميع المنصات</button>
     <button class="filter-btn" id="fb-male" onclick="setFilter('male',this)">👨 الذكور</button>
     <button class="filter-btn" id="fb-female" onclick="setFilter('female',this)">👩 الإناث</button>
+    <!-- Nationality dropdown -->
+    <div style="position:relative;display:inline-block;">
+      <button class="filter-btn" id="fb-nat" onclick="toggleNatMenu(event)" style="display:flex;align-items:center;gap:4px;">
+        🌍 الجنسيات <span style="font-size:9px;opacity:.7;">▼</span>
+      </button>
+      <div id="natMenu" style="display:none;position:absolute;top:110%;right:0;background:#1c2128;border:1px solid #30363d;border-radius:10px;padding:.4rem;min-width:140px;z-index:500;box-shadow:0 8px 24px rgba(0,0,0,.6);">
+        <button onclick="setNatFilter('kuwait')" id="fbn-kuwait" style="display:block;width:100%;padding:7px 12px;border:none;background:none;color:#e6edf3;font-size:13px;font-family:Tajawal,sans-serif;text-align:right;cursor:pointer;border-radius:7px;">🇰🇼 كويت</button>
+        <button onclick="setNatFilter('gulf')"   id="fbn-gulf"   style="display:block;width:100%;padding:7px 12px;border:none;background:none;color:#e6edf3;font-size:13px;font-family:Tajawal,sans-serif;text-align:right;cursor:pointer;border-radius:7px;">🌙 دول الخليج</button>
+        <button onclick="setNatFilter('egypt')"  id="fbn-egypt"  style="display:block;width:100%;padding:7px 12px;border:none;background:none;color:#e6edf3;font-size:13px;font-family:Tajawal,sans-serif;text-align:right;cursor:pointer;border-radius:7px;">🇪🇬 مصر</button>
+        <button onclick="setNatFilter('sham')"   id="fbn-sham"   style="display:block;width:100%;padding:7px 12px;border:none;background:none;color:#e6edf3;font-size:13px;font-family:Tajawal,sans-serif;text-align:right;cursor:pointer;border-radius:7px;">🇸🇾 بلاد الشام</button>
+        <button onclick="setNatFilter('foreign')" id="fbn-foreign" style="display:block;width:100%;padding:7px 12px;border:none;background:none;color:#e6edf3;font-size:13px;font-family:Tajawal,sans-serif;text-align:right;cursor:pointer;border-radius:7px;">🌐 أجانب</button>
+      </div>
+    </div>
   </div>
   <button class="filter-btn" onclick="openApptPanel()" style="white-space:nowrap;border-color:#0891b2;color:#22d3ee;">📅 مواعيد</button>
   <button class="filter-btn" id="fb-deleted" onclick="setFilter('deleted',this)" style="white-space:nowrap;border-color:#6b2020;color:#f87171;flex-shrink:0;">🗑 المحذوفين <span id="deletedBadge" style="display:none;background:#dc2626;color:#fff;border-radius:10px;padding:1px 6px;font-size:10px;margin-right:2px;">0</span></button>
@@ -523,7 +540,7 @@ body{font-family:'Tajawal',sans-serif;direction:rtl;background:#0d1117;color:#e6
 <script>
 // ─── Nationalities list ───────────────────────────────────────────
 const NATIONALITIES = [
-  'كويتي','سعودي','إماراتي','بحريني','قطري','عماني',
+  'كويتي','بدون','سعودي','إماراتي','بحريني','قطري','عماني',
   'مصري','أردني','لبناني','سوري','عراقي','يمني','فلسطيني','سوداني','ليبي','تونسي','مغربي','جزائري',
   'باكستاني','هندي','بنغلاديشي','فلبيني','إندونيسي','سريلانكي',
   'أمريكي','بريطاني','كندي','أسترالي','فرنسي','ألماني',
@@ -757,12 +774,14 @@ function updateStats() {
   document.getElementById('statAll3').textContent=influencers.filter(i=>i.ig&&i.tt&&i.snap).length;
   document.getElementById('statMale').textContent=influencers.filter(i=>i.gender==='m').length;
   document.getElementById('statFemale').textContent=influencers.filter(i=>i.gender==='f').length;
-  // Deleted badge
+  // Deleted badge + header stat
   const badge=document.getElementById('deletedBadge');
   if(badge){
     badge.textContent=deletedInfluencers.length;
     badge.style.display=deletedInfluencers.length>0?'inline':'none';
   }
+  const statDel=document.getElementById('statDeleted');
+  if(statDel) statDel.textContent=deletedInfluencers.length;
 }
 
 const REPORT_FILTERS = ['approved','rejected','male','female'];
@@ -779,6 +798,11 @@ function setFilter(f,btn) {
   currentFilter=f;
   document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));
   if(btn) btn.classList.add('active');
+  // Reset nat menu highlight
+  ['kuwait','gulf','egypt','sham','foreign'].forEach(k=>{
+    const b=document.getElementById('fbn-'+k);
+    if(b) b.style.background='';
+  });
   updateReportBtn(f); renderGrid();
 }
 function setFilterFromStat(f) {
@@ -788,6 +812,38 @@ function setFilterFromStat(f) {
   const el=document.getElementById(map[f]); if(el) el.classList.add('active');
   updateReportBtn(f); window.scrollTo({top:200,behavior:'smooth'}); renderGrid();
 }
+
+// ── Nationality groups ────────────────────────────────────────────
+const NAT_GROUPS = {
+  kuwait:  ['كويتي','كويتية','بدون'],
+  gulf:    ['سعودي','سعودية','إماراتي','إماراتية','بحريني','بحرينية','قطري','قطرية','عماني','عمانية','عراقي','عراقية','يمني','يمنية'],
+  egypt:   ['مصري','مصرية'],
+  sham:    ['سوري','سورية','لبناني','لبنانية','أردني','أردنية','فلسطيني','فلسطينية'],
+  foreign: []
+};
+
+function toggleNatMenu(e) {
+  e.stopPropagation();
+  const menu = document.getElementById('natMenu');
+  menu.style.display = menu.style.display === 'none' ? 'block' : 'none';
+}
+function setNatFilter(group) {
+  currentFilter = 'nat_' + group;
+  document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('fb-nat').classList.add('active');
+  // Highlight selected group
+  ['kuwait','gulf','egypt','sham','foreign'].forEach(k=>{
+    const b=document.getElementById('fbn-'+k);
+    if(b) b.style.background = k===group ? '#1a6fa8' : '';
+  });
+  document.getElementById('natMenu').style.display='none';
+  updateReportBtn(currentFilter); renderGrid();
+}
+// Close nat menu on outside click
+document.addEventListener('click', function(){
+  const m=document.getElementById('natMenu');
+  if(m) m.style.display='none';
+});
 
 function renderGrid() {
   const q=document.getElementById('searchInput').value.toLowerCase().trim();
@@ -842,7 +898,12 @@ function renderGrid() {
       (currentFilter==='ig'&&item.ig)||(currentFilter==='tt'&&item.tt)||(currentFilter==='snap'&&item.snap)||
       (currentFilter==='all3'&&item.ig&&item.tt&&item.snap)||
       (currentFilter==='male'&&item.gender==='m')||(currentFilter==='female'&&item.gender==='f')||
-      (currentFilter==='pending'&&(!item.status||item.status==='pending'));
+      (currentFilter==='pending'&&(!item.status||item.status==='pending'))||
+      (currentFilter==='nat_kuwait' && NAT_GROUPS.kuwait.includes(item.nationality||''))||
+      (currentFilter==='nat_gulf'   && NAT_GROUPS.gulf.includes(item.nationality||''))||
+      (currentFilter==='nat_egypt'  && NAT_GROUPS.egypt.includes(item.nationality||''))||
+      (currentFilter==='nat_sham'   && NAT_GROUPS.sham.includes(item.nationality||''))||
+      (currentFilter==='nat_foreign'&& item.nationality && !NAT_GROUPS.kuwait.includes(item.nationality) && !NAT_GROUPS.gulf.includes(item.nationality) && !NAT_GROUPS.egypt.includes(item.nationality) && !NAT_GROUPS.sham.includes(item.nationality));
     if(!matchSearch||!matchFilter) return;
     visible++;
     const initial=getInitial(item), color=getColor(idx);
@@ -1607,7 +1668,8 @@ window.addInfluencer=addInfluencer; window.confirmBulkAdd=confirmBulkAdd;
 window.openEditModal=openEditModal; window.closeEditModal=closeEditModal;
 window.saveEditInfluencer=saveEditInfluencer;
 window.deleteInfluencer=deleteInfluencer;
-window.setStatus=setStatus; window.setFilter=setFilter; window.setFilterFromStat=setFilterFromStat;
+window.setFilter=setFilter; window.setFilterFromStat=setFilterFromStat;
+window.toggleNatMenu=toggleNatMenu; window.setNatFilter=setNatFilter;
 window.selectGender=selectGender;
 window.openServicePopup=openServicePopup; window.toggleService=toggleService; window.closeServicePopup=closeServicePopup;
 window.openDatePicker=openDatePicker; window.closeDatePicker=closeDatePicker;
