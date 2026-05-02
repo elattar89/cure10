@@ -344,12 +344,26 @@ body{font-family:'Tajawal',sans-serif;direction:rtl;background:#0d1117;color:#e6
   <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-bottom:.8rem;">
     <button class="add-bottom-btn" onclick="openModal()">➕ إضافة مؤثر جديد</button>
     <button class="add-bottom-btn" onclick="openBulkModal()" style="background:linear-gradient(135deg,#4c1d95,#7c3aed);">⚡ إضافة جماعية</button>
+    <button class="add-bottom-btn" onclick="openFormImport()" style="background:linear-gradient(135deg,#0e7490,#0891b2);">📋 إضافة من فورم</button>
     <button class="save-bottom-btn" id="manualSaveBtn" onclick="manualSave()">💾 حفظ يدوي</button>
   </div>
   <div>مركز كيور الطبي © 2026 — جميع الحقوق محفوظة</div>
 </div>
 
-<!-- Service Popup -->
+<!-- Form Import Modal -->
+<div class="modal-overlay hidden" id="formImportOverlay">
+  <div class="modal" style="max-width:480px;">
+    <h3>📋 إضافة من فورم</h3>
+    <p style="font-size:12px;color:#6e7681;margin-bottom:.8rem;">الصق محتوى الإيميل اللي وصلك من الفورم كاملاً</p>
+    <textarea id="formImportText" style="width:100%;height:220px;background:#0d1117;border:1px solid #30363d;border-radius:10px;color:#e6edf3;font-size:12px;padding:.8rem;font-family:Tajawal,sans-serif;resize:vertical;direction:rtl;" placeholder="الصق النص هنا..."></textarea>
+    <div id="formImportPreview" style="display:none;margin-top:.8rem;background:#0d1f14;border:1px solid #16a34a;border-radius:10px;padding:.8rem;font-size:12px;"></div>
+    <div class="modal-actions">
+      <button class="modal-cancel" onclick="closeFormImport()">إلغاء</button>
+      <button class="modal-save" style="background:#0891b2;" onclick="parseFormImport()">🔍 استخراج البيانات</button>
+      <button class="modal-save" id="formImportAddBtn" style="display:none;background:#059669;" onclick="confirmFormImport()">✅ إضافة</button>
+    </div>
+  </div>
+</div>
 <div class="service-popup" id="servicePopup" onclick="if(event.target===this)closeServicePopup()">
   <div class="service-popup-inner" onclick="event.stopPropagation()">
     <div style="font-size:14px;font-weight:700;color:#e6edf3;text-align:center;margin-bottom:.8rem;font-family:Tajawal,sans-serif;">اختر الخدمة</div>
@@ -822,10 +836,19 @@ function updateReportBtn(f) {
     btn.style.background=colors[f]||'#1e3a5f';
   } else btn.style.display='none';
 }
-function setFilter(f,btn) {
-  currentFilter=f;
-  document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));
+function setFilter(f, btn) {
+  currentFilter = f;
+  // Remove active from all filter-btn
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  // Also reset visitedBtn style
+  const vb = document.getElementById('visitedBtn');
+  if(vb) { vb.style.background = '#0d1f14'; vb.style.color = '#34d399'; vb.style.border = '1px solid #059669'; }
   if(btn) btn.classList.add('active');
+  // If visited button was clicked (it's not a filter-btn)
+  if(f === 'visited' && vb) {
+    vb.style.background = '#059669';
+    vb.style.color = '#fff';
+  }
   ['kuwait','gulf','egypt','sham','foreign'].forEach(k=>{const b=document.getElementById('fbn-'+k);if(b)b.style.background='';});
   ['kw','eg','gu','sh','fr'].forEach(k=>{const b=document.getElementById('fbdl-'+k);if(b)b.style.background='';});
   const nm=document.getElementById('natMenu');if(nm)nm.style.display='none';
@@ -994,6 +1017,7 @@ function renderGrid() {
         ${item.status!=='pending'?`<button class="action-btn reset-btn" onclick="setStatus(${idx},'pending')">↺ إعادة</button>`:''}
         <button class="action-btn" onclick="openEditModal(${idx})">✏️ تعديل</button>
         <button class="action-btn" onclick="deleteInfluencer(${idx})" style="border-color:#dc2626;color:#f87171;">🗑</button>
+        ${item.status==='approved'&&item.phone?`<button class="action-btn" onclick="sendWhatsApp(${idx})" style="border-color:#25d366;color:#25d366;font-size:12px;">📲 إرسال الموافقة</button>`:''}
       </div>
       <button id="dlctBtn_${idx}" class="svc-btn ${hasDlct?'has-service':''}" style="${hasDlct?'border-color:#0891b2;color:#22d3ee;':''}" onclick="openDialectPopup(${idx},event)"><span id="dlctLabel_${idx}">${dlctLabel}</span></button>
       <button id="svcBtn_${idx}" class="svc-btn ${hasSvc?'has-service':''}" onclick="openServicePopup(${idx},event)"><span id="svcLabel_${idx}">${svcLabel}</span></button>
@@ -1295,11 +1319,121 @@ function dupSingleAddAnyway() {
 }
 function dupSingleUpdate() { dupSingleApplySelected(); } // backward compat
 
+function sendWhatsApp(idx) {
+  const item = influencers[idx];
+  if(!item.phone) return;
+  const name = item.name || item.ig || 'مؤثر';
+  const phone = item.phone.replace(/\D/g,'');
+  const fullPhone = phone.startsWith('965') ? phone : '965' + phone;
+  const msg = `مرحبا ${name}
+تم قبولكم لتغطية عيادة التجميل في الشعب البحري
+الرجاء التسجيل في الرابط:
+https://v0-modern-contact-form-2g.vercel.app/
+
+شروط الحملة:
+1- صوتك الحقيقي وليس AI.
+2- إظهار الوجه شرط أساسي من شروط الحملة.
+3- التحدث عن تفاصيل المكان والتعامل عن استقبال أفراد العيادة لكم وشرح الخدمة المقدمة لكم.
+4- التغطية ريل فقط ولمنصتين (انستجرام - تيك توك) وسناب شات إذا متاح.
+5- وضع أرقام التواصل الخاصة بالعيادة والعنوان في آخر الريل.
+
+التغطية مقابل خدمات من العيادة:
+عمل أو عملين على حسب الاتفاق
+الأعمال المقدمة: فيلر - بوتوكس - إبرة نضارة - ليزر - تنظيف بشرة عميق على حسب استشارتك مع الدكتورة.
+
+في حالة القبول وقمت بالتسجيل سيتم التواصل معكم لتحديد موعد.
+
+ملحوظة هامة: غير مسموح إرسال اللينك أو الرسالة لأي أحد (لأنه يتم إرسال هذا الرابط للمقبولين فقط)
+وأي محاولة لمشاركة هذا اللينك أو هذه الرسالة يتم ظهور تفاصيل مرسلها على السيستم ويتم استبعاده من الحملة (سيتم استبعاد المرسل والمرسل له).
+
+إرسال هذه الرسالة لا تعني الموافقة النهائية.
+شكراً ونتشرف بوجودكم`;
+  window.open(`https://wa.me/${fullPhone}?text=${encodeURIComponent(msg)}`, '_blank');
+}
+window.sendWhatsApp = sendWhatsApp;
+
+// ── Form Import ───────────────────────────────────────────────────
+let _formImportItem = null;
+
+function openFormImport() {
+  document.getElementById('formImportText').value = '';
+  document.getElementById('formImportPreview').style.display = 'none';
+  document.getElementById('formImportAddBtn').style.display = 'none';
+  document.getElementById('formImportOverlay').classList.remove('hidden');
+}
+function closeFormImport() {
+  document.getElementById('formImportOverlay').classList.add('hidden');
+  _formImportItem = null;
+}
+
+function parseFormImport() {
+  const text = document.getElementById('formImportText').value;
+  if(!text.trim()) return;
+
+  // Extract fields
+  function extract(label) {
+    const regex = new RegExp(label + '\\s*\\n([^\\n]+)', 'i');
+    const m = text.match(regex);
+    return m ? m[1].trim() : '';
+  }
+
+  const name       = extract('الاسم الثلاثي') || extract('الاسم');
+  const gender_raw = extract('الجنس');
+  const civil      = extract('الرقم المدني');
+  const phone_raw  = extract('رقم التلفون') || extract('رقم الهاتف') || extract('رقم التواصل');
+  const nat_raw    = extract('الجنسية');
+  const ig_raw     = extract('انستاجرام') || extract('انستغرام') || extract('Instagram');
+  const tt_raw     = extract('تيك توك') || extract('TikTok');
+  const snap_raw   = extract('سناب شات') || extract('Snapchat') || extract('سناب');
+
+  // Normalize
+  const gender = gender_raw.includes('أنثى') || gender_raw.includes('انثى') || gender_raw.includes('female') ? 'f' : gender_raw.includes('ذكر') || gender_raw.includes('male') ? 'm' : '';
+  const phone = normalizePhone(phone_raw);
+  const ig = ig_raw ? '@' + normalizeIg(ig_raw) : '';
+  const ig_url = ig_raw.startsWith('http') ? ig_raw.split('?')[0] : ig ? 'https://www.instagram.com/' + ig.replace('@','') : '';
+  const tt = tt_raw.includes('tiktok.com/@') ? '@' + tt_raw.split('tiktok.com/@').pop().split('?')[0] : tt_raw ? tt_raw : '';
+  const tt_url = tt_raw.startsWith('http') ? tt_raw.split('?')[0] : '';
+
+  _formImportItem = { name, civil, phone, nationality: nat_raw, gender, ig, ig_url, tt, tt_url, snap: snap_raw, status: 'pending' };
+
+  // Preview
+  const preview = document.getElementById('formImportPreview');
+  preview.style.display = 'block';
+  preview.innerHTML = `
+    <div style="font-weight:700;color:#4ade80;margin-bottom:6px;">✅ تم استخراج البيانات:</div>
+    ${name?`<div>👤 <b>الاسم:</b> ${name}</div>`:''}
+    ${gender?`<div>${gender==='f'?'👩 أنثى':'👨 ذكر'}</div>`:''}
+    ${civil?`<div>🪪 <b>الرقم المدني:</b> ${civil}</div>`:''}
+    ${phone?`<div>📞 <b>الموبايل:</b> ${phone}</div>`:''}
+    ${nat_raw?`<div>🌍 <b>الجنسية:</b> ${nat_raw}</div>`:''}
+    ${ig?`<div>📸 <b>انستاجرام:</b> ${ig}</div>`:''}
+    ${tt?`<div>🎵 <b>تيك توك:</b> ${tt}</div>`:''}
+    ${snap_raw?`<div>👻 <b>سناب:</b> سناب ✓</div>`:''}
+  `;
+  document.getElementById('formImportAddBtn').style.display = 'block';
+}
+
+function confirmFormImport() {
+  if(!_formImportItem) return;
+  const dup = findDuplicate(_formImportItem);
+  if(dup) {
+    closeFormImport();
+    showSingleDupWarning(_formImportItem, dup);
+    return;
+  }
+  influencers.push(_formImportItem);
+  renderGrid(); saveFile();
+  closeFormImport();
+  showToast('✅ تم إضافة المؤثر من الفورم', '#059669');
+}
+
 function manualSave(){
   const btn=document.getElementById('manualSaveBtn');
   saveFile();btn.classList.add('saving');btn.textContent='✅ تم الحفظ!';
   setTimeout(()=>{btn.textContent='💾 حفظ يدوي';btn.classList.remove('saving');},2000);
 }
+window.openFormImport=openFormImport; window.closeFormImport=closeFormImport;
+window.parseFormImport=parseFormImport; window.confirmFormImport=confirmFormImport;
 
 function openServicePopup(idx, e){
   e.stopPropagation();
