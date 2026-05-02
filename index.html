@@ -333,7 +333,7 @@ body{font-family:'Tajawal',sans-serif;direction:rtl;background:#0d1117;color:#e6
     </div>
   </div>
   <button class="filter-btn" onclick="openApptPanel()" style="white-space:nowrap;border-color:#0891b2;color:#22d3ee;">📅 مواعيد</button>
-  <button class="filter-btn" id="fb-deleted" onclick="setFilter('deleted',this)" style="white-space:nowrap;border-color:#6b2020;color:#f87171;flex-shrink:0;">🗑 المحذوفين <span id="deletedBadge" style="display:none;background:#dc2626;color:#fff;border-radius:10px;padding:1px 6px;font-size:10px;margin-right:2px;">0</span></button>
+  <button class="filter-btn" id="fb-deleted" onclick="setFilter('deleted',this)" style="white-space:nowrap;border-color:#6b2020;color:#f87171;flex-shrink:0;">✕ المحذوفين <span id="deletedBadge" style="display:none;background:#dc2626;color:#fff;border-radius:10px;padding:1px 6px;font-size:10px;margin-right:2px;">0</span></button>
   <button id="visitedBtn" style="display:none;padding:7px 14px;border-radius:9px;border:1px solid #059669;font-size:13px;cursor:pointer;font-family:Tajawal,sans-serif;white-space:nowrap;font-weight:700;background:#0d1f14;color:#34d399;transition:.15s;" onclick="setFilter('visited',this)">🏁 اكتملت الزيارة</button>
   <button id="reportBtn" style="display:none;padding:7px 14px;border-radius:9px;border:1px solid #1a6fa8;font-size:13px;cursor:pointer;font-family:Tajawal,sans-serif;white-space:nowrap;font-weight:700;background:#1e3a5f;color:#60a5fa;transition:.15s;" onclick="openReportFromBtn()">📋 كشف</button>
 </div>
@@ -794,12 +794,14 @@ function findDuplicate(newItem) {
   const nIg = normalizeIg(newItem.ig);
   const nTt = (newItem.tt||'').replace('@','').toLowerCase().trim().split('?')[0];
   const nSnap = normalizeSnap(newItem.snap);
+  const nCivil = (newItem.civil||'').replace(/\s/g,'').replace(/[٠-٩]/g, d=>'٠١٢٣٤٥٦٧٨٩'.indexOf(d).toString());
   for(let i=0;i<influencers.length;i++){
     const ex = influencers[i]; const reasons=[];
     if(nPhone && nPhone.length>=7 && normalizePhone(ex.phone)===nPhone) reasons.push('رقم الموبايل');
     if(nIg && nIg.length>2 && normalizeIg(ex.ig)===nIg) reasons.push('حساب انستاجرام');
     if(nTt && nTt.length>2 && (ex.tt||'').replace('@','').toLowerCase().trim().split('?')[0]===nTt) reasons.push('حساب تيك توك');
     if(nSnap && nSnap.length>3 && normalizeSnap(ex.snap)===nSnap) reasons.push('سناب شات');
+    if(nCivil && nCivil.length>=8 && (ex.civil||'').replace(/\s/g,'')===nCivil) reasons.push('الرقم المدني');
     if(reasons.length>0) return {idx:i,item:ex,reasons};
   }
   return null;
@@ -1546,17 +1548,38 @@ function parseFormImport() {
 
 function confirmFormImport() {
   if(!_formImportItem) return;
-  const dup = findDuplicate(_formImportItem);
+  const itemToAdd = Object.assign({}, _formImportItem);
+  const dup = findDuplicate(itemToAdd);
+  document.getElementById('formImportOverlay').classList.add('hidden');
+  // Don't clear _formImportItem yet — showSingleDupWarning will set _pendingSingleItem
+  _formImportItem = null;
   if(dup) {
-    closeFormImport();
-    showSingleDupWarning(_formImportItem, dup);
+    showSingleDupWarning(itemToAdd, dup);
     return;
   }
-  influencers.push(_formImportItem);
+  influencers.push(itemToAdd);
   renderGrid(); saveFile();
-  closeFormImport();
   showToast('✅ تم إضافة المؤثر من الفورم', '#059669');
 }
+
+// ── Convert Arabic digits to Western in all number inputs ─────────
+function convertArabicDigits(str) {
+  return (str||'').replace(/[٠-٩]/g, d => '٠١٢٣٤٥٦٧٨٩'.indexOf(d).toString());
+}
+document.addEventListener('input', function(e) {
+  const el = e.target;
+  if(el.tagName !== 'INPUT') return;
+  const mode = el.getAttribute('inputmode') || '';
+  if(mode === 'tel' || mode === 'numeric' ||
+     el.id === 'mPhone' || el.id === 'ePhone' || el.id === 'mCivil' || el.id === 'eCivil') {
+    const converted = convertArabicDigits(el.value);
+    if(converted !== el.value) {
+      const pos = el.selectionStart;
+      el.value = converted;
+      try { el.setSelectionRange(pos, pos); } catch(e){}
+    }
+  }
+});
 
 function manualSave(){
   const btn=document.getElementById('manualSaveBtn');
@@ -2095,8 +2118,14 @@ const MIGRATIONS = {
       { name:'حوراء', phone:'55855832', civil:'287090500068', nationality:'كويتي', gender:'f', ig:'@modacode.kw', ig_url:'https://www.instagram.com/modacode.kw', tt:'@modacode.kw', tt_url:'https://www.tiktok.com/@modacode.kw', snap:'', status:'approved', services:['فيلر'], visitStatus:'done', visitDate:'2026-04-30', dialects:['كويتي'], visitRating:1 },
     ].forEach(item => { if(findByIg(item.ig) === -1) influencers.push(item); });
 
-    // Update existing with missing data
-    const iMonay = findByIg('monayasine'); if(iMonay!==-1 && !influencers[iMonay].nationality) influencers[iMonay].nationality='';
+    // Update dalaly3_ with form data
+    const iDalaly = findByIg('dalaly3_');
+    if(iDalaly !== -1) {
+      if(!influencers[iDalaly].name) influencers[iDalaly].name = 'دلال احمد العطار';
+      if(!influencers[iDalaly].civil) influencers[iDalaly].civil = '298011901458';
+      if(!influencers[iDalaly].nationality) influencers[iDalaly].nationality = 'كويتي';
+      influencers[iDalaly].phone = '55025286'; // fix Arabic digits
+    } if(iMonay!==-1 && !influencers[iMonay].nationality) influencers[iMonay].nationality='';
     const iSiham = findByIg('siham_7ala'); if(iSiham!==-1){ if(!influencers[iSiham].civil) influencers[iSiham].civil='272051800912'; if(!influencers[iSiham].nationality) influencers[iSiham].nationality='لبناني'; }
     const iTota = findByIg('tota_artist2'); if(iTota!==-1){ if(!influencers[iTota].civil) influencers[iTota].civil='281061400845'; if(!influencers[iTota].nationality) influencers[iTota].nationality='كويتي'; }
     const iMnar = findByIg('t2rif'); if(iMnar!==-1){ if(!influencers[iMnar].civil) influencers[iMnar].civil='298050903683'; if(!influencers[iMnar].nationality) influencers[iMnar].nationality='كويتي'; }
@@ -2113,14 +2142,46 @@ function runMigrations() {
   return ran;
 }
 
+// ── Remove duplicates on every load ──────────────────────────────
+function removeDuplicates() {
+  const seenPhones = {}, seenIgs = {}, seenTts = {}, seenSnaps = {}, seenCivils = {};
+  const toRemove = [];
+  influencers.forEach((item, i) => {
+    const ph = normalizePhone(item.phone);
+    const ig = normalizeIg(item.ig);
+    const tt = (item.tt||'').replace('@','').toLowerCase().trim().split('?')[0];
+    const sn = normalizeSnap(item.snap);
+    const cv = (item.civil||'').replace(/\s/g,'').replace(/[٠-٩]/g, d=>'٠١٢٣٤٥٦٧٨٩'.indexOf(d).toString());
+    let isDup = false;
+    if(ph && ph.length>=7 && seenPhones[ph]!==undefined) isDup=true;
+    if(ig && ig.length>2 && seenIgs[ig]!==undefined) isDup=true;
+    if(tt && tt.length>2 && seenTts[tt]!==undefined) isDup=true;
+    if(sn && sn.length>3 && seenSnaps[sn]!==undefined) isDup=true;
+    if(cv && cv.length>=8 && seenCivils[cv]!==undefined) isDup=true;
+    if(isDup){ toRemove.push(i); return; }
+    if(ph && ph.length>=7) seenPhones[ph]=i;
+    if(ig && ig.length>2) seenIgs[ig]=i;
+    if(tt && tt.length>2) seenTts[tt]=i;
+    if(sn && sn.length>3) seenSnaps[sn]=i;
+    if(cv && cv.length>=8) seenCivils[cv]=i;
+  });
+  toRemove.reverse().forEach(i => influencers.splice(i, 1));
+  return toRemove.length;
+}
+
 async function init() {
   initNationalitySelects();
   const loaded = await loadFromStorage();
   if(!loaded) { influencers = JSON.parse(JSON.stringify(DEFAULT_INFLUENCERS)); }
   runMigrations();
+  // Normalize all phone numbers
+  influencers.forEach(item => { if(item.phone) item.phone = normalizePhone(item.phone); });
+  // Remove duplicates
+  const removed = removeDuplicates();
   await saveToStorage();
   document.getElementById('loadingOverlay').style.display = 'none';
   renderGrid();
+  if(removed > 0) showToast('🧹 تم حذف '+removed+' تكرار تلقائياً', '#ca8a04');
 }
 init();
 
