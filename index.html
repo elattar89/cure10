@@ -335,6 +335,7 @@ body{font-family:'Tajawal',sans-serif;direction:rtl;background:#0d1117;color:#e6
   <button class="filter-btn" onclick="openApptPanel()" style="white-space:nowrap;border-color:#0891b2;color:#22d3ee;">📅 مواعيد</button>
   <button class="filter-btn" id="fb-deleted" onclick="setFilter('deleted',this)" style="white-space:nowrap;border-color:#6b2020;color:#f87171;flex-shrink:0;">✕ المحذوفين <span id="deletedBadge" style="display:none;background:#dc2626;color:#fff;border-radius:10px;padding:1px 6px;font-size:10px;margin-right:2px;">0</span></button>
   <button id="visitedBtn" style="display:none;padding:7px 14px;border-radius:9px;border:1px solid #059669;font-size:13px;cursor:pointer;font-family:Tajawal,sans-serif;white-space:nowrap;font-weight:700;background:#0d1f14;color:#34d399;transition:.15s;" onclick="setFilter('visited',this)">🏁 اكتملت الزيارة</button>
+  <button id="cancelledBtn" style="display:none;padding:7px 14px;border-radius:9px;border:1px solid #dc2626;font-size:13px;cursor:pointer;font-family:Tajawal,sans-serif;white-space:nowrap;font-weight:700;background:#1a0808;color:#f87171;transition:.15s;" onclick="setFilter('cancelled',this)">❌ ألغيت الزيارة</button>
   <button id="reportBtn" style="display:none;padding:7px 14px;border-radius:9px;border:1px solid #1a6fa8;font-size:13px;cursor:pointer;font-family:Tajawal,sans-serif;white-space:nowrap;font-weight:700;background:#1e3a5f;color:#60a5fa;transition:.15s;" onclick="openReportFromBtn()">📋 كشف</button>
 </div>
 
@@ -842,7 +843,8 @@ function showToast(msg, color='#059669') {
 
 function updateStats() {
   const visited=influencers.filter(i=>i.status==='approved'&&i.visitStatus==='done').length;
-  const approved=influencers.filter(i=>i.status==='approved'&&i.visitStatus!=='done').length;
+  const cancelled=influencers.filter(i=>i.status==='approved'&&i.visitStatus==='cancelled').length;
+  const approved=influencers.filter(i=>i.status==='approved'&&i.visitStatus!=='done'&&i.visitStatus!=='cancelled').length;
   const rejected=influencers.filter(i=>i.status==='rejected').length;
   const total=influencers.length;
   document.getElementById('statTotal').textContent=total;
@@ -868,8 +870,10 @@ const REPORT_LABELS = {approved:'📋 كشف المقبولين',rejected:'📋 
 function updateReportBtn(f) {
   const btn=document.getElementById('reportBtn'); if(!btn) return;
   const vBtn=document.getElementById('visitedBtn');
-  // Show visited button only when approved filter is active
-  if(vBtn) vBtn.style.display=(f==='approved')?'block':'none';
+  const cBtn=document.getElementById('cancelledBtn');
+  const showSub=(f==='approved');
+  if(vBtn) vBtn.style.display=showSub?'block':'none';
+  if(cBtn) cBtn.style.display=showSub?'block':'none';
   if(REPORT_FILTERS.includes(f)){
     btn.style.display='block'; btn.textContent=REPORT_LABELS[f];
     const colors={approved:'#1e5c2d',rejected:'#5c1e1e',male:'#1e3a5f',female:'#4a044e'};
@@ -1006,9 +1010,10 @@ function renderGrid() {
     const searchStr=(name+item.ig+item.tt+item.phone+item.snap+(item.nationality||'')).toLowerCase();
     const matchSearch=!q||searchStr.includes(q);
     const matchFilter=currentFilter==='all'||
-      (currentFilter==='approved'&&item.status==='approved'&&item.visitStatus!=='done')||
+      (currentFilter==='approved'&&item.status==='approved'&&item.visitStatus!=='done'&&item.visitStatus!=='cancelled')||
       (currentFilter==='rejected'&&item.status==='rejected')||
       (currentFilter==='visited'&&item.status==='approved'&&item.visitStatus==='done')||
+      (currentFilter==='cancelled'&&item.status==='approved'&&item.visitStatus==='cancelled')||
       (currentFilter==='ig'&&item.ig)||(currentFilter==='tt'&&item.tt)||(currentFilter==='snap'&&item.snap)||
       (currentFilter==='all3'&&item.ig&&item.tt&&item.snap)||
       (currentFilter==='male'&&item.gender==='m')||(currentFilter==='female'&&item.gender==='f')||
@@ -1043,7 +1048,8 @@ function renderGrid() {
     const dateLabel=hasDate?'📅 '+formatDateAr(item.visitDate):'📅 تحديد موعد الزيارة';
     const dlctLabel=item.dialects&&item.dialects.length?'🗣️ يتحدث : '+item.dialects.join(' · '):'🗣️ اللهجة';
     const hasDlct=item.dialects&&item.dialects.length>0;
-    html+=`<div class="card ${item.status||'pending'}" data-idx="${idx}">
+    html+=`<div class="card ${item.status||'pending'}" data-idx="${idx}" style="${item.visitStatus==='cancelled'?'border-color:#ca8a04;background:rgba(202,138,4,0.08);':''}">
+      ${item.visitStatus==='cancelled'?`<div style="background:#ca8a04;color:#000;font-size:11px;font-weight:700;padding:3px 10px;border-radius:6px;margin-bottom:.5rem;display:inline-block;">⚠️ تم إلغاء الموعد</div>`:''}
       <div class="card-top">
         <div class="avatar" style="background:${color}">${initial}</div>
         <div class="card-info">
