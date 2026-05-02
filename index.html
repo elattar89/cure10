@@ -31,8 +31,6 @@ body{font-family:'Tajawal',sans-serif;direction:rtl;background:#0d1117;color:#e6
 .filter-btn.active,.filter-btn:hover{background:#1a6fa8;border-color:#1a6fa8;color:#fff;}
 .filter-btn.f-approved.active{background:#16a34a;border-color:#16a34a;}
 .filter-btn.f-rejected.active{background:#dc2626;border-color:#dc2626;}
-.add-btn{padding:7px 14px;border-radius:9px;background:#1a6fa8;border:none;color:#fff;font-size:13px;cursor:pointer;font-family:'Tajawal',sans-serif;white-space:nowrap;display:flex;align-items:center;gap:5px;}
-.add-btn:hover{background:#1560a0;}
 .count-badge{background:#21262d;border:1px solid #30363d;color:#8b949e;font-size:12px;padding:6px 12px;border-radius:7px;white-space:nowrap;}
 .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:.9rem;padding:1.2rem;}
 .card{background:#161b22;border:1px solid #21262d;border-radius:14px;padding:1rem;transition:border-color .2s,transform .15s;position:relative;}
@@ -44,7 +42,6 @@ body{font-family:'Tajawal',sans-serif;direction:rtl;background:#0d1117;color:#e6
 .card-info{flex:1;min-width:0;}
 .card-name{font-size:14px;font-weight:700;color:#e6edf3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .card-phone{font-size:12px;color:#6e7681;margin-top:2px;direction:ltr;text-align:right;}
-.card-idx{font-size:11px;color:#484f58;margin-top:1px;}
 .status-badge{font-size:11px;padding:3px 10px;border-radius:20px;font-weight:700;white-space:nowrap;}
 .status-badge.pending{background:#21262d;color:#8b949e;border:1px solid #30363d;}
 .status-badge.approved{background:#14532d;color:#4ade80;border:1px solid #16a34a;}
@@ -69,6 +66,18 @@ body{font-family:'Tajawal',sans-serif;direction:rtl;background:#0d1117;color:#e6
 .svc-btn{width:100%;padding:5px 8px;border-radius:7px;border:1px solid #30363d;background:#21262d;color:#6e7681;font-size:11px;cursor:pointer;font-family:'Tajawal',sans-serif;margin-top:4px;text-align:center;transition:all .15s;}
 .svc-btn.has-service{border-color:#7c3aed;color:#c084fc;}
 .civil-badge{font-size:10px;color:#484f58;margin-top:2px;}
+.nationality-badge{font-size:10px;color:#0e9a6e;margin-top:2px;font-weight:600;}
+/* Phone action popup */
+.phone-popup-overlay{position:fixed;inset:0;z-index:1000;background:rgba(0,0,0,.5);display:flex;align-items:flex-end;justify-content:center;padding-bottom:env(safe-area-inset-bottom,0);}
+.phone-popup{background:#1c2128;border-radius:20px 20px 0 0;padding:1.2rem 1rem 1.4rem;width:100%;max-width:420px;animation:slideUp .2s ease;}
+@keyframes slideUp{from{transform:translateY(100%);}to{transform:translateY(0);}}
+.phone-popup-name{font-size:13px;color:#8b949e;text-align:center;margin-bottom:.3rem;}
+.phone-popup-num{font-size:20px;font-weight:900;color:#e6edf3;text-align:center;direction:ltr;margin-bottom:1rem;letter-spacing:1px;}
+.phone-popup-btns{display:grid;grid-template-columns:1fr 1fr;gap:.7rem;}
+.phone-popup-btn{padding:.9rem;border-radius:14px;border:none;font-size:15px;font-weight:700;cursor:pointer;font-family:'Tajawal',sans-serif;display:flex;align-items:center;justify-content:center;gap:.5rem;text-decoration:none;}
+.phone-popup-btn.whatsapp{background:#25d366;color:#fff;}
+.phone-popup-btn.call{background:#1a6fa8;color:#fff;}
+.phone-popup-cancel{width:100%;margin-top:.6rem;padding:.8rem;border-radius:12px;border:1px solid #30363d;background:#21262d;color:#8b949e;font-size:14px;cursor:pointer;font-family:'Tajawal',sans-serif;}
 .gender-badge{font-size:10px;padding:2px 6px;border-radius:10px;display:inline-block;}
 .gender-badge.m{background:#1e3a5f;color:#60a5fa;}
 .gender-badge.f{background:#4a1942;color:#f0abfc;}
@@ -79,7 +88,6 @@ body{font-family:'Tajawal',sans-serif;direction:rtl;background:#0d1117;color:#e6
 .save-bottom-btn.saving{background:linear-gradient(135deg,#0f3a22,#15803d);}
 .fab{position:fixed;bottom:24px;left:24px;width:52px;height:52px;border-radius:50%;background:linear-gradient(135deg,#0a3d62,#1a6fa8);border:none;color:#fff;font-size:24px;cursor:pointer;box-shadow:0 4px 20px rgba(26,111,168,0.5);display:flex;align-items:center;justify-content:center;z-index:200;transition:transform .2s;}
 .fab:hover{transform:scale(1.1);}
-/* Modals */
 .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:300;display:flex;align-items:center;justify-content:center;padding:1rem;}
 .modal-overlay.hidden{display:none;}
 .modal{background:#161b22;border:1px solid #30363d;border-radius:16px;padding:1.5rem;width:100%;max-width:440px;max-height:90vh;overflow-y:auto;}
@@ -88,19 +96,21 @@ body{font-family:'Tajawal',sans-serif;direction:rtl;background:#0d1117;color:#e6
 .modal-field label{display:block;font-size:12px;color:#8b949e;margin-bottom:4px;}
 .modal-field input{width:100%;padding:9px 12px;background:#21262d;border:1px solid #30363d;border-radius:9px;color:#e6edf3;font-size:13px;font-family:'Tajawal',sans-serif;direction:rtl;}
 .modal-field input:focus{outline:none;border-color:#1a6fa8;}
+.modal-field select{width:100%;padding:9px 12px;background:#21262d;border:1px solid #30363d;border-radius:9px;color:#e6edf3;font-size:13px;font-family:'Tajawal',sans-serif;direction:rtl;cursor:pointer;appearance:none;-webkit-appearance:none;}
+.modal-field select:focus{outline:none;border-color:#1a6fa8;}
+.modal-field select option{background:#21262d;}
 .modal-actions{display:flex;gap:8px;margin-top:1.2rem;}
 .modal-cancel{flex:1;padding:10px;border-radius:9px;border:1px solid #30363d;background:#21262d;color:#8b949e;font-size:13px;cursor:pointer;font-family:'Tajawal',sans-serif;}
 .modal-save{flex:2;padding:10px;border-radius:9px;border:none;background:#1a6fa8;color:#fff;font-size:13px;font-weight:700;cursor:pointer;font-family:'Tajawal',sans-serif;}
-/* Bulk */
 .bulk-hint{background:#21262d;border-radius:8px;padding:.7rem;font-size:11px;color:#8b949e;margin-bottom:.8rem;line-height:1.7;}
 .bulk-textarea{width:100%;height:180px;background:#21262d;border:1px solid #30363d;border-radius:9px;color:#e6edf3;font-size:12px;font-family:'Tajawal',sans-serif;padding:.7rem;resize:vertical;direction:rtl;}
-/* Service popup */
-.service-popup{position:fixed;background:#1c2128;border:1px solid #30363d;border-radius:12px;padding:.6rem;z-index:400;box-shadow:0 8px 32px rgba(0,0,0,.5);min-width:160px;display:none;}
-.service-popup.open{display:block;}
-.service-option{display:flex;align-items:center;gap:8px;padding:.5rem .7rem;border-radius:8px;cursor:pointer;font-size:13px;transition:background .15s;}
+.service-popup{position:fixed;inset:0;z-index:500;background:rgba(0,0,0,.55);display:none;align-items:flex-end;justify-content:center;}
+.service-popup.open{display:flex;}
+.service-popup-inner{background:#1c2128;border-radius:20px 20px 0 0;padding:1.2rem 1rem 1.5rem;width:100%;max-width:440px;animation:slideUp .2s ease;}
+.service-option{display:flex;align-items:center;gap:10px;padding:.75rem 1rem;border-radius:10px;cursor:pointer;font-size:15px;transition:background .15s;margin-bottom:4px;}
 .service-option:hover{background:#21262d;}
 .service-option.checked{background:#1a1040;color:#c084fc;}
-/* Date picker */
+.service-option input[type=checkbox]{width:18px;height:18px;cursor:pointer;accent-color:#7c3aed;flex-shrink:0;}
 .date-picker-popup{position:fixed;background:#1c2128;border:1px solid #30363d;border-radius:12px;padding:.8rem;z-index:400;box-shadow:0 8px 32px rgba(0,0,0,.5);width:280px;display:none;}
 .date-picker-popup.open{display:block;}
 .date-picker-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:.5rem;}
@@ -117,23 +127,26 @@ body{font-family:'Tajawal',sans-serif;direction:rtl;background:#0d1117;color:#e6
 .dp-day.empty{cursor:default;}
 .dp-close-btn{width:100%;margin-top:.5rem;padding:7px;border-radius:8px;background:#1a6fa8;border:none;color:#fff;font-family:'Tajawal',sans-serif;cursor:pointer;font-size:13px;}
 .dp-clear-btn{width:100%;margin-top:4px;padding:6px;border-radius:8px;background:#21262d;border:1px solid #30363d;color:#8b949e;font-family:'Tajawal',sans-serif;cursor:pointer;font-size:12px;}
-/* Duplicate modals */
 .dup-match-reason{background:#2d1f0e;border:1px solid #d97706;border-radius:8px;padding:.5rem .8rem;font-size:12px;color:#fbbf24;margin-bottom:.7rem;}
-.dup-compare{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:.8rem;}
-.dup-col-existing,.dup-col-new{background:#21262d;border-radius:8px;padding:.6rem;font-size:11px;}
-.dup-col-label{font-size:11px;font-weight:700;color:#6e7681;margin-bottom:.4rem;border-bottom:1px solid #30363d;padding-bottom:.3rem;}
-.dup-field{margin-bottom:3px;color:#8b949e;}
-.dup-field.highlight{color:#fbbf24;font-weight:700;}
+/* Field comparison table */
+.dup-field-row{display:grid;grid-template-columns:80px 1fr 1fr 36px;gap:6px;align-items:center;padding:5px 4px;border-radius:8px;margin-bottom:3px;}
+.dup-field-row:hover{background:#1c2128;}
+.dup-field-label{font-size:11px;color:#6e7681;font-weight:700;}
+.dup-field-old{font-size:12px;color:#8b949e;padding:4px 8px;background:#21262d;border-radius:6px;min-height:28px;display:flex;align-items:center;word-break:break-all;}
+.dup-field-new{font-size:12px;color:#e6edf3;padding:4px 8px;background:#0d1f14;border:1px solid #16a34a;border-radius:6px;min-height:28px;display:flex;align-items:center;word-break:break-all;}
+.dup-field-new.empty{background:#21262d;border-color:#30363d;color:#484f58;}
+.dup-check{width:18px;height:18px;cursor:pointer;accent-color:#059669;}
+.dup-col-headers{display:grid;grid-template-columns:80px 1fr 1fr 36px;gap:6px;margin-bottom:4px;padding:0 4px;}
+.dup-col-h{font-size:10px;color:#484f58;font-weight:700;text-align:center;}
 .dup-item{background:#21262d;border:1px solid #30363d;border-radius:10px;padding:.8rem;margin-bottom:.6rem;}
 .dup-item-title{display:flex;justify-content:space-between;align-items:center;font-size:13px;font-weight:700;margin-bottom:.6rem;}
 .dup-item-actions{display:flex;gap:6px;flex-wrap:wrap;margin-top:.6rem;}
 .dup-btn-skip,.dup-btn-update,.dup-btn-add-anyway{flex:1;padding:6px 8px;border-radius:7px;font-size:12px;cursor:pointer;font-family:'Tajawal',sans-serif;border:1px solid #30363d;background:#21262d;color:#8b949e;}
 .dup-btn-update{border-color:#1a6fa8;color:#60a5fa;}
 .dup-btn-add-anyway{border-color:#d97706;color:#fbbf24;}
-/* Appointment panel */
-.appt-panel-overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:300;display:flex;align-items:flex-start;justify-content:flex-end;display:none;}
-.appt-panel-overlay.open{display:flex;}
-.appt-panel{background:#161b22;border-right:none;border-left:1px solid #21262d;width:min(380px,100vw);height:100vh;overflow-y:auto;padding:1.2rem;}
+.appt-panel-overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:300;display:none;}
+.appt-panel-overlay.open{display:flex;align-items:flex-start;justify-content:flex-end;}
+.appt-panel{background:#161b22;border-left:1px solid #21262d;width:min(380px,100vw);height:100vh;overflow-y:auto;padding:1.2rem;}
 .appt-panel-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;border-bottom:1px solid #21262d;padding-bottom:.8rem;}
 .appt-close{background:none;border:1px solid #30363d;color:#8b949e;border-radius:7px;width:30px;height:30px;cursor:pointer;font-size:16px;}
 .appt-empty{color:#484f58;font-size:13px;text-align:center;padding:2rem;}
@@ -148,11 +161,10 @@ body{font-family:'Tajawal',sans-serif;direction:rtl;background:#0d1117;color:#e6
 .appt-status-tag.approved{background:#14532d;color:#4ade80;border:1px solid #16a34a;}
 .appt-status-tag.rejected{background:#450a0a;color:#f87171;border:1px solid #dc2626;}
 .appt-status-tag.pending{background:#21262d;color:#8b949e;border:1px solid #30363d;}
-.appt-item.approved{background:#0d1f14;border-radius:10px;padding:.7rem;}
-.appt-item.rejected{background:#1f0d0d;border-radius:10px;padding:.7rem;opacity:.85;}
+.appt-item.approved{background:#0d1f14;}
+.appt-item.rejected{background:#1f0d0d;opacity:.85;}
 .appt-item.approved .appt-date-badge{border-color:#16a34a;color:#4ade80;background:#0d1f14;}
 .appt-item.rejected .appt-date-badge{border-color:#dc2626;color:#f87171;background:#1f0d0d;}
-/* Saving indicator */
 #saveIndicator{position:fixed;top:12px;left:12px;background:#059669;color:#fff;padding:6px 14px;border-radius:20px;font-size:12px;font-family:'Tajawal',sans-serif;font-weight:700;z-index:9999;display:none;box-shadow:0 2px 12px rgba(0,0,0,.4);}
 #loadingOverlay{position:fixed;inset:0;background:#0d1117;z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1rem;}
 .loading-spinner{width:40px;height:40px;border:3px solid #21262d;border-top-color:#1a6fa8;border-radius:50%;animation:spin .8s linear infinite;}
@@ -169,10 +181,9 @@ body{font-family:'Tajawal',sans-serif;direction:rtl;background:#0d1117;color:#e6
   .toolbar{flex-wrap:nowrap;overflow-x:auto;gap:6px;}
   .toolbar::-webkit-scrollbar{display:none;}
 }
-/* Report Modal */
 .report-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.8);z-index:2000;align-items:flex-start;justify-content:center;padding:1rem;overflow-y:auto;-webkit-overflow-scrolling:touch;}
 .report-overlay.open{display:flex;}
-.report-modal{background:#fff;color:#111;border-radius:16px;padding:1.2rem;width:100%;max-width:900px;margin:auto;font-family:'Tajawal',sans-serif;overflow-x:hidden;}
+.report-modal{background:#fff;color:#111;border-radius:16px;padding:1.2rem;width:100%;max-width:980px;margin:auto;font-family:'Tajawal',sans-serif;overflow-x:hidden;}
 .report-table-wrap{width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch;border-radius:8px;}
 .report-header{text-align:center;border-bottom:2px solid #0a3d62;padding-bottom:1rem;margin-bottom:1.5rem;}
 .report-header h2{font-size:22px;font-weight:900;color:#0a3d62;margin-bottom:4px;}
@@ -190,14 +201,40 @@ body{font-family:'Tajawal',sans-serif;direction:rtl;background:#0d1117;color:#e6
 .report-btn-share{padding:9px 16px;border-radius:9px;background:#1e3a5f;border:1px solid #1a6fa8;color:#60a5fa;font-size:13px;font-weight:700;cursor:pointer;font-family:'Tajawal',sans-serif;transition:all .15s;}
 .report-btn-close{padding:9px 16px;border-radius:9px;background:#e5e7eb;border:none;color:#333;font-size:13px;cursor:pointer;font-family:'Tajawal',sans-serif;}
 @media print{
+  @page { size: A4 landscape; margin: 1cm; }
   body{background:#fff!important;}
   body > *{display:none!important;}
   #reportContainer{display:block!important;position:fixed!important;inset:0!important;background:#fff!important;z-index:99999!important;}
   .report-overlay{display:block!important;position:static!important;background:#fff!important;padding:0!important;}
-  .report-modal{border-radius:0!important;padding:1cm!important;max-width:100%!important;box-shadow:none!important;}
+  .report-modal{border-radius:0!important;padding:.5cm!important;max-width:100%!important;box-shadow:none!important;width:100%!important;}
   .report-actions{display:none!important;}
-  .report-table-wrap{overflow:visible!important;}
-  .report-table th,.report-table td{border:1px solid #ccc!important;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+  .report-table-wrap{overflow:visible!important;width:100%!important;}
+  .report-table{width:100%!important;table-layout:fixed!important;font-size:10px!important;}
+  .report-table th{padding:6px 5px!important;font-size:10px!important;-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important;}
+  .report-table td{padding:6px 5px!important;font-size:10px!important;border:1px solid #ccc!important;-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important;}
+  /* Column widths for landscape A4 (~277mm printable) */
+  .report-table th:nth-child(1), .report-table td:nth-child(1){ width:25px!important; }  /* # */
+  .report-table th:nth-child(2), .report-table td:nth-child(2){ width:80px!important; }  /* الاسم */
+  .report-table th:nth-child(3), .report-table td:nth-child(3){ width:35px!important; }  /* الجنس */
+  .report-table th:nth-child(4), .report-table td:nth-child(4){ width:50px!important; }  /* الجنسية */
+  .report-table th:nth-child(5), .report-table td:nth-child(5){ width:70px!important; }  /* الهاتف */
+  .report-table th:nth-child(6), .report-table td:nth-child(6){ width:65px!important; }  /* الرقم المدني */
+  .report-table th:nth-child(7), .report-table td:nth-child(7){ width:90px!important; }  /* الصفحات */
+  .report-table th:nth-child(8), .report-table td:nth-child(8){ width:60px!important; }  /* موعد الزيارة */
+  .report-table th:nth-child(9), .report-table td:nth-child(9){ width:50px!important; }  /* الخدمة */
+  .report-table th:nth-child(10),.report-table td:nth-child(10){ width:65px!important; } /* حالة الزيارة */
+  .report-table th:nth-child(11),.report-table td:nth-child(11){ width:100px!important;} /* توقيع المؤثر */
+  /* Signature line */
+  .report-table td:nth-child(11) div{
+    height:35px!important;
+    border-bottom:1.5px solid #374151!important;
+    margin:8px 4px 0!important;
+    display:block!important;
+  }
+  /* Reduce font for social links */
+  .report-social a{ font-size:9px!important; }
+  .report-header h2{ font-size:16px!important; }
+  .report-header p{ font-size:10px!important; }
 }
 </style>
 </head>
@@ -226,9 +263,9 @@ body{font-family:'Tajawal',sans-serif;direction:rtl;background:#0d1117;color:#e6
     <div class="stat"><div class="stat-num" id="statPending">0</div><div class="stat-label">⏳ قيد المراجعة</div></div>
   </div>
   <div class="stats-bar" style="margin-top:.6rem;">
-    <div class="stat" style="cursor:pointer" onclick="setFilterFromStat('ig',this)"><div class="stat-num" id="statIg">0</div><div class="stat-label">📸 انستاجرام</div></div>
-    <div class="stat" style="cursor:pointer" onclick="setFilterFromStat('tt',this)"><div class="stat-num" id="statTt">0</div><div class="stat-label">🎵 تيك توك</div></div>
-    <div class="stat" style="cursor:pointer" onclick="setFilterFromStat('snap',this)"><div class="stat-num" id="statSnap">0</div><div class="stat-label">👻 سناب</div></div>
+    <div class="stat" style="cursor:pointer" onclick="setFilterFromStat('ig',this)"><div class="stat-num" id="statIg">0</div><div class="stat-label" style="display:flex;align-items:center;justify-content:center;gap:4px;"><svg width="12" height="12" viewBox="0 0 24 24" fill="url(#ig-g1)"><defs><linearGradient id="ig-g1" x1="0%" y1="100%" x2="100%" y2="0%"><stop offset="0%" style="stop-color:#f09433"/><stop offset="50%" style="stop-color:#dc2743"/><stop offset="100%" style="stop-color:#bc1888"/></linearGradient></defs><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>انستاجرام</div></div>
+    <div class="stat" style="cursor:pointer" onclick="setFilterFromStat('tt',this)"><div class="stat-num" id="statTt">0</div><div class="stat-label" style="display:flex;align-items:center;justify-content:center;gap:4px;"><svg width="12" height="12" viewBox="0 0 24 24"><path fill="#69C9D0" d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-2.88 2.5 2.89 2.89 0 0 1-2.89-2.89 2.89 2.89 0 0 1 2.89-2.89c.28 0 .54.04.79.1V9.01a6.34 6.34 0 0 0-.79-.05 6.34 6.34 0 0 0-6.34 6.34 6.34 6.34 0 0 0 6.34 6.34 6.34 6.34 0 0 0 6.33-6.34V8.69a8.18 8.18 0 0 0 4.78 1.52V6.76a4.86 4.86 0 0 1-3-.07z"/></svg>تيك توك</div></div>
+    <div class="stat" style="cursor:pointer" onclick="setFilterFromStat('snap',this)"><div class="stat-num" id="statSnap">0</div><div class="stat-label" style="display:flex;align-items:center;justify-content:center;gap:4px;"><svg width="12" height="12" viewBox="0 0 24 24"><path fill="#FFFC00" d="M12.166.011C9.033.011 6.099 1.871 4.91 4.66c-.53 1.236-.425 3.566-.362 4.994-.33.15-.727.24-1.17.133-.315-.075-.627.154-.68.475-.081.497.286.898.75 1.012.63.154 1.236.124 1.784-.047.083-.024.163-.054.241-.086.41 1.24 1.14 2.41 2.177 3.299-.754.378-2.15.89-3.914 1.01-.282.018-.52.208-.573.488-.245 1.304 2.36 2.014 3.69 2.338.244.059.41.28.4.53-.02.457.02.76.107.97.068.163.237.255.408.215.332-.079.654-.232.997-.232.388 0 .639.104 1.012.316.762.437 1.627.943 3.219.943 1.57 0 2.44-.498 3.193-.934.372-.213.63-.325 1.012-.325.338 0 .657.152.987.23.172.041.342-.052.41-.214.086-.21.127-.513.107-.97-.01-.25.156-.47.4-.53 1.33-.323 3.934-1.033 3.69-2.337-.054-.28-.291-.47-.573-.488-1.765-.12-3.16-.632-3.914-1.01 1.036-.889 1.767-2.059 2.177-3.299.078.032.158.062.241.086.548.171 1.154.201 1.784.047.464-.114.831-.515.75-1.012-.053-.321-.365-.55-.68-.475-.443.107-.84.017-1.17-.133.063-1.428.168-3.758-.362-4.994C17.9 1.871 14.966.011 12.166.011z"/></svg>سناب</div></div>
     <div class="stat" style="cursor:pointer" onclick="setFilterFromStat('all3',this)"><div class="stat-num" id="statAll3">0</div><div class="stat-label">🌐 كل المنصات</div></div>
     <div class="stat" style="cursor:pointer" onclick="setFilterFromStat('male',this)"><div class="stat-num" id="statMale">0</div><div class="stat-label">👨 ذكور</div></div>
     <div class="stat" style="cursor:pointer" onclick="setFilterFromStat('female',this)"><div class="stat-num" id="statFemale">0</div><div class="stat-label">👩 إناث</div></div>
@@ -245,15 +282,24 @@ body{font-family:'Tajawal',sans-serif;direction:rtl;background:#0d1117;color:#e6
     <button class="filter-btn f-approved" id="fb-approved" onclick="setFilter('approved',this)">✅ مقبولين</button>
     <button class="filter-btn f-rejected" id="fb-rejected" onclick="setFilter('rejected',this)">❌ مرفوضين</button>
     <button class="filter-btn" onclick="setFilter('pending',this)">⏳ قيد المراجعة</button>
-    <button class="filter-btn" id="fb-ig" onclick="setFilter('ig',this)">📸 انستاجرام</button>
-    <button class="filter-btn" id="fb-tt" onclick="setFilter('tt',this)">🎵 تيك توك</button>
-    <button class="filter-btn" id="fb-snap" onclick="setFilter('snap',this)">👻 سناب</button>
+    <button class="filter-btn" id="fb-ig" onclick="setFilter('ig',this)" style="display:flex;align-items:center;gap:5px;">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="url(#ig-grad-tb)"><defs><linearGradient id="ig-grad-tb" x1="0%" y1="100%" x2="100%" y2="0%"><stop offset="0%" style="stop-color:#f09433"/><stop offset="25%" style="stop-color:#e6683c"/><stop offset="50%" style="stop-color:#dc2743"/><stop offset="75%" style="stop-color:#cc2366"/><stop offset="100%" style="stop-color:#bc1888"/></linearGradient></defs><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>
+      انستاجرام
+    </button>
+    <button class="filter-btn" id="fb-tt" onclick="setFilter('tt',this)" style="display:flex;align-items:center;gap:5px;">
+      <svg width="14" height="14" viewBox="0 0 24 24"><path fill="#69C9D0" d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-2.88 2.5 2.89 2.89 0 0 1-2.89-2.89 2.89 2.89 0 0 1 2.89-2.89c.28 0 .54.04.79.1V9.01a6.34 6.34 0 0 0-.79-.05 6.34 6.34 0 0 0-6.34 6.34 6.34 6.34 0 0 0 6.34 6.34 6.34 6.34 0 0 0 6.33-6.34V8.69a8.18 8.18 0 0 0 4.78 1.52V6.76a4.86 4.86 0 0 1-3-.07z"/><path fill="#EE1D52" d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-2.88 2.5 2.89 2.89 0 0 1-2.89-2.89 2.89 2.89 0 0 1 2.89-2.89c.28 0 .54.04.79.1V9.01a6.34 6.34 0 0 0-.79-.05 6.34 6.34 0 0 0-6.34 6.34 6.34 6.34 0 0 0 6.34 6.34 6.34 6.34 0 0 0 6.33-6.34V8.69a8.18 8.18 0 0 0 4.78 1.52V6.76a4.86 4.86 0 0 1-1-.07z" opacity=".5"/></svg>
+      تيك توك
+    </button>
+    <button class="filter-btn" id="fb-snap" onclick="setFilter('snap',this)" style="display:flex;align-items:center;gap:5px;">
+      <svg width="14" height="14" viewBox="0 0 24 24"><path fill="#FFFC00" d="M12.166.011C9.033.011 6.099 1.871 4.91 4.66c-.53 1.236-.425 3.566-.362 4.994-.33.15-.727.24-1.17.133-.315-.075-.627.154-.68.475-.081.497.286.898.75 1.012.63.154 1.236.124 1.784-.047.083-.024.163-.054.241-.086.41 1.24 1.14 2.41 2.177 3.299-.754.378-2.15.89-3.914 1.01-.282.018-.52.208-.573.488-.245 1.304 2.36 2.014 3.69 2.338.244.059.41.28.4.53-.02.457.02.76.107.97.068.163.237.255.408.215.332-.079.654-.232.997-.232.388 0 .639.104 1.012.316.762.437 1.627.943 3.219.943 1.57 0 2.44-.498 3.193-.934.372-.213.63-.325 1.012-.325.338 0 .657.152.987.23.172.041.342-.052.41-.214.086-.21.127-.513.107-.97-.01-.25.156-.47.4-.53 1.33-.323 3.934-1.033 3.69-2.337-.054-.28-.291-.47-.573-.488-1.765-.12-3.16-.632-3.914-1.01 1.036-.889 1.767-2.059 2.177-3.299.078.032.158.062.241.086.548.171 1.154.201 1.784.047.464-.114.831-.515.75-1.012-.053-.321-.365-.55-.68-.475-.443.107-.84.017-1.17-.133.063-1.428.168-3.758-.362-4.994C17.9 1.871 14.966.011 12.166.011z"/></svg>
+      سناب
+    </button>
     <button class="filter-btn" id="fb-all3" onclick="setFilter('all3',this)">🌐 جميع المنصات</button>
     <button class="filter-btn" id="fb-male" onclick="setFilter('male',this)">👨 الذكور</button>
     <button class="filter-btn" id="fb-female" onclick="setFilter('female',this)">👩 الإناث</button>
   </div>
-  <div class="count-badge" id="visibleCount">0 مؤثر</div>
   <button class="filter-btn" onclick="openApptPanel()" style="white-space:nowrap;border-color:#0891b2;color:#22d3ee;">📅 مواعيد</button>
+  <button class="filter-btn" id="fb-deleted" onclick="setFilter('deleted',this)" style="white-space:nowrap;border-color:#6b2020;color:#f87171;flex-shrink:0;">🗑 المحذوفين <span id="deletedBadge" style="display:none;background:#dc2626;color:#fff;border-radius:10px;padding:1px 6px;font-size:10px;margin-right:2px;">0</span></button>
   <button id="reportBtn" style="display:none;padding:7px 14px;border-radius:9px;border:1px solid #1a6fa8;font-size:13px;cursor:pointer;font-family:Tajawal,sans-serif;white-space:nowrap;font-weight:700;background:#1e3a5f;color:#60a5fa;transition:.15s;" onclick="openReportFromBtn()">📋 كشف</button>
 </div>
 
@@ -269,11 +315,27 @@ body{font-family:'Tajawal',sans-serif;direction:rtl;background:#0d1117;color:#e6
 </div>
 
 <!-- Service Popup -->
-<div class="service-popup" id="servicePopup">
-  <div class="service-option" onclick="toggleService(event,'فيلر')"><input type="checkbox" id="svc_filler" onclick="event.stopPropagation()"><label for="svc_filler" style="cursor:pointer;">💉 فيلر</label></div>
-  <div class="service-option" onclick="toggleService(event,'بوتوكس')"><input type="checkbox" id="svc_botox" onclick="event.stopPropagation()"><label for="svc_botox" style="cursor:pointer;">✨ بوتوكس</label></div>
-  <div class="service-option" onclick="toggleService(event,'تنظيف بشرة')"><input type="checkbox" id="svc_clean" onclick="event.stopPropagation()"><label for="svc_clean" style="cursor:pointer;">🧖 تنظيف بشرة</label></div>
-  <div class="service-option" onclick="toggleService(event,'ليزر')"><input type="checkbox" id="svc_laser" onclick="event.stopPropagation()"><label for="svc_laser" style="cursor:pointer;">⚡ ليزر</label></div>
+<div class="service-popup" id="servicePopup" onclick="if(event.target===this)closeServicePopup()">
+  <div class="service-popup-inner" onclick="event.stopPropagation()">
+    <div style="font-size:14px;font-weight:700;color:#e6edf3;text-align:center;margin-bottom:.8rem;font-family:Tajawal,sans-serif;">اختر الخدمة</div>
+    <div class="service-option" onclick="toggleService(event,'فيلر')">
+      <input type="checkbox" id="svc_filler" onclick="event.stopPropagation()">
+      <label for="svc_filler" style="cursor:pointer;font-family:Tajawal,sans-serif;">💉 فيلر</label>
+    </div>
+    <div class="service-option" onclick="toggleService(event,'بوتوكس')">
+      <input type="checkbox" id="svc_botox" onclick="event.stopPropagation()">
+      <label for="svc_botox" style="cursor:pointer;font-family:Tajawal,sans-serif;">✨ بوتوكس</label>
+    </div>
+    <div class="service-option" onclick="toggleService(event,'تنظيف بشرة')">
+      <input type="checkbox" id="svc_clean" onclick="event.stopPropagation()">
+      <label for="svc_clean" style="cursor:pointer;font-family:Tajawal,sans-serif;">🧖 تنظيف بشرة</label>
+    </div>
+    <div class="service-option" onclick="toggleService(event,'ليزر')">
+      <input type="checkbox" id="svc_laser" onclick="event.stopPropagation()">
+      <label for="svc_laser" style="cursor:pointer;font-family:Tajawal,sans-serif;">⚡ ليزر</label>
+    </div>
+    <button onclick="closeServicePopup()" style="width:100%;margin-top:.7rem;padding:.8rem;border-radius:12px;border:1px solid #30363d;background:#21262d;color:#8b949e;font-size:14px;cursor:pointer;font-family:Tajawal,sans-serif;">تم ✓</button>
+  </div>
 </div>
 
 <!-- FAB -->
@@ -291,6 +353,10 @@ body{font-family:'Tajawal',sans-serif;direction:rtl;background:#0d1117;color:#e6
     <div class="modal-field"><label>الاسم</label><input id="mName" placeholder="اسم المؤثر"></div>
     <div class="modal-field"><label>رقم الموبايل</label><input id="mPhone" placeholder="مثال: 96512345678" inputmode="tel"></div>
     <div class="modal-field"><label>الرقم المدني <span style="color:#6e7681;font-size:11px;">(اختياري)</span></label><input id="mCivil" placeholder="الرقم المدني" inputmode="numeric"></div>
+    <div class="modal-field">
+      <label>🌍 الجنسية <span style="color:#6e7681;font-size:11px;">(اختياري)</span></label>
+      <select id="mNationality"><option value="">— اختر الجنسية —</option></select>
+    </div>
     <div class="modal-field"><label>الجنس</label>
       <div style="display:flex;gap:8px;margin-top:4px;">
         <button type="button" id="mGenderM" onclick="selectGender('m','m')" style="flex:1;padding:9px;border-radius:9px;border:1px solid #30363d;background:#21262d;color:#8b949e;font-size:13px;cursor:pointer;font-family:Tajawal,sans-serif;" data-selected="0">👨 ذكر</button>
@@ -317,6 +383,10 @@ body{font-family:'Tajawal',sans-serif;direction:rtl;background:#0d1117;color:#e6
     <div class="modal-field"><label>الاسم</label><input id="eName" placeholder="اسم المؤثر"></div>
     <div class="modal-field"><label>رقم الموبايل</label><input id="ePhone" placeholder="مثال: 96512345678" inputmode="tel"></div>
     <div class="modal-field"><label>الرقم المدني</label><input id="eCivil" placeholder="الرقم المدني" inputmode="numeric"></div>
+    <div class="modal-field">
+      <label>🌍 الجنسية</label>
+      <select id="eNationality"><option value="">— اختر الجنسية —</option></select>
+    </div>
     <div class="modal-field"><label>الجنس</label>
       <div style="display:flex;gap:8px;margin-top:4px;">
         <button type="button" id="eGenderM" onclick="selectGender('e','m')" style="flex:1;padding:9px;border-radius:9px;border:1px solid #30363d;background:#21262d;color:#8b949e;font-size:13px;cursor:pointer;font-family:Tajawal,sans-serif;" data-selected="0">👨 ذكر</button>
@@ -337,10 +407,7 @@ body{font-family:'Tajawal',sans-serif;direction:rtl;background:#0d1117;color:#e6
 <div class="modal-overlay hidden" id="bulkModalOverlay">
   <div class="modal">
     <h3>⚡ إضافة جماعية للمؤثرين</h3>
-    <div class="bulk-hint">
-      الصق قائمة المؤثرين — كل مؤثر في سطر منفصل.<br>
-      مقبول: رقم موبايل، @username انستاجرام، رابط انستاجرام، رابط تيك توك، رابط سناب، أو مزيج منها.
-    </div>
+    <div class="bulk-hint">الصق قائمة المؤثرين — كل مؤثر في سطر منفصل.<br>مقبول: رقم موبايل، @username انستاجرام، رابط انستاجرام، رابط تيك توك، رابط سناب، أو مزيج منها.</div>
     <textarea class="bulk-textarea" id="bulkTextarea" placeholder="مثال:&#10;@blogger_name&#10;96512345678&#10;https://instagram.com/user&#10;https://www.tiktok.com/@user"></textarea>
     <div class="modal-actions">
       <button class="modal-cancel" onclick="closeBulkModal()">إلغاء</button>
@@ -349,15 +416,15 @@ body{font-family:'Tajawal',sans-serif;direction:rtl;background:#0d1117;color:#e6
   </div>
 </div>
 
-<!-- Duplicate single modal -->
+<!-- Duplicate single modal - field by field comparison -->
 <div class="modal-overlay hidden" id="dupSingleOverlay">
-  <div class="modal">
-    <h3>⚠️ تكرار محتمل</h3>
+  <div class="modal" style="max-width:500px;">
+    <h3>⚠️ مؤثر موجود مسبقاً</h3>
     <div id="dupSingleBody"></div>
-    <div style="display:flex;gap:8px;flex-wrap:wrap;">
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:1rem;">
       <button class="modal-cancel" onclick="dupSingleSkip()">⏭ تخطي</button>
-      <button class="modal-save" style="background:#1a6fa8;" onclick="dupSingleUpdate()">🔄 تحديث الموجود</button>
-      <button class="modal-save" style="background:#d97706;" onclick="dupSingleAddAnyway()">➕ إضافة رغم ذلك</button>
+      <button class="modal-save" style="background:#059669;" onclick="dupSingleApplySelected()">✅ تطبيق المحدد</button>
+      <button class="modal-save" style="background:#d97706;" onclick="dupSingleAddAnyway()">➕ إضافة كشخص جديد</button>
     </div>
   </div>
 </div>
@@ -406,11 +473,79 @@ body{font-family:'Tajawal',sans-serif;direction:rtl;background:#0d1117;color:#e6
   </div>
 </div>
 
+<!-- Delete Confirmation Modal (move to trash) -->
+<div class="modal-overlay hidden" id="deleteConfirmOverlay">
+  <div class="modal" style="max-width:360px;text-align:center;">
+    <div style="font-size:40px;margin-bottom:.5rem;">🗑</div>
+    <h3 style="justify-content:center;margin-bottom:.5rem;font-size:16px;">تأكيد الحذف</h3>
+    <div id="deleteConfirmName" style="font-size:14px;color:#8b949e;margin-bottom:.3rem;"></div>
+    <div style="font-size:12px;color:#484f58;margin-bottom:1.2rem;">سيتم نقله لقائمة المحذوفين ويمكن استعادته لاحقاً</div>
+    <div class="modal-actions">
+      <button class="modal-cancel" onclick="cancelDelete()">إلغاء</button>
+      <button class="modal-save" style="background:#dc2626;" onclick="confirmDelete()">🗑 حذف</button>
+    </div>
+  </div>
+</div>
+
+<!-- Permanent Delete Confirmation Modal -->
+<div class="modal-overlay hidden" id="permDeleteOverlay">
+  <div class="modal" style="max-width:360px;text-align:center;">
+    <div style="font-size:40px;margin-bottom:.5rem;">⚠️</div>
+    <h3 style="justify-content:center;margin-bottom:.5rem;font-size:16px;color:#f87171;">حذف نهائي</h3>
+    <div id="permDeleteName" style="font-size:14px;color:#8b949e;margin-bottom:.3rem;"></div>
+    <div style="font-size:12px;color:#dc2626;font-weight:700;margin-bottom:1.2rem;">لن يمكن استعادته أبداً!</div>
+    <div class="modal-actions">
+      <button class="modal-cancel" onclick="cancelPermDelete()">إلغاء</button>
+      <button class="modal-save" style="background:#dc2626;" onclick="executePermDelete()">🗑 حذف نهائي</button>
+    </div>
+  </div>
+</div>
+
+<!-- Phone Action Popup -->
+<div id="phonePopupOverlay" onclick="if(event.target===this)hidePhonePopup()" style="display:none;position:fixed;inset:0;z-index:5000;background:rgba(0,0,0,.55);">
+  <div onclick="event.stopPropagation()" style="position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:440px;background:#1c2128;border-radius:20px 20px 0 0;padding:1.3rem 1rem 1.5rem;font-family:Tajawal,sans-serif;animation:slideUp .22s ease;">
+    <div id="phonePopupName" style="font-size:13px;color:#8b949e;text-align:center;margin-bottom:.2rem;"></div>
+    <div id="phonePopupNum" style="font-size:22px;font-weight:900;color:#e6edf3;text-align:center;direction:ltr;margin-bottom:1.1rem;letter-spacing:1px;"></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:.7rem;margin-bottom:.6rem;">
+      <a id="phonePopupWA" href="#" target="_blank" onclick="setTimeout(hidePhonePopup,300)" style="display:flex;align-items:center;justify-content:center;gap:.5rem;padding:.9rem;border-radius:14px;background:#25d366;color:#fff;font-size:15px;font-weight:700;text-decoration:none;">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="white"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+        واتساب
+      </a>
+      <a id="phonePopupCall" href="#" onclick="setTimeout(hidePhonePopup,300)" style="display:flex;align-items:center;justify-content:center;gap:.5rem;padding:.9rem;border-radius:14px;background:#1a6fa8;color:#fff;font-size:15px;font-weight:700;text-decoration:none;">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 9.81 19.79 19.79 0 01.01 1.18 2 2 0 012 0h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L6.09 7.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 14.92z"/></svg>
+        اتصال
+      </a>
+    </div>
+    <button onclick="hidePhonePopup()" style="width:100%;padding:.8rem;border-radius:12px;border:1px solid #30363d;background:#21262d;color:#8b949e;font-size:14px;cursor:pointer;font-family:Tajawal,sans-serif;">إلغاء</button>
+  </div>
+</div>
+
 <script>
-// ─── Default data ──────────────────────────────────────────────
+// ─── Nationalities list ───────────────────────────────────────────
+const NATIONALITIES = [
+  'كويتي','سعودي','إماراتي','بحريني','قطري','عماني',
+  'مصري','أردني','لبناني','سوري','عراقي','يمني','فلسطيني','سوداني','ليبي','تونسي','مغربي','جزائري',
+  'باكستاني','هندي','بنغلاديشي','فلبيني','إندونيسي','سريلانكي',
+  'أمريكي','بريطاني','كندي','أسترالي','فرنسي','ألماني',
+  'تركي','إيراني','أفغاني','إثيوبي','كيني',
+  'أخرى'
+];
+
+function buildNationalityOptions(selected) {
+  return `<option value="">— اختر الجنسية —</option>` +
+    NATIONALITIES.map(n => `<option value="${n}" ${n===selected?'selected':''}>${n}</option>`).join('');
+}
+
+function initNationalitySelects() {
+  document.getElementById('mNationality').innerHTML = buildNationalityOptions('');
+  document.getElementById('eNationality').innerHTML = buildNationalityOptions('');
+}
+
+// ─── Default data ─────────────────────────────────────────────────
 const DEFAULT_INFLUENCERS = [{"name":"","phone":"98910277","ig":"@its.ibtesam_88","ig_url":"https://www.instagram.com/its.ibtesam_88","tt":"","tt_url":"","snap":"","status":"pending","gender":"f"},{"name":"","phone":"٥٥٣٩٩٤١١","ig":"@anod_anezi85","ig_url":"https://www.instagram.com/anod_anezi85","tt":"","tt_url":"","snap":"","status":"pending","gender":"f"},{"name":"","phone":"92293492","ig":"@ntx072","ig_url":"https://www.instagram.com/ntx072","tt":"","tt_url":"","snap":"","status":"pending","gender":"f"},{"name":"","phone":"55025286","ig":"@dalaly3_","ig_url":"https://www.instagram.com/dalaly3_","tt":"@dallally32x","tt_url":"https://www.tiktok.com/@dallally32x","snap":"https://snapchat.com/t/O6x1T02S","status":"pending","gender":"f"},{"name":"","phone":"60484170","ig":"@2al8__","ig_url":"https://www.instagram.com/2al8__","tt":"@da_8ll","tt_url":"https://www.tiktok.com/@da_8ll","snap":"https://snapchat.com/t/A5FQkbkp","status":"pending","gender":"f"},{"name":"","phone":"66916393","ig":"@f_kwt32","ig_url":"https://www.instagram.com/f_kwt32","tt":"@f_kwt32","tt_url":"https://www.tiktok.com/@f_kwt32","snap":"","status":"pending","gender":"f"},{"name":"بلوقر صبا💚","phone":"99384112","ig":"@sebaa0412","ig_url":"https://www.instagram.com/sebaa0412","tt":"@sebaa0412","tt_url":"https://www.tiktok.com/@sebaa0412","snap":"","status":"pending","gender":"f"},{"name":"","phone":"66508700","ig":"@by_ghaderi","ig_url":"https://www.instagram.com/by_ghaderi","tt":"@by.ghaderi","tt_url":"https://www.tiktok.com/@by.ghaderi","snap":"https://snapchat.com/t/AgDMGXQd","status":"pending","gender":"f"},{"name":"(منى أبوصخر )🍓","phone":"","ig":"@mona_lize32","ig_url":"https://www.instagram.com/mona_lize32","tt":"@m.y.absakhar32","tt_url":"https://www.tiktok.com/@m.y.absakhar32","snap":"https://snapchat.com/t/OwbREHEW","status":"pending","gender":"f"},{"name":"","phone":"90005463","ig":"@al7allaw","ig_url":"https://www.instagram.com/al7allaw","tt":"@al7alaw","tt_url":"https://www.tiktok.com/@al7alaw","snap":"","status":"pending","gender":"f"},{"name":"","phone":"٦٠٠١٤٤٩٠","ig":"@meroalden","ig_url":"https://www.instagram.com/meroalden","tt":"@mero1zenalden","tt_url":"https://www.tiktok.com/@mero1zenalden","snap":"","status":"pending","gender":"f"},{"name":"ادمن جروب حور","phone":"","ig":"@modacode.kw","ig_url":"https://www.instagram.com/modacode.kw","tt":"@modacode.kw","tt_url":"https://www.tiktok.com/@modacode.kw","snap":"","status":"pending","gender":"f"},{"name":"","phone":"٩٦٩٧٩٨٢٢","ig":"@blogger__almohra","ig_url":"https://www.instagram.com/blogger__almohra","tt":"@blogger__almohraa","tt_url":"https://www.tiktok.com/@blogger__almohraa","snap":"https://snapchat.com/t/zChYlb15","status":"pending","gender":"f"},{"name":"","phone":"56623249","ig":"@ehen230","ig_url":"https://www.instagram.com/ehen230","tt":"@af__323","tt_url":"https://www.tiktok.com/@af__323","snap":"","status":"pending","gender":"f"},{"name":"","phone":"50884480","ig":"@pj2lk","ig_url":"https://www.instagram.com/pj2lk","tt":"@da_8ll","tt_url":"https://www.tiktok.com/@da_8ll","snap":"https://snapchat.com/t/or78WWGz","status":"pending","gender":"f"},{"name":"","phone":"","ig":"@blogger_7oor","ig_url":"https://www.instagram.com/blogger_7oor","tt":"@blogger_992","tt_url":"","snap":"https://snapchat.com/t/jh5jJwsz","status":"pending","gender":"f"},{"name":"","phone":"55293877","ig":"@bloger.sahab","ig_url":"https://www.instagram.com/bloger.sahab","tt":"@blogersahab","tt_url":"https://www.tiktok.com/@blogersahab","snap":"https://www.snapchat.com/add/bb.bloger","status":"pending","gender":"f"},{"name":"","phone":"51319593","ig":"@coachshouq","ig_url":"https://www.instagram.com/coachshouq","tt":"@coach_shouq","tt_url":"https://www.tiktok.com/@coach_shouq","snap":"https://snapchat.com/t/iscVDCmf","status":"pending","gender":"f"},{"name":"منار العنزي","phone":"51633843","ig":"@t2rif","ig_url":"https://www.instagram.com/t2rif","tt":"","tt_url":"","snap":"","status":"pending","gender":"f"},{"name":"","phone":"50428382","ig":"@abu_saud_24","ig_url":"https://www.instagram.com/abu_saud_24","tt":"","tt_url":"","snap":"","status":"pending","gender":"f"},{"name":"","phone":"98754337","ig":"@muna3x_","ig_url":"https://www.instagram.com/muna3x_","tt":"@byyma","tt_url":"https://www.tiktok.com/@byyma","snap":"","status":"pending","gender":"f"},{"name":"","phone":"96906346","ig":"@sheikha.daily","ig_url":"https://www.instagram.com/sheikha.daily","tt":"","tt_url":"","snap":"","status":"pending","gender":"f"},{"name":"","phone":"97459600","ig":"@2lhrj","ig_url":"https://www.instagram.com/2lhrj","tt":"@2lhrj","tt_url":"https://www.tiktok.com/@2lhrj","snap":"https://snapchat.com/t/BWTYGHAy","status":"pending","gender":"f"},{"name":"","phone":"55012377","ig":"@blogger_gala","ig_url":"https://www.instagram.com/blogger_gala","tt":"@1_1.ok","tt_url":"https://www.tiktok.com/@1_1.ok","snap":"https://snapchat.com/t/tUz6CrOf","status":"pending","gender":"f"},{"name":"","phone":"98754480","ig":"@byfarahx_","ig_url":"https://www.instagram.com/byfarahx_","tt":"","tt_url":"","snap":"","status":"pending","gender":"f"},{"name":"","phone":"41060464","ig":"@san3h_ff","ig_url":"","tt":"@san3h_ff","tt_url":"https://www.tiktok.com/@san3h_ff","snap":"https://snapchat.com/t/SzBjHONQ","status":"pending","gender":"f"},{"name":"","phone":"99098120","ig":"@dodiwhite94","ig_url":"https://www.instagram.com/dodiwhite94","tt":"@dodiwhite94","tt_url":"https://www.tiktok.com/@dodiwhite94","snap":"","status":"pending","gender":"f"},{"name":"","phone":"65075055","ig":"@atoo_8p","ig_url":"https://www.instagram.com/atoo_8p","tt":"@atoosa_blogr","tt_url":"https://www.tiktok.com/@atoosa_blogr","snap":"","status":"pending","gender":"f"},{"name":"","phone":"60442189","ig":"@v2i.ei","ig_url":"https://www.instagram.com/v2i.ei","tt":"@hamss432","tt_url":"https://www.tiktok.com/@hamss432","snap":"","status":"pending","gender":"f"},{"name":"النوري العنزي","phone":"61669266","ig":"@alnor.980","ig_url":"https://www.instagram.com/alnor.980","tt":"","tt_url":"","snap":"","status":"pending","gender":"f"},{"name":"المؤثرة وصانعة المحتوى","phone":"94988486","ig":"@albeerg__55","ig_url":"https://www.instagram.com/albeerg__55","tt":"@albeerg__55","tt_url":"https://www.tiktok.com/@albeerg__55","snap":"","status":"pending","gender":"f"},{"name":"شهد الهاجري","phone":"66407081","ig":"@mazda.alsafi","ig_url":"https://www.instagram.com/mazda.alsafi","tt":"","tt_url":"","snap":"","status":"pending","gender":"f"},{"name":"","phone":"55825567","ig":"@layali__lebanon","ig_url":"https://www.instagram.com/layali__lebanon","tt":"","tt_url":"","snap":"https://www.snapchat.com/add/layali_lebanon","status":"pending","gender":"f"},{"name":"","phone":"97557374","ig":"@dark_choclate_1983","ig_url":"","tt":"@dark_choclate_1983","tt_url":"https://www.tiktok.com/@dark_choclate_1983","snap":"https://snapchat.com/t/GonUS1LC","status":"pending","gender":"f"},{"name":"","phone":"65537997","ig":"@mrmalshmri","ig_url":"https://www.instagram.com/mrmalshmri","tt":"@rosedd03","tt_url":"https://www.tiktok.com/@rosedd03","snap":"","status":"pending","gender":"f"},{"name":"","phone":"50836960","ig":"@al2_amira","ig_url":"","tt":"@al2_amira","tt_url":"https://www.tiktok.com/@al2_amira","snap":"","status":"pending","gender":"f"},{"name":"مريم الغانم","phone":"50668133","ig":"@maryam__alghanim","ig_url":"https://www.instagram.com/maryam__alghanim","tt":"","tt_url":"","snap":"","status":"pending","gender":"f"},{"name":"","phone":"51724877","ig":"@mes._99","ig_url":"https://www.instagram.com/mes._99","tt":"@mes._9","tt_url":"https://www.tiktok.com/@mes._9","snap":"","status":"pending","gender":"f"},{"name":"بلوقر سموّ","phone":"","ig":"@bloggeer_suum","ig_url":"https://www.instagram.com/bloggeer_suum","tt":"","tt_url":"","snap":"","status":"pending","gender":"f"},{"name":"","phone":"51477644","ig":"@kwt_k22","ig_url":"https://www.instagram.com/kwt_k22","tt":"@kwt_k22","tt_url":"","snap":"","status":"pending","gender":"f"},{"name":"","phone":"55949103","ig":"@mis_foofaa","ig_url":"https://www.instagram.com/mis_foofaa","tt":"@foofaa25","tt_url":"https://www.tiktok.com/@foofaa25","snap":"","status":"pending","gender":"f"},{"name":"","phone":"51253025","ig":"@walyan.8","ig_url":"https://www.instagram.com/walyan.8","tt":"@walyan.8","tt_url":"https://www.tiktok.com/@walyan.8","snap":"","status":"pending","gender":"f"},{"name":"","phone":"55445159","ig":"@blogeer_sin","ig_url":"https://www.instagram.com/blogeer_sin","tt":"@siner__341","tt_url":"https://www.tiktok.com/@siner__341","snap":"","status":"pending","gender":"f"},{"name":"","phone":"98925609","ig":"@alzain__blogger","ig_url":"https://www.instagram.com/alzain__blogger","tt":"@zayoon1996","tt_url":"https://www.tiktok.com/@zayoon1996","snap":"","status":"pending","gender":"f"},{"name":"","phone":"97602151","ig":"@lahfa_778","ig_url":"https://www.instagram.com/lahfa_778","tt":"@lahfa_778","tt_url":"","snap":"","status":"pending","gender":"f"},{"name":"","phone":"60470166","ig":"@sh_alenzikw","ig_url":"https://www.instagram.com/sh_alenzikw","tt":"@q8_wet","tt_url":"https://www.tiktok.com/@q8_wet","snap":"","status":"pending","gender":"f"},{"name":"بلوقر المهرا","phone":"٩٨٥٢٤٥٠١","ig":"@blogger_almahra","ig_url":"https://www.instagram.com/blogger_almahra","tt":"","tt_url":"","snap":"","status":"pending","gender":"f"},{"name":"","phone":"50625003","ig":"@lifewithabrar93","ig_url":"https://www.instagram.com/lifewithabrar93","tt":"@lifewithabrar93","tt_url":"https://www.tiktok.com/@lifewithabrar93","snap":"https://snapchat.com/t/jIQXzJuR","status":"pending","gender":"f"},{"name":"","phone":"50199085","ig":"@zuhour_86","ig_url":"https://www.instagram.com/zuhour_86","tt":"@zuhour_11","tt_url":"https://www.tiktok.com/@zuhour_11","snap":"https://snapchat.com/t/U8w6b5xZ","status":"pending","gender":"f"},{"name":"","phone":"90932112","ig":"@zainabquttainah","ig_url":"https://www.instagram.com/zainabquttainah","tt":"@zainabquttainah","tt_url":"https://www.tiktok.com/@zainabquttainah","snap":"https://snapchat.com/t/hlJlFt36","status":"pending","gender":"f"},{"name":"بلوقر رموز","phone":"51073936","ig":"@roomooz_455","ig_url":"https://www.instagram.com/roomooz_455","tt":"","tt_url":"","snap":"","status":"pending","gender":"f"},{"name":"","phone":"98513511","ig":"@blogeer.kw","ig_url":"https://www.instagram.com/blogeer.kw","tt":"@malak_s93","tt_url":"https://www.tiktok.com/@malak_s93","snap":"","status":"pending","gender":"f"},{"name":"","phone":"51133388","ig":"@soso.kw75","ig_url":"","tt":"@soso.kw75","tt_url":"https://www.tiktok.com/@soso.kw75","snap":"https://snapchat.com/t/y8hEZ0Lc","status":"pending","gender":"f"},{"name":"بلوقر ضـــي","phone":"51736520","ig":"@dhi__blogger","ig_url":"https://www.instagram.com/dhi__blogger","tt":"@dhi__blogger","tt_url":"https://www.tiktok.com/@dhi__blogger","snap":"","status":"pending","gender":"f"},{"name":"","phone":"٦٦١١٤١٩٠","ig":"@bloggeralzan","ig_url":"https://www.instagram.com/bloggeralzan","tt":"","tt_url":"","snap":"","status":"pending","gender":"f"},{"name":"","phone":"94782811","ig":"@marim_v2","ig_url":"https://www.instagram.com/marim_v2","tt":"","tt_url":"","snap":"https://www.snapchat.com/add/kloodaa7","status":"pending","gender":"f"},{"name":"","phone":"55101008","ig":"@hanaayq8","ig_url":"https://www.instagram.com/hanaayq8","tt":"@hanaayq80","tt_url":"","snap":"https://www.snapchat.com/add/scabaq8","status":"pending","gender":"f"},{"name":"الزين بلوقر 20k","phone":"94048727","ig":"@alzenkw125","ig_url":"https://www.instagram.com/alzenkw125","tt":"@alzenkw125","tt_url":"https://www.tiktok.com/@alzenkw125","snap":"","status":"pending","gender":"f"},{"name":"المصورة سحابة","phone":"98955624","ig":"@sahab_961","ig_url":"","tt":"@sahab_961","tt_url":"https://www.tiktok.com/@sahab_961","snap":"https://www.snapchat.com/add/ma96a26","status":"pending","gender":"f"},{"name":"","phone":"٩٩٦١٢٩٧٣","ig":"@onemillion.1mm","ig_url":"https://www.instagram.com/onemillion.1mm","tt":"@onemillion.1mm","tt_url":"https://www.tiktok.com/@onemillion.1mm","snap":"https://snapchat.com/t/ZjUktmVf","status":"pending","gender":"f"},{"name":"","phone":"60009095","ig":"","ig_url":"","tt":"","tt_url":"","snap":"","status":"pending","gender":"f"},{"name":"","phone":"66886560","ig":"@w_ll777","ig_url":"https://www.instagram.com/w_ll777","tt":"","tt_url":"","snap":"","status":"pending","gender":"f"},{"name":"","phone":"٥٠٠١٢١٥١","ig":"@meemeeee1991","ig_url":"https://www.instagram.com/meemeeee1991","tt":"@meemeee1991","tt_url":"https://www.tiktok.com/@meemeee1991","snap":"https://snapchat.com/t/9rMDjefj","status":"pending","gender":"f"},{"name":"الاعلاميه منى ياسين","phone":"96716114","ig":"@monayasine","ig_url":"https://www.instagram.com/monayasine","tt":"@monayasine237","tt_url":"https://www.tiktok.com/@monayasine237","snap":"https://snapchat.com/t/EknwdpJh","status":"pending","gender":"f"},{"name":"","phone":"69936292","ig":"@bo97j","ig_url":"https://www.instagram.com/bo97j","tt":"@xko0_","tt_url":"https://www.tiktok.com/@xko0_","snap":"","status":"pending","gender":"f"},{"name":"","phone":"67784200","ig":"@33ajii","ig_url":"https://www.instagram.com/33ajii","tt":"@e8lj","tt_url":"","snap":"https://snapchat.com/t/gyrVYqzZ","status":"pending","gender":"f"},{"name":"","phone":"50689814","ig":"@bdra6m","ig_url":"https://www.instagram.com/bdra6m","tt":"@mesk_67","tt_url":"","snap":"","status":"pending","gender":"f"},{"name":"","phone":"99868989","ig":"@by.anb8","ig_url":"https://www.instagram.com/by.anb8","tt":"@anaba.line","tt_url":"https://www.tiktok.com/@anaba.line","snap":"https://snapchat.com/t/WXd4TDpg","status":"pending","gender":"f"},{"name":"","phone":"98076144","ig":"@kwt_wv","ig_url":"https://www.instagram.com/kwt_wv","tt":"@blokr_ward","tt_url":"https://www.tiktok.com/@blokr_ward","snap":"","status":"pending","gender":"f"},{"name":"","phone":"50121354","ig":"@fibiluqar.kw","ig_url":"https://www.instagram.com/fibiluqar.kw","tt":"@blokr_ward","tt_url":"https://www.tiktok.com/@blokr_ward","snap":"","status":"pending","gender":"f"},{"name":"","phone":"66556017","ig":"@blogger_meme_","ig_url":"https://www.instagram.com/blogger_meme_","tt":"@blogger_meme","tt_url":"https://www.tiktok.com/@blogger_meme","snap":"","status":"pending","gender":"f"},{"name":"عنود العنزي","phone":"99127291","ig":"@anood.live","ig_url":"https://www.instagram.com/anood.live","tt":"","tt_url":"","snap":"https://www.snapchat.com/add/anood.live","status":"pending","gender":"f"},{"name":"في الاعلانات ✨","phone":"94023927","ig":"@kw_70978","ig_url":"https://www.instagram.com/kw_70978","tt":"@kw_70978","tt_url":"","snap":"https://snapchat.com/t/REhNsgmQ","status":"pending","gender":"f"},{"name":"","phone":"94714962","ig":"@azalea.bloger","ig_url":"https://www.instagram.com/azalea.bloger","tt":"@azalea.bloger","tt_url":"https://www.tiktok.com/@azalea.bloger","snap":"https://snapchat.com/t/Kc1ohMqt","status":"pending","gender":"f"},{"name":"جيسي يوسف","phone":"90962052","ig":"@makeup_by_jessy","ig_url":"https://www.instagram.com/makeup_by_jessy","tt":"@jessyyoussef4","tt_url":"https://www.tiktok.com/@jessyyoussef4","snap":"","status":"pending","gender":"f"},{"name":"zooz alqallaf - مصوره & بلوقر","phone":"67614499","ig":"@zooz.alqalaf","ig_url":"https://www.instagram.com/zooz.alqalaf","tt":"@zooz.alqalaf","tt_url":"https://www.tiktok.com/@zooz.alqalaf","snap":"https://t.snapchat.com/XC1UvbC9","status":"pending","gender":"f"},{"name":"معاج بلوقر - فويس اوفر","phone":"90027571","ig":"@lorinn_90","ig_url":"https://www.instagram.com/lorinn_90","tt":"@lorinn_903","tt_url":"https://www.tiktok.com/@lorinn_903","snap":"","status":"pending","gender":"f"},{"name":"ميكرو بلوقر جوانا 🌸","phone":"50644219","ig":"@jowana.511","ig_url":"https://www.instagram.com/jowana.511","tt":"@jowana305","tt_url":"https://www.tiktok.com/@jowana305","snap":"https://www.snapchat.com/add/jowana1","status":"pending","gender":"f"},{"name":"Esraa","phone":"66924955","ig":"@reporter_esraahelmy","ig_url":"https://www.instagram.com/reporter_esraahelmy","tt":"@reporter_esraahelmy","tt_url":"https://www.tiktok.com/@reporter_esraahelmy","snap":"https://snapchat.com/t/gHp2CPs7","status":"pending","gender":"f"},{"name":"العنود - صانعة محتوى","phone":"67063365","ig":"@anoodalkhateeb__official","ig_url":"https://www.instagram.com/anoodalkhateeb__official","tt":"@anoodalkhateeb","tt_url":"https://www.tiktok.com/@anoodalkhateeb","snap":"https://snapchat.com/t/yLX2beM4","status":"pending","gender":"f"},{"name":"مهندسة اميرة محمد - بلوجر","phone":"51350055","ig":"@eng_amira_2020","ig_url":"https://www.instagram.com/eng_amira_2020","tt":"@amira_mohamed_abdalah","tt_url":"https://www.tiktok.com/@amira_mohamed_abdalah","snap":"https://snapchat.com/t/H5ydPDFL","status":"pending","gender":"f"},{"name":"سوسو - صانعة محتوى","phone":"","ig":"@siham_7ala","ig_url":"https://www.instagram.com/siham_7ala","tt":"@sihamsadek00","tt_url":"https://www.tiktok.com/@sihamsadek00","snap":"https://snapchat.com/t/ZwdSOgHM","status":"pending","gender":"f"},{"name":"alrab3h_live","phone":"","ig":"","ig_url":"https://reach.link/alrab3h_live","tt":"","tt_url":"","snap":"","status":"pending","gender":"f"},{"name":"بلوقر برستيج الكويت - أوفر فويس","phone":"","ig":"@t.as7o","ig_url":"https://www.instagram.com/t.as7o","tt":"@t.as7o","tt_url":"https://www.tiktok.com/@t.as7o","snap":"","status":"pending","gender":"f"},{"name":"دار ناديه - مصممه وبلوقر","phone":"67010886","ig":"@dar_nadia_","ig_url":"https://www.instagram.com/dar_nadia_","tt":"@dar_nadia","tt_url":"https://www.tiktok.com/@dar_nadia","snap":"","status":"pending","gender":"f"},{"name":"افرح الظفيري","phone":"","ig":"@blogger.farah","ig_url":"https://www.instagram.com/blogger.farah","tt":"","tt_url":"","snap":"","status":"pending","gender":"f"},{"name":"Kuwait Blog Q8","phone":"97641727","ig":"@kuwaitblogq8","ig_url":"https://www.instagram.com/kuwaitblogq8","tt":"@kuwaitblogq8","tt_url":"https://www.tiktok.com/@kuwaitblogq8","snap":"https://www.snapchat.com/add/kuwait_food","status":"pending","gender":"f"},{"name":"بشبش بلوقر","phone":"96707889","ig":"","ig_url":"https://linktr.ee/Bshbsh_bloogr87","tt":"","tt_url":"","snap":"","status":"pending","gender":"f"},{"name":"فجر - بلوقر","phone":"","ig":"@bloggerfjr7","ig_url":"https://www.instagram.com/bloggerfjr7","tt":"","tt_url":"","snap":"","status":"pending","gender":"f"},{"name":"بلوقر أولغا ستايل","phone":"60441419","ig":"@olga_diaries","ig_url":"https://www.instagram.com/olga_diaries","tt":"@olga_diaries_kw","tt_url":"https://www.tiktok.com/@olga_diaries_kw","snap":"https://snapchat.com/t/WVGZb1tf","status":"pending","gender":"f"},{"name":"بلوقر الترف","phone":"","ig":"@tlt1","ig_url":"https://www.instagram.com/tlt1","tt":"","tt_url":"","snap":"","status":"pending","gender":"f"},{"name":"mommyletsdoit","phone":"56513554","ig":"@mommyletsdoit","ig_url":"https://www.instagram.com/mommyletsdoit","tt":"","tt_url":"","snap":"","status":"pending","gender":"f"},{"name":"فرح - بلوقر يومي","phone":"","ig":"@farah.dailyblogs","ig_url":"https://www.instagram.com/farah.dailyblogs","tt":"","tt_url":"","snap":"","status":"pending","gender":"f"},{"name":"","phone":"","ig":"@al_yasmiina","ig_url":"https://www.instagram.com/al_yasmiina","tt":"","tt_url":"","snap":"","status":"pending","gender":"f"},{"name":"","phone":"","ig":"@l.im83","ig_url":"https://www.instagram.com/l.im83","tt":"","tt_url":"","snap":"","status":"pending","gender":"f"}];
 
 let influencers = [];
+let deletedInfluencers = [];
 let currentFilter = 'all';
 let _editIdx = null;
 let _pendingSingleItem = null;
@@ -420,6 +555,7 @@ let _bulkClean = [];
 let _bulkDecisions = {};
 let _svcTargetIdx = null;
 let dpTargetIdx = null;
+let _pendingDeleteIdx = null;
 let dpYear = new Date().getFullYear();
 let dpMonth = new Date().getMonth();
 
@@ -428,29 +564,30 @@ const SERVICES = ['فيلر','بوتوكس','تنظيف بشرة','ليزر'];
 const SVC_IDS = ['svc_filler','svc_botox','svc_clean','svc_laser'];
 const MONTHS_AR = ['يناير','فبراير','مارس','أبريل','مايو','يونيو','يوليو','أغسطس','سبتمبر','أكتوبر','نوفمبر','ديسمبر'];
 
-// ─── Firebase REST API Config ─────────────────────────────────────────────
 const DB_URL = 'https://cure-10-influncers-default-rtdb.firebaseio.com';
 const DB_PATH = 'cure_influencers_data';
+const DB_DELETED_PATH = 'cure_deleted_data';
 const LS_KEY = 'cure_influencers_v18';
+const LS_DELETED_KEY = 'cure_deleted_v18';
 
 async function saveToStorage() {
-  // Always save to localStorage immediately (works everywhere)
   try { localStorage.setItem(LS_KEY, JSON.stringify(influencers)); } catch(e) {}
-  // Try Firebase in background (works when opened in browser)
+  try { localStorage.setItem(LS_DELETED_KEY, JSON.stringify(deletedInfluencers)); } catch(e) {}
   try {
     const res = await fetch(`${DB_URL}/${DB_PATH}.json`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
+      method: 'PUT', headers: {'Content-Type':'application/json'},
       body: JSON.stringify({ data: JSON.stringify(influencers) })
+    });
+    // Save deleted list too
+    await fetch(`${DB_URL}/${DB_DELETED_PATH}.json`, {
+      method: 'PUT', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ data: JSON.stringify(deletedInfluencers) })
     });
     if (res.ok) { showSaveIndicator(); return; }
   } catch(e) {}
-  // Firebase failed, still show indicator (localStorage saved)
   showSaveIndicator();
 }
-
 async function loadFromStorage() {
-  // Try Firebase first
   try {
     const res = await fetch(`${DB_URL}/${DB_PATH}.json`);
     if (res.ok) {
@@ -459,39 +596,47 @@ async function loadFromStorage() {
         const parsed = JSON.parse(val.data);
         if (Array.isArray(parsed) && parsed.length > 0) {
           influencers = parsed;
-          // Sync to localStorage
           try { localStorage.setItem(LS_KEY, JSON.stringify(influencers)); } catch(e) {}
-          return true;
         }
       }
     }
+    // Load deleted
+    const res2 = await fetch(`${DB_URL}/${DB_DELETED_PATH}.json`);
+    if (res2.ok) {
+      const val2 = await res2.json();
+      if (val2 && val2.data) {
+        const parsed2 = JSON.parse(val2.data);
+        if (Array.isArray(parsed2)) {
+          deletedInfluencers = parsed2;
+          try { localStorage.setItem(LS_DELETED_KEY, JSON.stringify(deletedInfluencers)); } catch(e) {}
+        }
+      }
+    }
+    if (influencers.length > 0) return true;
   } catch(e) {}
-  // Fallback to localStorage
   try {
     const ls = localStorage.getItem(LS_KEY);
     if (ls) {
       const parsed = JSON.parse(ls);
-      if (Array.isArray(parsed) && parsed.length > 0) {
-        influencers = parsed;
-        return true;
-      }
+      if (Array.isArray(parsed) && parsed.length > 0) { influencers = parsed; }
     }
+    const lsd = localStorage.getItem(LS_DELETED_KEY);
+    if (lsd) {
+      const parsedd = JSON.parse(lsd);
+      if (Array.isArray(parsedd)) deletedInfluencers = parsedd;
+    }
+    return influencers.length > 0;
   } catch(e) {}
   return false;
 }
-
 function showSaveIndicator() {
   const el = document.getElementById('saveIndicator');
   el.style.display = 'block';
   clearTimeout(el._timer);
   el._timer = setTimeout(() => { el.style.display = 'none'; }, 2000);
 }
+function saveFile() { saveToStorage(); }
 
-function saveFile() {
-  saveToStorage();
-}
-
-// ─── Helpers ────────────────────────────────────────────────────
 function getInitial(item) {
   if (item.name) return item.name.trim().replace(/[^\u0600-\u06FFa-zA-Z]/g,'')[0] || '?';
   if (item.ig) return item.ig.replace('@','')[0].toUpperCase();
@@ -508,132 +653,225 @@ function formatDateAr(iso) {
   const [y,m,d] = iso.split('-');
   return parseInt(d)+' '+MONTHS_AR[parseInt(m)-1]+' '+y;
 }
-function normalizePhone(p){ return (p||'').replace(/\D/g,'').replace(/^965/,'').replace(/^00965/,''); }
-function normalizeIg(ig){ return (ig||'').replace('@','').toLowerCase().trim().split('?')[0]; }
+function normalizePhone(p){
+  // Convert Arabic-Indic digits to Western digits first
+  const converted = (p||'').replace(/[٠-٩]/g, d => '٠١٢٣٤٥٦٧٨٩'.indexOf(d).toString());
+  return converted.replace(/\D/g,'').replace(/^965/,'').replace(/^00965/,'');
+}
+function normalizeIg(ig){
+  if(!ig) return '';
+  let s = ig.trim().toLowerCase();
+  // Full URL: extract username from path
+  if(s.includes('instagram.com/')) {
+    s = s.split('instagram.com/').pop();
+    s = s.split('?')[0].split('&')[0].replace(/\//g,'');
+  }
+  // Remove @ prefix
+  s = s.replace('@','');
+  // Remove any query string remnants
+  s = s.split('?')[0];
+  return s.trim();
+}
 function normalizeSnap(s){
   if(!s) return '';
-  const m = s.match(/snapchat\.com\/add\/([^/?]+)/i);
-  return m ? m[1].toLowerCase() : s.toLowerCase().trim();
+  // snapchat.com/add/username → use username
+  let m = s.match(/snapchat\.com\/add\/([^/?&]+)/i);
+  if(m) return m[1].toLowerCase();
+  // snapchat.com/t/TOKEN → use token for dedup
+  m = s.match(/snapchat\.com\/t\/([^/?&]+)/i);
+  if(m) return 't_'+m[1].toLowerCase();
+  return s.toLowerCase().trim();
+}
+
+// Extract readable snap handle from any snap URL format
+function getSnapHandle(snap) {
+  if(!snap) return 'سناب';
+  // snapchat.com/add/username
+  let m = snap.match(/snapchat\.com\/add\/([^/?&]+)/i);
+  if(m) return '@'+m[1];
+  // snapchat.com/t/XXXXX (share link — can't extract username)
+  if(snap.includes('snapchat.com/t/') || snap.includes('snap.com/t/')) return 'سناب';
+  // plain username
+  if(!snap.startsWith('http')) return '@'+snap;
+  return 'سناب';
 }
 function findDuplicate(newItem) {
   const nPhone = normalizePhone(newItem.phone);
   const nIg = normalizeIg(newItem.ig);
-  const nName = (newItem.name||'').trim().toLowerCase();
+  const nTt = (newItem.tt||'').replace('@','').toLowerCase().trim().split('?')[0];
   const nSnap = normalizeSnap(newItem.snap);
   for(let i=0;i<influencers.length;i++){
-    const ex = influencers[i];
-    const reasons=[];
+    const ex = influencers[i]; const reasons=[];
     if(nPhone && nPhone.length>=7 && normalizePhone(ex.phone)===nPhone) reasons.push('رقم الموبايل');
-    if(nIg && normalizeIg(ex.ig)===nIg) reasons.push('حساب انستاجرام');
-    if(nName && nName.length>2 && (ex.name||'').trim().toLowerCase()===nName) reasons.push('الاسم');
+    if(nIg && nIg.length>2 && normalizeIg(ex.ig)===nIg) reasons.push('حساب انستاجرام');
+    if(nTt && nTt.length>2 && (ex.tt||'').replace('@','').toLowerCase().trim().split('?')[0]===nTt) reasons.push('حساب تيك توك');
     if(nSnap && nSnap.length>3 && normalizeSnap(ex.snap)===nSnap) reasons.push('سناب شات');
     if(reasons.length>0) return {idx:i,item:ex,reasons};
   }
   return null;
 }
+// ─── Phone Popup ────────────────────────────────────────────────
+function normalizePhoneForLinks(p) {
+  const digits = (p||'').replace(/[٠-٩]/g, d => '٠١٢٣٤٥٦٧٨٩'.indexOf(d).toString())
+                         .replace(/\D/g,'');
+  if(digits.startsWith('965')) return digits;
+  if(digits.startsWith('00965')) return digits.replace('00965','965');
+  if(digits.length >= 6) return '965'+digits;
+  return digits;
+}
+function showPhonePopup(phone, name, e) {
+  if(e) e.stopPropagation();
+  const clean = normalizePhoneForLinks(phone);
+  document.getElementById('phonePopupName').textContent = name || '';
+  document.getElementById('phonePopupNum').textContent = phone;
+  document.getElementById('phonePopupWA').href = 'https://wa.me/'+clean;
+  document.getElementById('phonePopupCall').href = 'tel:+'+clean;
+  document.getElementById('phonePopupOverlay').style.display = 'block';
+  document.body.style.overflow = 'hidden';
+}
+function hidePhonePopup() {
+  document.getElementById('phonePopupOverlay').style.display = 'none';
+  document.body.style.overflow = '';
+}
+function closePhonePopup(e) {
+  if(e.target === document.getElementById('phonePopupOverlay')) hidePhonePopup();
+}
+
 function showToast(msg, color='#059669') {
   const t = document.createElement('div');
   t.style.cssText=`position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:${color};color:#fff;padding:10px 22px;border-radius:10px;font-family:Tajawal,sans-serif;font-size:14px;font-weight:700;z-index:9999;box-shadow:0 4px 20px rgba(0,0,0,.4);white-space:nowrap;`;
-  t.textContent=msg;
-  document.body.appendChild(t);
+  t.textContent=msg; document.body.appendChild(t);
   setTimeout(()=>t.remove(),3000);
 }
 
-// ─── Stats ──────────────────────────────────────────────────────
 function updateStats() {
-  const total = influencers.length;
-  const approved = influencers.filter(i=>i.status==='approved').length;
-  const rejected = influencers.filter(i=>i.status==='rejected').length;
-  const pending = total - approved - rejected;
-  document.getElementById('statTotal').textContent = total;
-  document.getElementById('statApproved').textContent = approved;
-  document.getElementById('statRejected').textContent = rejected;
-  document.getElementById('statPending').textContent = pending;
-  document.getElementById('statIg').textContent = influencers.filter(i=>i.ig).length;
-  document.getElementById('statTt').textContent = influencers.filter(i=>i.tt).length;
-  document.getElementById('statSnap').textContent = influencers.filter(i=>i.snap).length;
-  document.getElementById('statAll3').textContent = influencers.filter(i=>i.ig&&i.tt&&i.snap).length;
-  document.getElementById('statMale').textContent = influencers.filter(i=>i.gender==='m').length;
-  document.getElementById('statFemale').textContent = influencers.filter(i=>i.gender==='f').length;
-}
-
-// ─── Filter ─────────────────────────────────────────────────────
-const REPORT_FILTERS = ['approved','rejected','male','female'];
-const REPORT_LABELS = {approved:'📋 كشف المقبولين',rejected:'📋 كشف المرفوضين',male:'📋 كشف الذكور',female:'📋 كشف الإناث'};
-
-function updateReportBtn(f) {
-  const btn = document.getElementById('reportBtn');
-  if(!btn) return;
-  if(REPORT_FILTERS.includes(f)){
-    btn.style.display='block';
-    btn.textContent = REPORT_LABELS[f];
-    const colors = {approved:'#1e5c2d',rejected:'#5c1e1e',male:'#1e3a5f',female:'#4a044e'};
-    btn.style.background = colors[f]||'#1e3a5f';
-  } else {
-    btn.style.display='none';
+  const total=influencers.length, approved=influencers.filter(i=>i.status==='approved').length,
+        rejected=influencers.filter(i=>i.status==='rejected').length;
+  document.getElementById('statTotal').textContent=total;
+  document.getElementById('statApproved').textContent=approved;
+  document.getElementById('statRejected').textContent=rejected;
+  document.getElementById('statPending').textContent=total-approved-rejected;
+  document.getElementById('statIg').textContent=influencers.filter(i=>i.ig).length;
+  document.getElementById('statTt').textContent=influencers.filter(i=>i.tt).length;
+  document.getElementById('statSnap').textContent=influencers.filter(i=>i.snap).length;
+  document.getElementById('statAll3').textContent=influencers.filter(i=>i.ig&&i.tt&&i.snap).length;
+  document.getElementById('statMale').textContent=influencers.filter(i=>i.gender==='m').length;
+  document.getElementById('statFemale').textContent=influencers.filter(i=>i.gender==='f').length;
+  // Deleted badge
+  const badge=document.getElementById('deletedBadge');
+  if(badge){
+    badge.textContent=deletedInfluencers.length;
+    badge.style.display=deletedInfluencers.length>0?'inline':'none';
   }
 }
-function setFilter(f, btn) {
-  currentFilter = f;
+
+const REPORT_FILTERS = ['approved','rejected','male','female'];
+const REPORT_LABELS = {approved:'📋 كشف المقبولين',rejected:'📋 كشف المرفوضين',male:'📋 كشف الذكور',female:'📋 كشف الإناث'};
+function updateReportBtn(f) {
+  const btn=document.getElementById('reportBtn'); if(!btn) return;
+  if(REPORT_FILTERS.includes(f)){
+    btn.style.display='block'; btn.textContent=REPORT_LABELS[f];
+    const colors={approved:'#1e5c2d',rejected:'#5c1e1e',male:'#1e3a5f',female:'#4a044e'};
+    btn.style.background=colors[f]||'#1e3a5f';
+  } else btn.style.display='none';
+}
+function setFilter(f,btn) {
+  currentFilter=f;
   document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));
   if(btn) btn.classList.add('active');
-  updateReportBtn(f);
-  renderGrid();
+  updateReportBtn(f); renderGrid();
 }
 function setFilterFromStat(f) {
-  currentFilter = f;
+  currentFilter=f;
   document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));
-  const map = {ig:'fb-ig',tt:'fb-tt',snap:'fb-snap',all3:'fb-all3',male:'fb-male',female:'fb-female'};
-  const el = document.getElementById(map[f]);
-  if(el) el.classList.add('active');
-  updateReportBtn(f);
-  window.scrollTo({top:200,behavior:'smooth'});
-  renderGrid();
+  const map={ig:'fb-ig',tt:'fb-tt',snap:'fb-snap',all3:'fb-all3',male:'fb-male',female:'fb-female'};
+  const el=document.getElementById(map[f]); if(el) el.classList.add('active');
+  updateReportBtn(f); window.scrollTo({top:200,behavior:'smooth'}); renderGrid();
 }
 
-// ─── Render Grid ────────────────────────────────────────────────
 function renderGrid() {
-  const q = document.getElementById('searchInput').value.toLowerCase().trim();
-  const grid = document.getElementById('grid');
+  const q=document.getElementById('searchInput').value.toLowerCase().trim();
+  const grid=document.getElementById('grid');
   let html='', visible=0;
 
+  // ── Deleted view ──────────────────────────────────────────────
+  if(currentFilter==='deleted'){
+    if(deletedInfluencers.length===0){
+      grid.innerHTML='<div style="text-align:center;padding:3rem;color:#484f58;font-size:14px;">🗑 قائمة المحذوفين فارغة</div>';
+      updateStats(); return;
+    }
+    deletedInfluencers.forEach((item, realIdx)=>{
+      const name=getDisplayName(item, realIdx);
+      const searchStr=(name+(item.ig||'')+(item.tt||'')+(item.phone||'')+(item.snap||'')).toLowerCase();
+      if(q&&!searchStr.includes(q)) return;
+      visible++;
+      const initial=getInitial(item), color='#6b2020';
+      const deletedAt=item.deletedAt?new Date(item.deletedAt).toLocaleDateString('ar-KW',{year:'numeric',month:'short',day:'numeric'}):'';
+      html+=`<div class="card" style="border-color:#6b2020;background:#1a0808;opacity:.85;">
+        <div style="background:#dc2626;color:#fff;font-size:10px;font-weight:700;padding:3px 8px;border-radius:6px;margin-bottom:.5rem;display:inline-block;">🗑 محذوف${deletedAt?' — '+deletedAt:''}</div>
+        <div class="card-top">
+          <div class="avatar" style="background:${color};filter:grayscale(.5)">${initial}</div>
+          <div class="card-info">
+            <div class="card-name" style="color:#9ca3af;">${name}</div>
+            ${item.phone?`<div class="card-phone" onclick="showPhonePopup('${item.phone}','${(item.name||item.ig||'').replace(/'/g,"\\'")}',event)" style="cursor:pointer;">📞 ${item.phone}</div>`:''}
+            ${item.nationality?`<div class="nationality-badge">🌍 ${item.nationality}</div>`:''}
+            ${item.gender?`<span class="gender-badge ${item.gender}">${item.gender==='m'?'👨 ذكر':'👩 أنثى'}</span>`:''}
+          </div>
+        </div>
+        ${item.ig||item.tt||item.snap?`<div class="social-links" style="opacity:.6;">
+          ${item.ig?`<span class="social-link">📸 ${item.ig}</span>`:''}
+          ${item.tt?`<span class="social-link">🎵 ${item.tt}</span>`:''}
+          ${item.snap?`<span class="social-link">👻 سناب</span>`:''}
+        </div>`:''}
+        <div class="card-actions" style="margin-top:.5rem;">
+          <button class="action-btn approve" onclick="restoreInfluencer(${realIdx})" style="border-color:#059669;color:#34d399;">↩ استعادة</button>
+          <button class="action-btn" onclick="permanentDelete(${realIdx})" style="border-color:#dc2626;color:#f87171;">🗑 حذف نهائي</button>
+        </div>
+      </div>`;
+    });
+    grid.innerHTML=html||'<div style="text-align:center;padding:3rem;color:#484f58;font-size:14px;">لا توجد نتائج</div>';
+    updateStats(); return;
+  }
+
+  // ── Normal view ───────────────────────────────────────────────
   influencers.forEach((item,idx)=>{
-    const name = getDisplayName(item,idx);
-    const searchStr = (name+item.ig+item.tt+item.phone+item.snap).toLowerCase();
-    const matchSearch = !q || searchStr.includes(q);
-    const matchFilter = currentFilter==='all' || item.status===currentFilter ||
-      (currentFilter==='ig'&&item.ig) || (currentFilter==='tt'&&item.tt) ||
-      (currentFilter==='snap'&&item.snap) || (currentFilter==='all3'&&item.ig&&item.tt&&item.snap) ||
-      (currentFilter==='male'&&item.gender==='m') || (currentFilter==='female'&&item.gender==='f') ||
+    const name=getDisplayName(item,idx);
+    const searchStr=(name+item.ig+item.tt+item.phone+item.snap+(item.nationality||'')).toLowerCase();
+    const matchSearch=!q||searchStr.includes(q);
+    const matchFilter=currentFilter==='all'||item.status===currentFilter||
+      (currentFilter==='ig'&&item.ig)||(currentFilter==='tt'&&item.tt)||(currentFilter==='snap'&&item.snap)||
+      (currentFilter==='all3'&&item.ig&&item.tt&&item.snap)||
+      (currentFilter==='male'&&item.gender==='m')||(currentFilter==='female'&&item.gender==='f')||
       (currentFilter==='pending'&&(!item.status||item.status==='pending'));
     if(!matchSearch||!matchFilter) return;
     visible++;
-    const initial = getInitial(item);
-    const color = getColor(idx);
-    let socials = '';
+    const initial=getInitial(item), color=getColor(idx);
+    let socials='';
     if(item.ig){
-      const url = item.ig_url&&item.ig_url.startsWith('http')?item.ig_url:`https://www.instagram.com/${item.ig.replace('@','')}`;
-      socials+=`<a class="social-link" href="${url}" target="_blank"><span class="social-icon ig-icon"><svg width="11" height="11" viewBox="0 0 24 24" fill="white"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg></span><span class="social-handle">${item.ig}</span></a>`;
+      const url=item.ig_url&&item.ig_url.startsWith('http')?item.ig_url:`https://www.instagram.com/${item.ig.replace('@','')}`;
+      socials+=`<a class="social-link" href="${url}" target="_blank"><span class="social-icon ig-icon"><svg width="11" height="11" viewBox="0 0 24 24" fill="white"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg></span><span>${item.ig}</span></a>`;
     }
     if(item.tt){
-      const url = item.tt_url&&item.tt_url.startsWith('http')?item.tt_url:`https://www.tiktok.com/${item.tt}`;
-      socials+=`<a class="social-link" href="${url}" target="_blank"><span class="social-icon tt-icon"><svg width="11" height="11" viewBox="0 0 24 24" fill="white"><path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-2.88 2.5 2.89 2.89 0 0 1-2.89-2.89 2.89 2.89 0 0 1 2.89-2.89c.28 0 .54.04.79.1V9.01a6.34 6.34 0 0 0-.79-.05 6.34 6.34 0 0 0-6.34 6.34 6.34 6.34 0 0 0 6.34 6.34 6.34 6.34 0 0 0 6.33-6.34V8.69a8.18 8.18 0 0 0 4.78 1.52V6.76a4.86 4.86 0 0 1-3-.07z"/></svg></span><span class="social-handle">${item.tt}</span></a>`;
+      const url=item.tt_url&&item.tt_url.startsWith('http')?item.tt_url:`https://www.tiktok.com/${item.tt}`;
+      socials+=`<a class="social-link" href="${url}" target="_blank"><span class="social-icon tt-icon"><svg width="11" height="11" viewBox="0 0 24 24" fill="white"><path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-2.88 2.5 2.89 2.89 0 0 1-2.89-2.89 2.89 2.89 0 0 1 2.89-2.89c.28 0 .54.04.79.1V9.01a6.34 6.34 0 0 0-.79-.05 6.34 6.34 0 0 0-6.34 6.34 6.34 6.34 0 0 0 6.34 6.34 6.34 6.34 0 0 0 6.33-6.34V8.69a8.18 8.18 0 0 0 4.78 1.52V6.76a4.86 4.86 0 0 1-3-.07z"/></svg></span><span>${item.tt}</span></a>`;
     }
     if(item.snap){
-      const snapUrl = item.snap.startsWith('http')?item.snap:'https://snapchat.com/add/'+item.snap;
-      socials+=`<a class="social-link" href="${snapUrl}" target="_blank"><span class="social-icon snap-icon"><svg width="11" height="11" viewBox="0 0 24 24" fill="#000"><path d="M12.166.011C9.033.011 6.099 1.871 4.91 4.66c-.53 1.236-.425 3.566-.362 4.994-.33.15-.727.24-1.17.133-.315-.075-.627.154-.68.475-.081.497.286.898.75 1.012.63.154 1.236.124 1.784-.047.083-.024.163-.054.241-.086.41 1.24 1.14 2.41 2.177 3.299-.754.378-2.15.89-3.914 1.01-.282.018-.52.208-.573.488-.245 1.304 2.36 2.014 3.69 2.338.244.059.41.28.4.53-.02.457.02.76.107.97.068.163.237.255.408.215.332-.079.654-.232.997-.232.388 0 .639.104 1.012.316.762.437 1.627.943 3.219.943 1.57 0 2.44-.498 3.193-.934.372-.213.63-.325 1.012-.325.338 0 .657.152.987.23.172.041.342-.052.41-.214.086-.21.127-.513.107-.97-.01-.25.156-.47.4-.53 1.33-.323 3.934-1.033 3.69-2.337-.054-.28-.291-.47-.573-.488-1.765-.12-3.16-.632-3.914-1.01 1.036-.889 1.767-2.059 2.177-3.299.078.032.158.062.241.086.548.171 1.154.201 1.784.047.464-.114.831-.515.75-1.012-.053-.321-.365-.55-.68-.475-.443.107-.84.017-1.17-.133.063-1.428.168-3.758-.362-4.994C17.9 1.871 14.966.011 12.166.011z"/></svg></span><span class="social-handle">سناب</span></a>`;
+      const snapUrl=item.snap.startsWith('http')?item.snap:'https://snapchat.com/add/'+item.snap;
+      const snapHandle=getSnapHandle(item.snap);
+      socials+=`<a class="social-link" href="${snapUrl}" target="_blank"><span class="social-icon snap-icon"><svg width="11" height="11" viewBox="0 0 24 24" fill="#000"><path d="M12.166.011C9.033.011 6.099 1.871 4.91 4.66c-.53 1.236-.425 3.566-.362 4.994-.33.15-.727.24-1.17.133-.315-.075-.627.154-.68.475-.081.497.286.898.75 1.012.63.154 1.236.124 1.784-.047.083-.024.163-.054.241-.086.41 1.24 1.14 2.41 2.177 3.299-.754.378-2.15.89-3.914 1.01-.282.018-.52.208-.573.488-.245 1.304 2.36 2.014 3.69 2.338.244.059.41.28.4.53-.02.457.02.76.107.97.068.163.237.255.408.215.332-.079.654-.232.997-.232.388 0 .639.104 1.012.316.762.437 1.627.943 3.219.943 1.57 0 2.44-.498 3.193-.934.372-.213.63-.325 1.012-.325.338 0 .657.152.987.23.172.041.342-.052.41-.214.086-.21.127-.513.107-.97-.01-.25.156-.47.4-.53 1.33-.323 3.934-1.033 3.69-2.337-.054-.28-.291-.47-.573-.488-1.765-.12-3.16-.632-3.914-1.01 1.036-.889 1.767-2.059 2.177-3.299.078.032.158.062.241.086.548.171 1.154.201 1.784.047.464-.114.831-.515.75-1.012-.053-.321-.365-.55-.68-.475-.443.107-.84.017-1.17-.133.063-1.428.168-3.758-.362-4.994C17.9 1.871 14.966.011 12.166.011z"/></svg></span><span>${snapHandle}</span></a>`;
     }
-    const svcLabel = item.services&&item.services.length ? item.services.join(' · ') : 'اختر الخدمة';
-    const hasSvc = item.services&&item.services.length>0;
-    const hasDate = !!item.visitDate;
-    const dateLabel = hasDate ? '📅 '+formatDateAr(item.visitDate) : '📅 تحديد موعد الزيارة';
-    html += `<div class="card ${item.status||'pending'}" data-idx="${idx}">
+    const svcLabel=item.services&&item.services.length?item.services.join(' · '):'اختر الخدمة';
+    const hasSvc=item.services&&item.services.length>0;
+    const hasDate=!!item.visitDate;
+    const dateLabel=hasDate?'📅 '+formatDateAr(item.visitDate):'📅 تحديد موعد الزيارة';
+    html+=`<div class="card ${item.status||'pending'}" data-idx="${idx}">
       <div class="card-top">
         <div class="avatar" style="background:${color}">${initial}</div>
         <div class="card-info">
           <div class="card-name">${name}</div>
-          ${item.phone?`<div class="card-phone">${item.phone}</div>`:''}
+          ${item.phone?`<div class="card-phone" onclick="showPhonePopup('${item.phone}','${(item.name||item.ig||'').replace(/'/g,"\\'")}',event)" style="cursor:pointer;" title="اضغط للتواصل">📞 ${item.phone}</div>`:''}
           ${item.civil?`<div class="civil-badge">🪪 ${item.civil}</div>`:''}
+          ${item.nationality?`<div class="nationality-badge">🌍 ${item.nationality}</div>`:''}
           ${item.gender?`<span class="gender-badge ${item.gender}">${item.gender==='m'?'👨 ذكر':'👩 أنثى'}</span>`:''}
         </div>
         <span class="status-badge ${item.status||'pending'}">${item.status==='approved'?'✅ مقبول':item.status==='rejected'?'❌ مرفوض':'⏳ قيد المراجعة'}</span>
@@ -650,92 +888,134 @@ function renderGrid() {
       <button class="visit-date-btn ${hasDate?'has-date':''}" onclick="openDatePicker(${idx},event)">${dateLabel}</button>
     </div>`;
   });
-
-  grid.innerHTML = html || '<div style="text-align:center;padding:3rem;color:#484f58;font-size:14px;">لا توجد نتائج</div>';
-  document.getElementById('visibleCount').textContent = visible + ' مؤثر';
+  grid.innerHTML=html||'<div style="text-align:center;padding:3rem;color:#484f58;font-size:14px;">لا توجد نتائج</div>';
   updateStats();
 }
 
-// ─── Status ─────────────────────────────────────────────────────
-function setStatus(idx, status) {
-  influencers[idx].status = status;
-  renderGrid();
-  saveFile();
-}
+function setStatus(idx,status){ influencers[idx].status=status; renderGrid(); saveFile(); }
 
-// ─── Delete ─────────────────────────────────────────────────────
+// ── Delete with confirmation modal ────────────────────────────────
 function deleteInfluencer(idx) {
-  if(!confirm('هل تريد حذف هذا المؤثر؟')) return;
-  influencers.splice(idx,1);
-  renderGrid();
-  saveFile();
-  showToast('🗑 تم الحذف','#dc2626');
+  _pendingDeleteIdx = idx;
+  const item = influencers[idx];
+  const name = getDisplayName(item, idx);
+  document.getElementById('deleteConfirmName').textContent = name;
+  document.getElementById('deleteConfirmOverlay').classList.remove('hidden');
 }
+function cancelDelete() {
+  _pendingDeleteIdx = null;
+  document.getElementById('deleteConfirmOverlay').classList.add('hidden');
+}
+function confirmDelete() {
+  if(_pendingDeleteIdx === null) return;
+  const item = influencers[_pendingDeleteIdx];
+  item.deletedAt = new Date().toISOString();
+  deletedInfluencers.unshift(item); // newest first
+  influencers.splice(_pendingDeleteIdx, 1);
+  _pendingDeleteIdx = null;
+  document.getElementById('deleteConfirmOverlay').classList.add('hidden');
+  renderGrid(); saveFile();
+  showToast('🗑 تم النقل للمحذوفين — يمكن استعادته','#b45309');
+}
+function restoreInfluencer(deletedIdx) {
+  const item = deletedInfluencers[deletedIdx];
+  delete item.deletedAt;
+  influencers.push(item);
+  deletedInfluencers.splice(deletedIdx, 1);
+  renderGrid(); saveFile();
+  showToast('✅ تمت استعادة المؤثر','#059669');
+}
+function permanentDelete(deletedIdx) {
+  if(deletedIdx < 0 || deletedIdx >= deletedInfluencers.length) return;
+  _pendingDeleteIdx = deletedIdx;
+  const item = deletedInfluencers[deletedIdx];
+  const name = getDisplayName(item, deletedIdx);
+  document.getElementById('permDeleteName').textContent = name;
+  document.getElementById('permDeleteOverlay').classList.remove('hidden');
+}
+function cancelPermDelete() {
+  document.getElementById('permDeleteOverlay').classList.add('hidden');
+  _pendingDeleteIdx = null;
+}
+function executePermDelete() {
+  if(_pendingDeleteIdx === null) return;
+  deletedInfluencers.splice(_pendingDeleteIdx, 1);
+  _pendingDeleteIdx = null;
+  document.getElementById('permDeleteOverlay').classList.add('hidden');
+  renderGrid(); saveFile();
+  showToast('🗑 تم الحذف النهائي', '#dc2626');
+}
+function executePermanentDelete(){ executePermDelete(); } // backward compat
 
-// ─── Gender select ───────────────────────────────────────────────
-function selectGender(prefix, val) {
-  const mBtn = document.getElementById(prefix+'GenderM');
-  const fBtn = document.getElementById(prefix+'GenderF');
+function selectGender(prefix,val) {
+  const mBtn=document.getElementById(prefix+'GenderM'), fBtn=document.getElementById(prefix+'GenderF');
   if(!mBtn||!fBtn) return;
-  const base = 'flex:1;padding:9px;border-radius:9px;font-size:13px;cursor:pointer;font-family:Tajawal,sans-serif;transition:all .15s;';
+  const base='flex:1;padding:9px;border-radius:9px;font-size:13px;cursor:pointer;font-family:Tajawal,sans-serif;transition:all .15s;';
   if(val==='m'){
-    mBtn.style.cssText=base+'background:#1a6fa8;color:#fff;border:1px solid #1a6fa8;';
-    fBtn.style.cssText=base+'background:#21262d;color:#8b949e;border:1px solid #30363d;';
-    mBtn.dataset.selected='1';fBtn.dataset.selected='0';
+    mBtn.style.cssText=base+'background:#1a6fa8;color:#fff;border:1px solid #1a6fa8;'; mBtn.dataset.selected='1';
+    fBtn.style.cssText=base+'background:#21262d;color:#8b949e;border:1px solid #30363d;'; fBtn.dataset.selected='0';
   } else {
-    fBtn.style.cssText=base+'background:#c026d3;color:#fff;border:1px solid #c026d3;';
-    mBtn.style.cssText=base+'background:#21262d;color:#8b949e;border:1px solid #30363d;';
-    fBtn.dataset.selected='1';mBtn.dataset.selected='0';
+    fBtn.style.cssText=base+'background:#c026d3;color:#fff;border:1px solid #c026d3;'; fBtn.dataset.selected='1';
+    mBtn.style.cssText=base+'background:#21262d;color:#8b949e;border:1px solid #30363d;'; mBtn.dataset.selected='0';
   }
 }
 
-// ─── Add Influencer ─────────────────────────────────────────────
 function openModal(){ document.getElementById('addModalOverlay').classList.remove('hidden'); }
 function closeModal(){ document.getElementById('addModalOverlay').classList.add('hidden'); }
-
 function addInfluencer() {
   const name=document.getElementById('mName').value.trim();
   const phone=document.getElementById('mPhone').value.trim();
   const civil=document.getElementById('mCivil').value.trim();
+  const nationality=document.getElementById('mNationality').value;
   const gender=document.getElementById('mGenderM').dataset.selected==='1'?'m':document.getElementById('mGenderF').dataset.selected==='1'?'f':'';
   const igRaw=document.getElementById('mIg').value.trim();
   const ttRaw=document.getElementById('mTt').value.trim();
   const snap=document.getElementById('mSnap').value.trim();
   if(!igRaw&&!phone&&!name){alert('يرجى إدخال على الأقل الاسم أو رقم الموبايل أو انستاجرام');return;}
-  const igHandle=igRaw.includes('instagram.com/')?'@'+igRaw.split('instagram.com/').pop().replace('/','').split('?')[0]:igRaw;
-  const ttHandle=ttRaw.includes('tiktok.com/@')?'@'+ttRaw.split('tiktok.com/@').pop().split('?')[0]:ttRaw;
-  const newItem={name,phone,civil,gender,ig:igHandle,ig_url:igRaw.startsWith('http')?igRaw:(igRaw?'https://www.instagram.com/'+igRaw.replace('@',''):''),tt:ttHandle,tt_url:ttRaw.startsWith('http')?ttRaw:(ttRaw?'https://www.tiktok.com/'+ttHandle:''),snap,status:'pending',visitDate:''};
+  // Extract clean ig handle from any format
+  let igHandle = igRaw;
+  if(igRaw.includes('instagram.com/')) {
+    igHandle = '@' + igRaw.split('instagram.com/').pop().replace(/\//g,'').split('?')[0].split('&')[0];
+  }
+  // Extract clean tt handle
+  let ttHandle = ttRaw;
+  if(ttRaw.includes('tiktok.com/@')) {
+    ttHandle = '@' + ttRaw.split('tiktok.com/@').pop().split('?')[0];
+  }
+  const newItem={name,phone,civil,nationality,gender,ig:igHandle,ig_url:igRaw.startsWith('http')?igRaw:(igRaw?'https://www.instagram.com/'+igRaw.replace('@',''):''),tt:ttHandle,tt_url:ttRaw.startsWith('http')?ttRaw:(ttRaw?'https://www.tiktok.com/'+ttHandle:''),snap,status:'pending',visitDate:''};
   const dup=findDuplicate(newItem);
   if(dup){closeModal();showSingleDupWarning(newItem,dup);return;}
-  influencers.push(newItem);
-  closeModal();
-  document.getElementById('mName').value='';document.getElementById('mPhone').value='';document.getElementById('mCivil').value='';
-  document.getElementById('mIg').value='';document.getElementById('mTt').value='';document.getElementById('mSnap').value='';
-  renderGrid();saveFile();
-  showToast('✅ تم إضافة المؤثر بنجاح!','#059669');
+  influencers.push(newItem); closeModal();
+  ['mName','mPhone','mCivil','mIg','mTt','mSnap'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('mNationality').value='';
+  const base='flex:1;padding:9px;border-radius:9px;font-size:13px;cursor:pointer;font-family:Tajawal,sans-serif;';
+  document.getElementById('mGenderM').style.cssText=base+'background:#21262d;color:#8b949e;border:1px solid #30363d;';
+  document.getElementById('mGenderM').dataset.selected='0';
+  document.getElementById('mGenderF').style.cssText=base+'background:#21262d;color:#8b949e;border:1px solid #30363d;';
+  document.getElementById('mGenderF').dataset.selected='0';
+  renderGrid(); saveFile(); showToast('✅ تم إضافة المؤثر بنجاح!','#059669');
 }
 
-// ─── Edit Influencer ─────────────────────────────────────────────
 function openEditModal(idx) {
-  _editIdx=idx;
-  const item=influencers[idx];
+  _editIdx=idx; const item=influencers[idx];
   document.getElementById('eName').value=item.name||'';
   document.getElementById('ePhone').value=item.phone||'';
   document.getElementById('eCivil').value=item.civil||'';
+  document.getElementById('eNationality').innerHTML=buildNationalityOptions(item.nationality||'');
   document.getElementById('eIg').value=item.ig||'';
   document.getElementById('eTt').value=item.tt||'';
   document.getElementById('eSnap').value=item.snap||'';
   const base='flex:1;padding:9px;border-radius:9px;font-size:13px;cursor:pointer;font-family:Tajawal,sans-serif;transition:all .15s;';
-  const mBtn=document.getElementById('eGenderM');const fBtn=document.getElementById('eGenderF');
+  const mBtn=document.getElementById('eGenderM'); const fBtn=document.getElementById('eGenderF');
   if(item.gender==='m'){
-    mBtn.style.cssText=base+'background:#1a6fa8;color:#fff;border:1px solid #1a6fa8;';mBtn.dataset.selected='1';
-    fBtn.style.cssText=base+'background:#21262d;color:#8b949e;border:1px solid #30363d;';fBtn.dataset.selected='0';
+    mBtn.style.cssText=base+'background:#1a6fa8;color:#fff;border:1px solid #1a6fa8;'; mBtn.dataset.selected='1';
+    fBtn.style.cssText=base+'background:#21262d;color:#8b949e;border:1px solid #30363d;'; fBtn.dataset.selected='0';
   } else if(item.gender==='f'){
-    fBtn.style.cssText=base+'background:#c026d3;color:#fff;border:1px solid #c026d3;';fBtn.dataset.selected='1';
-    mBtn.style.cssText=base+'background:#21262d;color:#8b949e;border:1px solid #30363d;';mBtn.dataset.selected='0';
+    fBtn.style.cssText=base+'background:#c026d3;color:#fff;border:1px solid #c026d3;'; fBtn.dataset.selected='1';
+    mBtn.style.cssText=base+'background:#21262d;color:#8b949e;border:1px solid #30363d;'; mBtn.dataset.selected='0';
   } else {
-    mBtn.style.cssText=base+'background:#21262d;color:#8b949e;border:1px solid #30363d;';mBtn.dataset.selected='0';
-    fBtn.style.cssText=base+'background:#21262d;color:#8b949e;border:1px solid #30363d;';fBtn.dataset.selected='0';
+    mBtn.style.cssText=base+'background:#21262d;color:#8b949e;border:1px solid #30363d;'; mBtn.dataset.selected='0';
+    fBtn.style.cssText=base+'background:#21262d;color:#8b949e;border:1px solid #30363d;'; fBtn.dataset.selected='0';
   }
   document.getElementById('editModalOverlay').classList.remove('hidden');
 }
@@ -746,6 +1026,7 @@ function saveEditInfluencer() {
   item.name=document.getElementById('eName').value.trim();
   item.phone=document.getElementById('ePhone').value.trim();
   item.civil=document.getElementById('eCivil').value.trim();
+  item.nationality=document.getElementById('eNationality').value;
   item.gender=document.getElementById('eGenderM').dataset.selected==='1'?'m':document.getElementById('eGenderF').dataset.selected==='1'?'f':'';
   const igRaw=document.getElementById('eIg').value.trim();
   const ttRaw=document.getElementById('eTt').value.trim();
@@ -754,58 +1035,35 @@ function saveEditInfluencer() {
   item.tt=ttRaw.includes('tiktok.com/@')?'@'+ttRaw.split('tiktok.com/@').pop().split('?')[0]:ttRaw;
   item.tt_url=ttRaw.startsWith('http')?ttRaw:(ttRaw?'https://www.tiktok.com/'+item.tt:'');
   item.snap=document.getElementById('eSnap').value.trim();
-  closeEditModal();renderGrid();saveFile();
-  showToast('✅ تم حفظ التعديلات','#1a6fa8');
+  closeEditModal(); renderGrid(); saveFile(); showToast('✅ تم حفظ التعديلات','#1a6fa8');
 }
 
-// ─── Bulk Add ────────────────────────────────────────────────────
 function openBulkModal(){ document.getElementById('bulkModalOverlay').classList.remove('hidden'); }
 function closeBulkModal(){ document.getElementById('bulkModalOverlay').classList.add('hidden'); document.getElementById('bulkTextarea').value=''; }
-
 function parseBulkLine(line) {
-  line=line.trim();if(!line) return null;
-  const item={name:'',phone:'',ig:'',ig_url:'',tt:'',tt_url:'',snap:'',status:'pending',gender:'',visitDate:''};
+  line=line.trim(); if(!line) return null;
+  const item={name:'',phone:'',ig:'',ig_url:'',tt:'',tt_url:'',snap:'',status:'pending',gender:'',nationality:'',visitDate:''};
   const parts=line.split(/[\s,،]+/);
   parts.forEach(p=>{
-    p=p.trim();if(!p) return;
-    if(p.includes('instagram.com/')){
-      const h='@'+p.split('instagram.com/').pop().replace(/\//,'').split('?')[0];
-      item.ig=h;item.ig_url=p;
-    } else if(p.includes('tiktok.com/@')){
-      const h='@'+p.split('tiktok.com/@').pop().split('?')[0];
-      item.tt=h;item.tt_url=p;
-    } else if(p.includes('snapchat.com')||p.includes('snap.com')){
-      item.snap=p;
-    } else if(p.startsWith('@')){
-      if(!item.ig) item.ig=p;
-      else if(!item.tt) item.tt=p;
-    } else if(/^\d{6,}$/.test(p.replace(/\D/g,''))){
-      item.phone=p;
-    } else if(p.length>2 && /[\u0600-\u06FF]/.test(p)){
-      item.name=(item.name?item.name+' ':'')+p;
-    }
+    p=p.trim(); if(!p) return;
+    if(p.includes('instagram.com/')){const h='@'+p.split('instagram.com/').pop().replace(/\//,'').split('?')[0];item.ig=h;item.ig_url=p;}
+    else if(p.includes('tiktok.com/@')){const h='@'+p.split('tiktok.com/@').pop().split('?')[0];item.tt=h;item.tt_url=p;}
+    else if(p.includes('snapchat.com')||p.includes('snap.com')){item.snap=p;}
+    else if(p.startsWith('@')){if(!item.ig)item.ig=p;else if(!item.tt)item.tt=p;}
+    else if(/^\d{6,}$/.test(p.replace(/\D/g,''))){item.phone=p;}
+    else if(p.length>2&&/[\u0600-\u06FF]/.test(p)){item.name=(item.name?item.name+' ':'')+p;}
   });
   if(!item.ig&&!item.phone&&!item.name) return null;
   return item;
 }
-
 function confirmBulkAdd() {
   const lines=document.getElementById('bulkTextarea').value.split('\n');
   const parsed=lines.map(parseBulkLine).filter(Boolean);
   if(parsed.length===0) return;
   _bulkClean=[];_bulkPending=[];
-  parsed.forEach(item=>{
-    const dup=findDuplicate(item);
-    if(dup) _bulkPending.push({item,dup});
-    else _bulkClean.push(item);
-  });
-  if(_bulkPending.length===0){
-    influencers.push(..._bulkClean);
-    closeBulkModal();renderGrid();saveFile();
-    showToast('✅ تم إضافة '+_bulkClean.length+' مؤثر بنجاح!','#059669');return;
-  }
-  closeBulkModal();_bulkDecisions={};renderBulkDupModal();
-  document.getElementById('dupBulkOverlay').classList.remove('hidden');
+  parsed.forEach(item=>{const dup=findDuplicate(item);if(dup)_bulkPending.push({item,dup});else _bulkClean.push(item);});
+  if(_bulkPending.length===0){influencers.push(..._bulkClean);closeBulkModal();renderGrid();saveFile();showToast('✅ تم إضافة '+_bulkClean.length+' مؤثر بنجاح!','#059669');return;}
+  closeBulkModal();_bulkDecisions={};renderBulkDupModal();document.getElementById('dupBulkOverlay').classList.remove('hidden');
 }
 function renderBulkDupModal() {
   const list=document.getElementById('dupBulkList');
@@ -818,17 +1076,11 @@ function renderBulkDupModal() {
         <button class="dup-btn-skip" onclick="setBulkDecision(${i},'skip',this)">⏭ تخطي</button>
         <button class="dup-btn-update" onclick="setBulkDecision(${i},'update',this)">🔄 تحديث</button>
         <button class="dup-btn-add-anyway" onclick="setBulkDecision(${i},'add',this)">➕ إضافة</button>
-      </div>
-    </div>`;
+      </div></div>`;
   }).join('');
-  const summary=document.getElementById('dupBulkSummary');
-  summary.innerHTML=`<b>${_bulkClean.length}</b> بدون تكرار سيُضافون · <b style="color:#fbbf24">${_bulkPending.length}</b> يحتاجون قرارك`;
+  document.getElementById('dupBulkSummary').innerHTML=`<b>${_bulkClean.length}</b> بدون تكرار سيُضافون · <b style="color:#fbbf24">${_bulkPending.length}</b> يحتاجون قرارك`;
 }
-function setBulkDecision(i,decision,btn){
-  _bulkDecisions[i]=decision;
-  btn.parentElement.querySelectorAll('button').forEach(b=>b.style.opacity='0.4');
-  btn.style.opacity='1';btn.style.fontWeight='900';
-}
+function setBulkDecision(i,decision,btn){_bulkDecisions[i]=decision;btn.parentElement.querySelectorAll('button').forEach(b=>b.style.opacity='0.4');btn.style.opacity='1';btn.style.fontWeight='900';}
 function applyBulkDecisions(){
   let added=0,updated=0,skipped=0;
   _bulkPending.forEach((entry,i)=>{
@@ -836,99 +1088,156 @@ function applyBulkDecisions(){
     if(dec==='add'){influencers.push(entry.item);added++;}
     else if(dec==='update'){
       const ex=influencers[entry.dup.idx];
-      if(!ex.name&&entry.item.name) ex.name=entry.item.name;
-      if(!ex.phone&&entry.item.phone) ex.phone=entry.item.phone;
+      if(!ex.name&&entry.item.name)ex.name=entry.item.name;
+      if(!ex.phone&&entry.item.phone)ex.phone=entry.item.phone;
       if(!ex.ig&&entry.item.ig){ex.ig=entry.item.ig;ex.ig_url=entry.item.ig_url;}
       if(!ex.tt&&entry.item.tt){ex.tt=entry.item.tt;ex.tt_url=entry.item.tt_url;}
-      if(!ex.snap&&entry.item.snap) ex.snap=entry.item.snap;
+      if(!ex.snap&&entry.item.snap)ex.snap=entry.item.snap;
       updated++;
     } else skipped++;
   });
   influencers.push(..._bulkClean);added+=_bulkClean.length;
   document.getElementById('dupBulkOverlay').classList.add('hidden');
-  renderGrid();saveFile();
-  showToast('✅ '+added+' أُضيف · 🔄 '+updated+' حُدّث · ⏭ '+skipped+' تخطّي','#059669');
+  renderGrid();saveFile();showToast('✅ '+added+' أُضيف · 🔄 '+updated+' حُدّث · ⏭ '+skipped+' تخطّي','#059669');
 }
-function closeDupBulk(){ document.getElementById('dupBulkOverlay').classList.add('hidden'); }
+function closeDupBulk(){document.getElementById('dupBulkOverlay').classList.add('hidden');}
 
-// ─── Single duplicate ────────────────────────────────────────────
-function showSingleDupWarning(newItem,dup){
-  _pendingSingleItem=newItem;_pendingSingleDupIdx=dup.idx;
-  const body=document.getElementById('dupSingleBody');
-  body.innerHTML=`<div class="dup-match-reason">⚠️ تطابق في: ${dup.reasons.join(' · ')}</div>`;
+function showSingleDupWarning(newItem, dup) {
+  _pendingSingleItem = newItem;
+  _pendingSingleDupIdx = dup.idx;
+  const ex = influencers[dup.idx];
+
+  const fields = [
+    { key:'name',     label:'الاسم',       oldVal:ex.name,        newVal:newItem.name },
+    { key:'phone',    label:'الموبايل',    oldVal:ex.phone,       newVal:newItem.phone },
+    { key:'civil',    label:'م. مدني',     oldVal:ex.civil,       newVal:newItem.civil },
+    { key:'nationality',label:'الجنسية',   oldVal:ex.nationality, newVal:newItem.nationality },
+    { key:'ig',       label:'انستاجرام',   oldVal:ex.ig,          newVal:newItem.ig },
+    { key:'tt',       label:'تيك توك',     oldVal:ex.tt,          newVal:newItem.tt },
+    { key:'snap',     label:'سناب',        oldVal:ex.snap,        newVal:newItem.snap },
+  ];
+
+  const rowsHTML = fields.map(f => {
+    const hasNew = !!(f.newVal && f.newVal.trim && f.newVal.trim() || f.newVal);
+    const hasOld = !!(f.oldVal && f.oldVal.trim && f.oldVal.trim() || f.oldVal);
+    const isDiff = (f.newVal || '') !== (f.oldVal || '');
+    // Auto-check if new has value and old doesn't, or values differ
+    const checked = hasNew && isDiff ? 'checked' : '';
+    const newClass = hasNew ? 'dup-field-new' : 'dup-field-new empty';
+    const newDisplay = f.newVal || '—';
+    const oldDisplay = f.oldVal || '—';
+    return `<div class="dup-field-row">
+      <div class="dup-field-label">${f.label}</div>
+      <div class="dup-field-old" title="موجود">${oldDisplay}</div>
+      <div class="${newClass}" title="جديد">${newDisplay}</div>
+      <input type="checkbox" class="dup-check" id="dupchk_${f.key}" ${checked} ${!hasNew||!isDiff?'disabled':''} title="${hasNew&&isDiff?'اختار للتطبيق':''}">
+    </div>`;
+  }).join('');
+
+  document.getElementById('dupSingleBody').innerHTML = `
+    <div class="dup-match-reason">⚠️ تطابق في: ${dup.reasons.join(' · ')}</div>
+    <div style="font-size:11px;color:#6e7681;margin-bottom:6px;">✅ الحقول المحددة ستُطبَّق على المؤثر الموجود — يمكنك تعديل الاختيار يدوياً</div>
+    <div class="dup-col-headers">
+      <div class="dup-col-h"></div>
+      <div class="dup-col-h" style="color:#8b949e;">📁 موجود</div>
+      <div class="dup-col-h" style="color:#4ade80;">✨ جديد</div>
+      <div class="dup-col-h"></div>
+    </div>
+    ${rowsHTML}`;
+
   document.getElementById('dupSingleOverlay').classList.remove('hidden');
 }
-function dupSingleSkip(){document.getElementById('dupSingleOverlay').classList.add('hidden');_pendingSingleItem=null;showToast('⏭ تم التخطي','#6e7681');}
-function dupSingleAddAnyway(){
-  if(_pendingSingleItem){influencers.push(_pendingSingleItem);renderGrid();saveFile();showToast('✅ تم الإضافة رغم التكرار','#d97706');}
-  document.getElementById('dupSingleOverlay').classList.add('hidden');_pendingSingleItem=null;
-}
-function dupSingleUpdate(){
-  if(_pendingSingleItem!==null&&_pendingSingleDupIdx!==null){
-    const ex=influencers[_pendingSingleDupIdx];
-    if(!ex.name&&_pendingSingleItem.name) ex.name=_pendingSingleItem.name;
-    if(!ex.phone&&_pendingSingleItem.phone) ex.phone=_pendingSingleItem.phone;
-    if(!ex.ig&&_pendingSingleItem.ig){ex.ig=_pendingSingleItem.ig;ex.ig_url=_pendingSingleItem.ig_url;}
-    if(!ex.tt&&_pendingSingleItem.tt){ex.tt=_pendingSingleItem.tt;ex.tt_url=_pendingSingleItem.tt_url;}
-    if(!ex.snap&&_pendingSingleItem.snap) ex.snap=_pendingSingleItem.snap;
-    renderGrid();saveFile();showToast('🔄 تم تحديث بيانات المؤثر الموجود','#1a6fa8');
-  }
-  document.getElementById('dupSingleOverlay').classList.add('hidden');_pendingSingleItem=null;
+
+function dupSingleApplySelected() {
+  if(_pendingSingleItem === null || _pendingSingleDupIdx === null) return;
+  const ex = influencers[_pendingSingleDupIdx];
+  const newItem = _pendingSingleItem;
+
+  const fields = ['name','phone','civil','nationality','ig','tt','snap'];
+  let changed = 0;
+  fields.forEach(key => {
+    const cb = document.getElementById('dupchk_' + key);
+    if(cb && cb.checked && !cb.disabled) {
+      if(key === 'ig') { ex.ig = newItem.ig; ex.ig_url = newItem.ig_url; }
+      else if(key === 'tt') { ex.tt = newItem.tt; ex.tt_url = newItem.tt_url; }
+      else { ex[key] = newItem[key]; }
+      changed++;
+    }
+  });
+
+  document.getElementById('dupSingleOverlay').classList.add('hidden');
+  _pendingSingleItem = null; _pendingSingleDupIdx = null;
+  renderGrid(); saveFile();
+  showToast(changed > 0 ? `✅ تم تحديث ${changed} حقل` : '⏭ لم يتغير شيء', '#1a6fa8');
 }
 
-// ─── Manual Save ─────────────────────────────────────────────────
+function dupSingleSkip() {
+  document.getElementById('dupSingleOverlay').classList.add('hidden');
+  _pendingSingleItem = null;
+  showToast('⏭ تم التخطي', '#6e7681');
+}
+function dupSingleAddAnyway() {
+  if(_pendingSingleItem) { influencers.push(_pendingSingleItem); renderGrid(); saveFile(); showToast('✅ تم الإضافة كشخص جديد','#d97706'); }
+  document.getElementById('dupSingleOverlay').classList.add('hidden');
+  _pendingSingleItem = null;
+}
+function dupSingleUpdate() { dupSingleApplySelected(); } // backward compat
+
 function manualSave(){
   const btn=document.getElementById('manualSaveBtn');
-  saveFile();
-  btn.classList.add('saving');
-  btn.textContent='✅ تم الحفظ!';
+  saveFile();btn.classList.add('saving');btn.textContent='✅ تم الحفظ!';
   setTimeout(()=>{btn.textContent='💾 حفظ يدوي';btn.classList.remove('saving');},2000);
 }
 
-// ─── Service popup ───────────────────────────────────────────────
-function openServicePopup(idx,e){
+function openServicePopup(idx, e){
   e.stopPropagation();
-  _svcTargetIdx=idx;
-  const item=influencers[idx];
-  const popup=document.getElementById('servicePopup');
-  SERVICES.forEach((svc,i)=>{
-    const cb=document.getElementById(SVC_IDS[i]);
-    const opt=popup.querySelectorAll('.service-option')[i];
-    cb.checked=!!(item.services&&item.services.includes(svc));
-    opt.classList.toggle('checked',cb.checked);
+  _svcTargetIdx = idx;
+  const item = influencers[idx];
+  const popup = document.getElementById('servicePopup');
+
+  // Update checkboxes state
+  SERVICES.forEach((svc, i) => {
+    const cb = document.getElementById(SVC_IDS[i]);
+    const opt = popup.querySelectorAll('.service-option')[i];
+    cb.checked = !!(item.services && item.services.includes(svc));
+    opt.classList.toggle('checked', cb.checked);
   });
-  const rect=e.target.getBoundingClientRect();
-  popup.style.top=(rect.bottom+6+window.scrollY)+'px';
-  popup.style.right=(window.innerWidth-rect.right)+'px';
-  popup.style.left='auto';
+
+  // Show as overlay from bottom
   popup.classList.add('open');
 }
-function toggleService(e,svc){
+
+function toggleService(e, svc){
   e.stopPropagation();
-  if(_svcTargetIdx===null) return;
-  const item=influencers[_svcTargetIdx];
-  if(!item.services) item.services=[];
-  const i=item.services.indexOf(svc);
-  if(i===-1) item.services.push(svc); else item.services.splice(i,1);
-  const svcIdx=SERVICES.indexOf(svc);
-  const cb=document.getElementById(SVC_IDS[svcIdx]);
-  if(cb) cb.checked=item.services.includes(svc);
-  const opts=document.getElementById('servicePopup').querySelectorAll('.service-option');
-  if(opts[svcIdx]) opts[svcIdx].classList.toggle('checked',item.services.includes(svc));
-  const lbl=document.getElementById('svcLabel_'+_svcTargetIdx);
-  const btn=document.getElementById('svcBtn_'+_svcTargetIdx);
-  if(lbl) lbl.textContent=item.services.length?item.services.join(' · '):'اختر الخدمة';
-  if(btn) btn.classList.toggle('has-service',item.services.length>0);
+  if(_svcTargetIdx === null) return;
+  const item = influencers[_svcTargetIdx];
+  if(!item.services) item.services = [];
+  const i = item.services.indexOf(svc);
+  if(i === -1) item.services.push(svc); else item.services.splice(i, 1);
+  const svcIdx = SERVICES.indexOf(svc);
+  const cb = document.getElementById(SVC_IDS[svcIdx]);
+  if(cb) cb.checked = item.services.includes(svc);
+  const opts = document.getElementById('servicePopup').querySelectorAll('.service-option');
+  if(opts[svcIdx]) opts[svcIdx].classList.toggle('checked', item.services.includes(svc));
+  const lbl = document.getElementById('svcLabel_' + _svcTargetIdx);
+  const btn = document.getElementById('svcBtn_' + _svcTargetIdx);
+  if(lbl) lbl.textContent = item.services.length ? item.services.join(' · ') : 'اختر الخدمة';
+  if(btn) btn.classList.toggle('has-service', item.services.length > 0);
   saveFile();
 }
-document.addEventListener('click',function(e){
-  const popup=document.getElementById('servicePopup');
-  if(popup&&popup.classList.contains('open')&&!popup.contains(e.target)){
-    popup.classList.remove('open');_svcTargetIdx=null;
+
+function closeServicePopup(){
+  document.getElementById('servicePopup').classList.remove('open');
+  _svcTargetIdx = null;
+}
+
+document.addEventListener('click', function(e){
+  const popup = document.getElementById('servicePopup');
+  if(popup && popup.classList.contains('open') && !popup.contains(e.target)){
+    closeServicePopup();
   }
 });
 
-// ─── Date Picker ─────────────────────────────────────────────────
 function openDatePicker(idx,e){
   e.stopPropagation();dpTargetIdx=idx;
   const item=influencers[idx];
@@ -937,8 +1246,8 @@ function openDatePicker(idx,e){
   const popup=document.getElementById('datePickerPopup');
   const rect=e.target.getBoundingClientRect();
   let top=rect.bottom+8,left=rect.left;
-  if(left+290>window.innerWidth) left=window.innerWidth-300;
-  if(top+340>window.innerHeight) top=rect.top-345;
+  if(left+290>window.innerWidth)left=window.innerWidth-300;
+  if(top+340>window.innerHeight)top=rect.top-345;
   popup.style.top=top+'px';popup.style.left=left+'px';
   popup.classList.add('open');renderDpSelects();renderDpDays();
 }
@@ -949,7 +1258,7 @@ function renderDpSelects(){
   const mSel=document.getElementById('dpMonthSelect'),ySel=document.getElementById('dpYearSelect');
   mSel.innerHTML=MONTHS_AR.map((m,i)=>`<option value="${i}" ${i===dpMonth?'selected':''}>${m}</option>`).join('');
   const curY=new Date().getFullYear();ySel.innerHTML='';
-  for(let y=curY-1;y<=curY+3;y++) ySel.innerHTML+=`<option value="${y}" ${y===dpYear?'selected':''}>${y}</option>`;
+  for(let y=curY-1;y<=curY+3;y++)ySel.innerHTML+=`<option value="${y}" ${y===dpYear?'selected':''}>${y}</option>`;
 }
 function dpGoToSelected(){dpMonth=parseInt(document.getElementById('dpMonthSelect').value);dpYear=parseInt(document.getElementById('dpYearSelect').value);renderDpDays();}
 function renderDpDays(){
@@ -958,7 +1267,7 @@ function renderDpDays(){
   const daysInMonth=new Date(dpYear,dpMonth+1,0).getDate();
   const today=new Date();const selectedDate=dpTargetIdx!==null?influencers[dpTargetIdx].visitDate:'';
   let html='';
-  for(let i=0;i<firstDay;i++) html+=`<button class="dp-day empty"></button>`;
+  for(let i=0;i<firstDay;i++)html+=`<button class="dp-day empty"></button>`;
   for(let d=1;d<=daysInMonth;d++){
     const iso=`${dpYear}-${String(dpMonth+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
     const isToday=today.getFullYear()===dpYear&&today.getMonth()===dpMonth&&today.getDate()===d;
@@ -968,27 +1277,20 @@ function renderDpDays(){
   document.getElementById('dpDays').innerHTML=html;
 }
 function selectDay(d){
-  if(dpTargetIdx===null) return;
+  if(dpTargetIdx===null)return;
   const iso=`${dpYear}-${String(dpMonth+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
-  influencers[dpTargetIdx].visitDate=iso;
-  renderDpDays();closeDatePicker();renderGrid();saveFile();
+  influencers[dpTargetIdx].visitDate=iso;renderDpDays();closeDatePicker();renderGrid();saveFile();
 }
 
-// ─── Appointments Panel ──────────────────────────────────────────
 function openApptPanel(){
   const list=document.getElementById('apptList');
   const withDates=influencers.filter(i=>i.visitDate).sort((a,b)=>a.visitDate.localeCompare(b.visitDate));
   if(!withDates.length){list.innerHTML='<div class="appt-empty">لا توجد مواعيد مسجلة</div>';document.getElementById('apptPanelOverlay').classList.add('open');return;}
-  list.innerHTML=withDates.map((item,i)=>{
-    const idx=influencers.indexOf(item);
-    const name=getDisplayName(item,idx);
-    const[y,m,d]=item.visitDate.split('-');
-    const color=getColor(idx);
+  list.innerHTML=withDates.map((item)=>{
+    const idx=influencers.indexOf(item);const name=getDisplayName(item,idx);
+    const[y,m,d]=item.visitDate.split('-');const color=getColor(idx);
     return `<div class="appt-item ${item.status||'pending'}">
-      <div class="appt-date-badge" style="border-color:${color}">
-        <div class="appt-date-day">${parseInt(d)}</div>
-        <div class="appt-date-month">${MONTHS_AR[parseInt(m)-1]}</div>
-      </div>
+      <div class="appt-date-badge" style="border-color:${color}"><div class="appt-date-day">${parseInt(d)}</div><div class="appt-date-month">${MONTHS_AR[parseInt(m)-1]}</div></div>
       <div class="appt-info"><div class="appt-name">${name}</div><div class="appt-sub">${item.phone||item.ig||''}</div></div>
       <span class="appt-status-tag ${item.status||'pending'}">${item.status==='approved'?'✅':item.status==='rejected'?'❌':'⏳'}</span>
     </div>`;
@@ -997,47 +1299,65 @@ function openApptPanel(){
 }
 function closeApptPanel(){document.getElementById('apptPanelOverlay').classList.remove('open');}
 
-// ─── Reports ─────────────────────────────────────────────────────
-const igSVG_rpt = '<svg width="13" height="13" viewBox="0 0 24 24" fill="#c13584" style="flex-shrink:0;vertical-align:middle;"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>';
-const ttSVG_rpt = '<svg width="13" height="13" viewBox="0 0 24 24" style="flex-shrink:0;vertical-align:middle;"><path fill="#69C9D0" d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-2.88 2.5 2.89 2.89 0 0 1-2.89-2.89 2.89 2.89 0 0 1 2.89-2.89c.28 0 .54.04.79.1V9.01a6.34 6.34 0 0 0-.79-.05 6.34 6.34 0 0 0-6.34 6.34 6.34 6.34 0 0 0 6.34 6.34 6.34 6.34 0 0 0 6.33-6.34V8.69a8.18 8.18 0 0 0 4.78 1.52V6.76a4.86 4.86 0 0 1-3-.07z"/></svg>';
-const scSVG_rpt = '<svg width="13" height="13" viewBox="0 0 24 24" fill="#FFFC00" style="flex-shrink:0;vertical-align:middle;background:#333;border-radius:3px;padding:1px;"><path d="M12.166.011C9.033.011 6.099 1.871 4.91 4.66c-.53 1.236-.425 3.566-.362 4.994-.33.15-.727.24-1.17.133-.315-.075-.627.154-.68.475-.081.497.286.898.75 1.012.63.154 1.236.124 1.784-.047.083-.024.163-.054.241-.086.41 1.24 1.14 2.41 2.177 3.299-.754.378-2.15.89-3.914 1.01-.282.018-.52.208-.573.488-.245 1.304 2.36 2.014 3.69 2.338.244.059.41.28.4.53-.02.457.02.76.107.97.068.163.237.255.408.215.332-.079.654-.232.997-.232.388 0 .639.104 1.012.316.762.437 1.627.943 3.219.943 1.57 0 2.44-.498 3.193-.934.372-.213.63-.325 1.012-.325.338 0 .657.152.987.23.172.041.342-.052.41-.214.086-.21.127-.513.107-.97-.01-.25.156-.47.4-.53 1.33-.323 3.934-1.033 3.69-2.337-.054-.28-.291-.47-.573-.488-1.765-.12-3.16-.632-3.914-1.01 1.036-.889 1.767-2.059 2.177-3.299.078.032.158.062.241.086.548.171 1.154.201 1.784.047.464-.114.831-.515.75-1.012-.053-.321-.365-.55-.68-.475-.443.107-.84.017-1.17-.133.063-1.428.168-3.758-.362-4.994C17.9 1.871 14.966.011 12.166.011z"/></svg>';
+// ─── Report SVG icons ─────────────────────────────────────────────
+const igSVG_rpt='<svg width="13" height="13" viewBox="0 0 24 24" fill="#c13584" style="flex-shrink:0;vertical-align:middle;"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>';
+const ttSVG_rpt='<svg width="13" height="13" viewBox="0 0 24 24" style="flex-shrink:0;vertical-align:middle;"><path fill="#69C9D0" d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-2.88 2.5 2.89 2.89 0 0 1-2.89-2.89 2.89 2.89 0 0 1 2.89-2.89c.28 0 .54.04.79.1V9.01a6.34 6.34 0 0 0-.79-.05 6.34 6.34 0 0 0-6.34 6.34 6.34 6.34 0 0 0 6.34 6.34 6.34 6.34 0 0 0 6.33-6.34V8.69a8.18 8.18 0 0 0 4.78 1.52V6.76a4.86 4.86 0 0 1-3-.07z"/></svg>';
+const scSVG_rpt='<svg width="13" height="13" viewBox="0 0 24 24" fill="#FFFC00" style="flex-shrink:0;vertical-align:middle;background:#333;border-radius:3px;padding:1px;"><path d="M12.166.011C9.033.011 6.099 1.871 4.91 4.66c-.53 1.236-.425 3.566-.362 4.994-.33.15-.727.24-1.17.133-.315-.075-.627.154-.68.475-.081.497.286.898.75 1.012.63.154 1.236.124 1.784-.047.083-.024.163-.054.241-.086.41 1.24 1.14 2.41 2.177 3.299-.754.378-2.15.89-3.914 1.01-.282.018-.52.208-.573.488-.245 1.304 2.36 2.014 3.69 2.338.244.059.41.28.4.53-.02.457.02.76.107.97.068.163.237.255.408.215.332-.079.654-.232.997-.232.388 0 .639.104 1.012.316.762.437 1.627.943 3.219.943 1.57 0 2.44-.498 3.193-.934.372-.213.63-.325 1.012-.325.338 0 .657.152.987.23.172.041.342-.052.41-.214.086-.21.127-.513.107-.97-.01-.25.156-.47.4-.53 1.33-.323 3.934-1.033 3.69-2.337-.054-.28-.291-.47-.573-.488-1.765-.12-3.16-.632-3.914-1.01 1.036-.889 1.767-2.059 2.177-3.299.078.032.158.062.241.086.548.171 1.154.201 1.784.047.464-.114.831-.515.75-1.012-.053-.321-.365-.55-.68-.475-.443.107-.84.017-1.17-.133.063-1.428.168-3.758-.362-4.994C17.9 1.871 14.966.011 12.166.011z"/></svg>';
 
 function buildSocialsHtml(item) {
-  let s = '';
+  let s='';
   if(item.ig){const u=item.ig_url&&item.ig_url.startsWith('http')?item.ig_url:'https://www.instagram.com/'+item.ig.replace('@','');s+=`<a href="${u}" target="_blank" style="display:flex;align-items:center;gap:5px;margin-bottom:2px;text-decoration:none;">${igSVG_rpt}<span style="color:#c13584;">${item.ig}</span></a>`;}
   if(item.tt){const u=item.tt_url&&item.tt_url.startsWith('http')?item.tt_url:'https://www.tiktok.com/'+item.tt;s+=`<a href="${u}" target="_blank" style="display:flex;align-items:center;gap:5px;margin-bottom:2px;text-decoration:none;">${ttSVG_rpt}<span style="color:#333;">${item.tt}</span></a>`;}
-  if(item.snap){const m=item.snap.match(/snapchat\.com\/add\/([^/?]+)/i);const h=m?m[1]:(item.snap.startsWith('http')?'سناب':item.snap);const u=item.snap.startsWith('http')?item.snap:'https://www.snapchat.com/add/'+item.snap;s+=`<a href="${u}" target="_blank" style="display:flex;align-items:center;gap:5px;margin-bottom:2px;text-decoration:none;">${scSVG_rpt}<span style="color:#d97706;">${h}</span></a>`;}
+  if(item.snap){const m2=item.snap.match(/snapchat\.com\/add\/([^/?]+)/i);const h=m2?m2[1]:(item.snap.startsWith('http')?'سناب':item.snap);const u=item.snap.startsWith('http')?item.snap:'https://www.snapchat.com/add/'+item.snap;s+=`<a href="${u}" target="_blank" style="display:flex;align-items:center;gap:5px;margin-bottom:2px;text-decoration:none;">${scSVG_rpt}<span style="color:#d97706;">${h}</span></a>`;}
   return s||'—';
 }
 
-function openReportFromBtn() {
-  if(currentFilter==='approved'||currentFilter==='rejected') openStatusReport(currentFilter);
-  else if(currentFilter==='male'||currentFilter==='female') openGenderReport(currentFilter==='male'?'m':'f');
+function openReportFromBtn(){
+  if(currentFilter==='approved'||currentFilter==='rejected')openStatusReport(currentFilter);
+  else if(currentFilter==='male'||currentFilter==='female')openGenderReport(currentFilter==='male'?'m':'f');
 }
+function closeReport(){const c=document.getElementById('reportContainer');if(c)c.remove();}
+function closeReportIfBg(e){if(e.target.id==='reportOverlay')closeReport();}
 
-function closeReport() {
-  const c=document.getElementById('reportContainer');
-  if(c) c.remove();
-}
-function closeReportIfBg(e) {
-  if(e.target.id==='reportOverlay') closeReport();
-}
-function setVisitStatus(realIdx, status) {
-  const item=influencers[realIdx];
-  if(!item) return;
-  item.visitStatus=(item.visitStatus===status)?'':status;
-  saveFile();
-  const row=document.getElementById('rrow_'+realIdx);
-  if(!row) return;
+function setVisitStatus(realIdx,status){
+  const item=influencers[realIdx];if(!item)return;
+  item.visitStatus=(item.visitStatus===status)?'':status;saveFile();
+  const row=document.getElementById('rrow_'+realIdx);if(!row)return;
   const vs=item.visitStatus||'';
   const btns=row.querySelectorAll('button');
-  const doneActive=vs==='done'?'background:#15803d;color:#fff;':'background:#f0fdf4;color:#15803d;';
-  const cancelActive=vs==='cancelled'?'background:#dc2626;color:#fff;':'background:#fef2f2;color:#dc2626;';
-  btns[0].style.cssText=`padding:4px 10px;border-radius:6px;border:1px solid #15803d;font-size:11px;font-weight:700;cursor:pointer;font-family:Tajawal,sans-serif;${doneActive}`;
-  btns[1].style.cssText=`padding:4px 10px;border-radius:6px;border:1px solid #dc2626;font-size:11px;font-weight:700;cursor:pointer;font-family:Tajawal,sans-serif;${cancelActive}`;
+  const doneA=vs==='done'?'background:#15803d;color:#fff;':'background:#f0fdf4;color:#15803d;';
+  const cancA=vs==='cancelled'?'background:#dc2626;color:#fff;':'background:#fef2f2;color:#dc2626;';
+  btns[0].style.cssText=`padding:4px 10px;border-radius:6px;border:1px solid #15803d;font-size:11px;font-weight:700;cursor:pointer;font-family:Tajawal,sans-serif;${doneA}`;
+  btns[1].style.cssText=`padding:4px 10px;border-radius:6px;border:1px solid #dc2626;font-size:11px;font-weight:700;cursor:pointer;font-family:Tajawal,sans-serif;${cancA}`;
   row.style.background=vs==='done'?'#f0fdf4':vs==='cancelled'?'#fef2f2':'';
 }
 
+// ─── buildReportHTML helper for shareable version ─────────────────
+function buildReportHTMLShell(thBg, accentColor, title, emoji, today, count, tableHeadersHTML, rowsHTML, isApproved) {
+  return `<!DOCTYPE html><html lang="ar" dir="rtl"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>${emoji} ${title} — مركز كيور الطبي</title>
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;900&display=swap" rel="stylesheet">
+<style>*{box-sizing:border-box;margin:0;padding:0;}body{font-family:'Tajawal',sans-serif;direction:rtl;background:#f1f5f9;padding:1.5rem;}
+.wrap{max-width:1000px;margin:0 auto;background:#fff;border-radius:16px;box-shadow:0 4px 30px rgba(0,0,0,.12);overflow:hidden;}
+.rpt-header{text-align:center;background:linear-gradient(135deg,${thBg} 0%,${accentColor} 100%);padding:2rem;color:#fff;}
+.rpt-title{font-size:23px;font-weight:900;margin-bottom:5px;}.rpt-sub{font-size:13px;opacity:.85;margin-bottom:.5rem;}
+.rpt-count{font-size:15px;font-weight:900;background:rgba(255,255,255,.18);display:inline-block;padding:5px 18px;border-radius:20px;}
+.rpt-body{padding:1.5rem;}.print-actions{display:flex;gap:10px;justify-content:flex-end;margin-bottom:1.2rem;}
+button{padding:10px 20px;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;font-family:'Tajawal',sans-serif;border:none;}
+table{width:100%;border-collapse:collapse;direction:rtl;}
+thead tr th{background:${thBg};color:#fff;padding:10px 12px;font-size:13px;font-weight:700;text-align:right;font-family:'Tajawal',sans-serif;}
+td{padding:9px 12px;border-bottom:1px solid #e5e7eb;font-size:12px;font-family:'Tajawal',sans-serif;vertical-align:middle;}
+.rpt-footer{text-align:center;padding:1rem;font-size:11px;color:#888;border-top:1px solid #e5e7eb;background:#f8fafc;}
+@media print{body{background:#fff;padding:0;}.wrap{box-shadow:none;border-radius:0;}.print-actions{display:none!important;}}</style></head>
+<body><div class="wrap">
+<div class="rpt-header"><div class="rpt-title">${emoji} ${title}</div><div class="rpt-sub">مركز كيور الطبي — الحملة الإعلانية | ${today}</div><div class="rpt-count">الإجمالي: ${count} مؤثر</div></div>
+<div class="rpt-body"><div class="print-actions"><button onclick="window.close()" style="background:#e5e7eb;color:#333;">✕ إغلاق</button><button onclick="window.print()" style="background:${thBg};color:#fff;">🖨️ طباعة / PDF</button></div>
+<div style="width:100%;overflow-x:auto;"><table><thead><tr>${tableHeadersHTML}</tr></thead><tbody>${rowsHTML}</tbody></table></div></div>
+<div class="rpt-footer">هذا الكشف سري ومخصص للاستخدام الداخلي — مركز كيور الطبي © 2026</div>
+</div></body></html>`;
+}
+
+// ─── Status Reports (approved / rejected) ────────────────────────
 function openStatusReport(type) {
   const isApproved=type==='approved';
   const list=influencers.filter(i=>i.status===type);
@@ -1050,39 +1370,49 @@ function openStatusReport(type) {
     const realIdx=influencers.indexOf(item);
     const name=item.name||'—';
     const gLabel=item.gender==='m'?'<span style="color:#1a6fa8;font-weight:700;">👨 ذكر</span>':item.gender==='f'?'<span style="color:#a21caf;font-weight:700;">👩 أنثى</span>':'—';
-    const phoneCell=item.phone?`<a href="tel:${item.phone}" style="color:#0369a1;text-decoration:none;direction:ltr;display:block;white-space:nowrap;font-size:12px;">📞 ${item.phone}</a>`:'—';
+    const natCell=item.nationality?`<span style="background:#e6f7f1;color:#0a7a55;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:700;">🌍 ${item.nationality}</span>`:'—';
+    const phoneCell=item.phone?`<span onclick="showPhonePopup('${item.phone.replace(/'/g,"\\'")}','${(item.name||item.ig||'').replace(/'/g,"\\'")}',event)" style="color:#0369a1;direction:ltr;display:block;white-space:nowrap;font-size:12px;cursor:pointer;font-weight:600;" title="اضغط للتواصل">📞 ${item.phone}</span>`:'—';
     if(isApproved){
       const dateStr=item.visitDate?formatDateAr(item.visitDate):'—';
       const vs=item.visitStatus||'';
-      const doneActive=vs==='done'?'background:#15803d;color:#fff;':'background:#f0fdf4;color:#15803d;';
-      const cancelActive=vs==='cancelled'?'background:#dc2626;color:#fff;':'background:#fef2f2;color:#dc2626;';
-      const svcLabel=(item.services&&item.services.length)?item.services.map(s=>`<span style="display:inline-block;background:#2d1b4e;color:#c084fc;border:1px solid #7c3aed;border-radius:5px;padding:2px 7px;font-size:11px;margin:1px;">${s}</span>`).join(' '):'—';
+      const doneA=vs==='done'?'background:#15803d;color:#fff;':'background:#f0fdf4;color:#15803d;';
+      const cancA=vs==='cancelled'?'background:#dc2626;color:#fff;':'background:#fef2f2;color:#dc2626;';
+      const svcLabel=(item.services&&item.services.length)?item.services.map(s=>`<span style="display:inline-block;background:#f3e8ff;color:#7c3aed;border:1px solid #c084fc;border-radius:5px;padding:2px 7px;font-size:11px;margin:1px;">${s}</span>`).join(' '):'—';
       const rowBg=vs==='done'?'#f0fdf4':vs==='cancelled'?'#fef2f2':(i%2===1?'#f8fafc':'#fff');
       return `<tr id="rrow_${realIdx}" style="background:${rowBg}">
-        <td class="report-num">${i+1}</td><td style="font-weight:700;font-size:13px;">${name}</td><td>${gLabel}</td>
-        <td style="font-size:12px;direction:ltr;">${phoneCell}</td>
-        <td style="font-size:11px;color:#555;direction:ltr;">${item.civil||'—'}</td>
-        <td><div class="report-social">${buildSocialsHtml(item)}</div></td>
-        <td style="white-space:nowrap;color:${thBg};font-weight:600;">${dateStr}</td>
-        <td>${svcLabel}</td>
-        <td><div style="display:flex;gap:5px;flex-wrap:wrap;">
-          <button onclick="setVisitStatus(${realIdx},'done')" style="padding:4px 10px;border-radius:6px;border:1px solid #15803d;font-size:11px;font-weight:700;cursor:pointer;font-family:Tajawal,sans-serif;${doneActive}">✅ تمت</button>
-          <button onclick="setVisitStatus(${realIdx},'cancelled')" style="padding:4px 10px;border-radius:6px;border:1px solid #dc2626;font-size:11px;font-weight:700;cursor:pointer;font-family:Tajawal,sans-serif;${cancelActive}">❌ ألغيت</button>
+        <td style="text-align:center;font-weight:900;color:${thBg};width:30px;padding:8px 6px;">${i+1}</td>
+        <td style="font-weight:700;font-size:13px;min-width:100px;">${name}</td>
+        <td style="min-width:50px;">${gLabel}</td>
+        <td style="min-width:70px;">${natCell}</td>
+        <td style="direction:ltr;min-width:90px;">${phoneCell}</td>
+        <td style="font-size:11px;color:#555;direction:ltr;min-width:80px;">${item.civil||'—'}</td>
+        <td style="min-width:90px;"><div style="display:flex;flex-direction:column;gap:3px;">${buildSocialsHtml(item)}</div></td>
+        <td style="white-space:nowrap;color:${thBg};font-weight:600;min-width:90px;">${dateStr}</td>
+        <td style="min-width:80px;">${svcLabel}</td>
+        <td style="min-width:100px;"><div style="display:flex;gap:4px;flex-direction:column;">
+          <button onclick="setVisitStatus(${realIdx},'done')" style="padding:5px 8px;border-radius:6px;border:1px solid #15803d;font-size:11px;font-weight:700;cursor:pointer;font-family:Tajawal,sans-serif;white-space:nowrap;${doneA}">✅ تمت</button>
+          <button onclick="setVisitStatus(${realIdx},'cancelled')" style="padding:5px 8px;border-radius:6px;border:1px solid #dc2626;font-size:11px;font-weight:700;cursor:pointer;font-family:Tajawal,sans-serif;white-space:nowrap;${cancA}">❌ ألغيت</button>
         </div></td>
-        <td style="min-width:120px;border-bottom:1px solid #ccc;"></td>
+        <td style="min-width:150px;border-left:1px solid #e5e7eb;">
+          <div style="height:45px;border-bottom:1.5px solid #374151;margin:10px 8px 0;position:relative;">
+            <span style="position:absolute;bottom:-18px;right:0;font-size:9px;color:#9ca3af;">التوقيع</span>
+          </div>
+        </td>
       </tr>`;
     } else {
       return `<tr style="background:${i%2===1?'#f8fafc':'#fff'}">
-        <td class="report-num">${i+1}</td><td style="font-weight:700;font-size:13px;">${name}</td><td>${gLabel}</td>
-        <td style="font-size:12px;direction:ltr;">${phoneCell}</td>
+        <td style="text-align:center;font-weight:900;color:${thBg};width:30px;">${i+1}</td>
+        <td style="font-weight:700;font-size:13px;">${name}</td><td>${gLabel}</td>
+        <td>${natCell}</td>
+        <td style="direction:ltr;">${phoneCell}</td>
         <td style="font-size:11px;color:#555;direction:ltr;">${item.civil||'—'}</td>
-        <td><div class="report-social">${buildSocialsHtml(item)}</div></td>
+        <td><div style="display:flex;flex-direction:column;gap:3px;">${buildSocialsHtml(item)}</div></td>
       </tr>`;
     }
   }).join('');
-  const extraHeaders=isApproved?`<th style="background:${thBg}">موعد الزيارة</th><th style="background:${thBg}">الخدمة</th><th style="background:${thBg}">حالة الزيارة</th><th style="background:${thBg}">توقيع المؤثر</th>`:'';
+  const extraH=isApproved?`<th style="background:${thBg};min-width:90px;">موعد الزيارة</th><th style="background:${thBg};min-width:80px;">الخدمة</th><th style="background:${thBg};min-width:100px;">حالة الزيارة</th><th style="background:${thBg};min-width:150px;">توقيع المؤثر</th>`:'';
   const html=`<div class="report-overlay open" id="reportOverlay" onclick="closeReportIfBg(event)">
-    <div class="report-modal">
+    <div class="report-modal" style="max-width:1100px;">
       <div class="report-actions">
         <button class="report-btn-close" onclick="closeReport()">✕ إغلاق</button>
         <button class="report-btn-print" style="background:${thBg}" onclick="window.print()">🖨️ طباعة / PDF</button>
@@ -1092,17 +1422,21 @@ function openStatusReport(type) {
         <p>مركز كيور الطبي — الحملة الإعلانية | ${today}</p>
         <p style="font-weight:700;color:${countColor};margin-top:4px;">الإجمالي: ${list.length} مؤثر</p>
       </div>
-      <div class="report-table-wrap"><table class="report-table"><thead><tr>
-        <th style="background:${thBg};width:40px;text-align:center;">#</th>
-        <th style="background:${thBg}">الاسم</th><th style="background:${thBg}">الجنس</th>
-        <th style="background:${thBg}">الهاتف</th><th style="background:${thBg}">الرقم المدني</th>
-        <th style="background:${thBg}">الصفحات</th>${extraHeaders}
+      <div class="report-table-wrap" style="overflow-x:auto;"><table class="report-table" style="min-width:900px;"><thead><tr>
+        <th style="background:${thBg};width:30px;text-align:center;">#</th>
+        <th style="background:${thBg};min-width:100px;">الاسم</th>
+        <th style="background:${thBg};min-width:50px;">الجنس</th>
+        <th style="background:${thBg};min-width:70px;">الجنسية</th>
+        <th style="background:${thBg};min-width:90px;">الهاتف</th>
+        <th style="background:${thBg};min-width:80px;">الرقم المدني</th>
+        <th style="background:${thBg};min-width:90px;">الصفحات</th>${extraH}
       </tr></thead><tbody>${rows}</tbody></table></div>
       <div class="report-footer-note">هذا الكشف سري ومخصص للاستخدام الداخلي — مركز كيور الطبي © 2026</div>
     </div></div>`;
   const div=document.createElement('div');div.id='reportContainer';div.innerHTML=html;document.body.appendChild(div);
 }
 
+// ─── Gender Reports (male / female) ──────────────────────────────
 function openGenderReport(gender) {
   const isMale=gender==='m';
   const list=influencers.filter(i=>i.gender===gender);
@@ -1113,12 +1447,15 @@ function openGenderReport(gender) {
   const title=isMale?'كشف المؤثرين الذكور':'كشف المؤثرات الإناث';
   const rows=list.map((item,i)=>{
     const stLabel=item.status==='approved'?'<span style="color:#16a34a;font-weight:700;">✅ مقبول</span>':item.status==='rejected'?'<span style="color:#dc2626;font-weight:700;">❌ مرفوض</span>':'<span style="color:#d97706;">⏳ قيد المراجعة</span>';
-    const phoneCell=item.phone?`<a href="tel:${item.phone}" style="color:#0369a1;text-decoration:none;direction:ltr;display:block;white-space:nowrap;font-size:12px;">📞 ${item.phone}</a>`:'—';
+    const phoneCell=item.phone?`<span onclick="showPhonePopup('${item.phone.replace(/'/g,"\\'")}','${(item.name||item.ig||'').replace(/'/g,"\\'")}',event)" style="color:#0369a1;direction:ltr;display:block;white-space:nowrap;font-size:12px;cursor:pointer;font-weight:600;" title="اضغط للتواصل">📞 ${item.phone}</span>`:'—';
+    const natCell=item.nationality?`<span style="background:#e6f7f1;color:#0a7a55;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:700;">🌍 ${item.nationality}</span>`:'—';
     return `<tr style="background:${i%2===1?'#f8fafc':'#fff'}">
-      <td class="report-num">${i+1}</td><td style="font-weight:700;font-size:13px;">${item.name||'—'}</td>
-      <td style="font-size:12px;direction:ltr;">${phoneCell}</td>
+      <td style="text-align:center;font-weight:900;color:${thBg};width:36px;">${i+1}</td>
+      <td style="font-weight:700;font-size:13px;">${item.name||'—'}</td>
+      <td>${natCell}</td>
+      <td style="direction:ltr;">${phoneCell}</td>
       <td style="font-size:11px;color:#555;direction:ltr;">${item.civil||'—'}</td>
-      <td><div class="report-social">${buildSocialsHtml(item)}</div></td>
+      <td><div style="display:flex;flex-direction:column;gap:3px;">${buildSocialsHtml(item)}</div></td>
       <td>${stLabel}</td>
     </tr>`;
   }).join('');
@@ -1134,8 +1471,10 @@ function openGenderReport(gender) {
         <p style="font-weight:700;color:${thBg};margin-top:4px;">الإجمالي: ${list.length} مؤثر</p>
       </div>
       <div class="report-table-wrap"><table class="report-table"><thead><tr>
-        <th style="background:${thBg};width:40px;text-align:center;">#</th>
-        <th style="background:${thBg}">الاسم</th><th style="background:${thBg}">الهاتف</th>
+        <th style="background:${thBg};width:36px;text-align:center;">#</th>
+        <th style="background:${thBg}">الاسم</th>
+        <th style="background:${thBg}">الجنسية</th>
+        <th style="background:${thBg}">الهاتف</th>
         <th style="background:${thBg}">الرقم المدني</th><th style="background:${thBg}">الصفحات</th>
         <th style="background:${thBg}">الحالة</th>
       </tr></thead><tbody>${rows}</tbody></table></div>
@@ -1144,39 +1483,11 @@ function openGenderReport(gender) {
   const div=document.createElement('div');div.id='reportContainer';div.innerHTML=html;document.body.appendChild(div);
 }
 
+// ─── Share functions ──────────────────────────────────────────────
 async function shareStatusReport(type) {
   const isApproved=type==='approved';
-  const html=buildShareableStatusHTML(type);
-  if(!html) return;
-  const fileName=isApproved?'كشف المقبولين - مركز كيور الطبي.html':'كشف المرفوضين - مركز كيور الطبي.html';
-  const blob=new Blob([html],{type:'text/html'});
-  const file=new File([blob],fileName,{type:'text/html'});
-  try{
-    if(navigator.canShare&&navigator.canShare({files:[file]})){await navigator.share({title:fileName,files:[file]});return;}
-    if(navigator.share){await navigator.share({title:fileName});return;}
-    const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=fileName;a.click();URL.revokeObjectURL(a.href);showToast('✅ تم التحميل','#1a6fa8');
-  }catch(e){if(e.name!=='AbortError')showToast('تعذّرت المشاركة','#dc2626');}
-}
-
-async function shareGenderReport(gender) {
-  const isMale=gender==='m';
-  const list=influencers.filter(i=>i.gender===gender);
-  if(!list.length) return;
-  const html=buildShareableGenderHTML(gender,list);
-  const fileName=isMale?'كشف الذكور - مركز كيور الطبي.html':'كشف الإناث - مركز كيور الطبي.html';
-  const blob=new Blob([html],{type:'text/html'});
-  const file=new File([blob],fileName,{type:'text/html'});
-  try{
-    if(navigator.canShare&&navigator.canShare({files:[file]})){await navigator.share({title:fileName,files:[file]});return;}
-    if(navigator.share){await navigator.share({title:fileName});return;}
-    const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=fileName;a.click();URL.revokeObjectURL(a.href);showToast('✅ تم التحميل','#1a6fa8');
-  }catch(e){if(e.name!=='AbortError')showToast('تعذّرت المشاركة','#dc2626');}
-}
-
-function buildShareableStatusHTML(type) {
-  const isApproved=type==='approved';
   const list=influencers.filter(i=>i.status===type);
-  if(!list.length) return null;
+  if(!list.length)return;
   const today=new Date().toLocaleDateString('ar-KW',{year:'numeric',month:'long',day:'numeric'});
   const thBg=isApproved?'#0a3d62':'#7f1d1d';
   const accentColor=isApproved?'#1a6fa8':'#dc2626';
@@ -1184,78 +1495,128 @@ function buildShareableStatusHTML(type) {
   const title=isApproved?'كشف المؤثرين المقبولين':'كشف المؤثرين المرفوضين';
   const rows=list.map((item,i)=>{
     const gLabel=item.gender==='m'?'👨 ذكر':item.gender==='f'?'👩 أنثى':'—';
-    const dateStr=(isApproved&&item.visitDate)?formatDateAr(item.visitDate):'—';
-    const svcLabel=(isApproved&&item.services&&item.services.length)?item.services.join(' · '):'—';
-    const vsLabel=item.visitStatus==='done'?'✅ تمت':item.visitStatus==='cancelled'?'❌ ألغيت':'—';
-    const rb=i%2===1?'#f8fafc':'#fff';
+    const natCell=item.nationality?`🌍 ${item.nationality}`:'—';
     const phoneCell=item.phone?`<a href="tel:${item.phone}" style="color:#0369a1;text-decoration:none;direction:ltr;font-size:12px;">📞 ${item.phone}</a>`:'—';
-    return `<tr style="background:${rb}">
-      <td style="text-align:center;font-weight:900;color:${thBg};width:36px;padding:9px 6px;border-bottom:1px solid #e5e7eb;font-family:Tajawal,sans-serif;">${i+1}</td>
-      <td style="padding:9px 12px;border-bottom:1px solid #e5e7eb;font-size:13px;font-weight:700;font-family:Tajawal,sans-serif;">${item.name||'—'}</td>
-      <td style="padding:9px 12px;border-bottom:1px solid #e5e7eb;font-size:12px;font-family:Tajawal,sans-serif;">${gLabel}</td>
-      <td style="padding:9px 12px;border-bottom:1px solid #e5e7eb;font-size:11px;direction:ltr;font-family:Tajawal,sans-serif;">${item.civil||'—'}</td>
-      <td style="padding:9px 12px;border-bottom:1px solid #e5e7eb;font-family:Tajawal,sans-serif;">${phoneCell}</td>
-      <td style="padding:9px 12px;border-bottom:1px solid #e5e7eb;font-size:12px;line-height:1.8;font-family:Tajawal,sans-serif;">${buildSocialsHtml(item)}</td>
-      ${isApproved?`<td style="padding:9px 12px;border-bottom:1px solid #e5e7eb;font-size:12px;color:${thBg};font-weight:600;white-space:nowrap;font-family:Tajawal,sans-serif;">${dateStr}</td>
-      <td style="padding:9px 12px;border-bottom:1px solid #e5e7eb;font-size:12px;font-family:Tajawal,sans-serif;">${svcLabel}</td>
-      <td style="padding:9px 12px;border-bottom:1px solid #e5e7eb;font-size:12px;font-family:Tajawal,sans-serif;">${vsLabel}</td>
-      <td style="padding:9px 12px;border-bottom:1px solid #e5e7eb;min-width:120px;"></td>`:''}
-    </tr>`;
+    const rb=i%2===1?'#f8fafc':'#fff';
+    if(isApproved){
+      const dateStr=item.visitDate?formatDateAr(item.visitDate):'—';
+      const svcLabel=(item.services&&item.services.length)?item.services.join(' · '):'—';
+      const vsLabel=item.visitStatus==='done'?'✅ تمت':item.visitStatus==='cancelled'?'❌ ألغيت':'—';
+      return `<tr style="background:${rb}"><td style="text-align:center;font-weight:900;width:36px;">${i+1}</td><td style="font-weight:700;">${item.name||'—'}</td><td>${gLabel}</td><td>${natCell}</td><td style="direction:ltr;">${phoneCell}</td><td style="font-size:11px;direction:ltr;">${item.civil||'—'}</td><td>${buildSocialsHtml(item)}</td><td style="white-space:nowrap;">${dateStr}</td><td>${svcLabel}</td><td>${vsLabel}</td><td style="min-width:100px;"></td></tr>`;
+    } else {
+      return `<tr style="background:${rb}"><td style="text-align:center;font-weight:900;width:36px;">${i+1}</td><td style="font-weight:700;">${item.name||'—'}</td><td>${gLabel}</td><td>${natCell}</td><td style="direction:ltr;">${phoneCell}</td><td style="font-size:11px;direction:ltr;">${item.civil||'—'}</td><td>${buildSocialsHtml(item)}</td></tr>`;
+    }
   }).join('');
-  const extraH=isApproved?`<th style="background:${thBg};color:#fff;padding:10px 12px;font-size:13px;font-weight:700;text-align:right;font-family:Tajawal,sans-serif;">موعد الزيارة</th><th style="background:${thBg};color:#fff;padding:10px 12px;font-size:13px;font-weight:700;text-align:right;font-family:Tajawal,sans-serif;">الخدمة</th><th style="background:${thBg};color:#fff;padding:10px 12px;font-size:13px;font-weight:700;text-align:right;font-family:Tajawal,sans-serif;">حالة الزيارة</th><th style="background:${thBg};color:#fff;padding:10px 12px;font-size:13px;font-weight:700;text-align:right;font-family:Tajawal,sans-serif;">توقيع المؤثر</th>`:'';
-  return `<!DOCTYPE html><html lang="ar" dir="rtl"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>${emoji} ${title} — مركز كيور الطبي</title><link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;900&display=swap" rel="stylesheet"><style>*{box-sizing:border-box;margin:0;padding:0;}body{font-family:'Tajawal',sans-serif;direction:rtl;background:#f1f5f9;padding:1.5rem;}.wrap{max-width:900px;margin:0 auto;background:#fff;border-radius:16px;box-shadow:0 4px 30px rgba(0,0,0,.12);overflow:hidden;}.rpt-header{text-align:center;background:linear-gradient(135deg,${thBg} 0%,${accentColor} 100%);padding:2rem;color:#fff;}.rpt-title{font-size:23px;font-weight:900;margin-bottom:5px;}.rpt-sub{font-size:13px;opacity:.85;margin-bottom:.5rem;}.rpt-count{font-size:15px;font-weight:900;background:rgba(255,255,255,.18);display:inline-block;padding:5px 18px;border-radius:20px;}.rpt-body{padding:1.5rem;}.print-actions{display:flex;gap:10px;justify-content:flex-end;margin-bottom:1.2rem;}button{padding:10px 20px;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;font-family:'Tajawal',sans-serif;border:none;}table{width:100%;border-collapse:collapse;direction:rtl;}thead tr th{background:${thBg};color:#fff;padding:10px 12px;font-size:13px;font-weight:700;text-align:right;font-family:'Tajawal',sans-serif;}.rpt-footer{text-align:center;padding:1rem;font-size:11px;color:#888;border-top:1px solid #e5e7eb;background:#f8fafc;}@media print{body{background:#fff;padding:0;}.wrap{box-shadow:none;border-radius:0;}.print-actions{display:none!important;}}</style></head><body><div class="wrap"><div class="rpt-header"><div class="rpt-title">${emoji} ${title}</div><div class="rpt-sub">مركز كيور الطبي — الحملة الإعلانية | ${today}</div><div class="rpt-count">الإجمالي: ${list.length} مؤثر</div></div><div class="rpt-body"><div class="print-actions"><button onclick="window.close()" style="background:#e5e7eb;color:#333;">✕ إغلاق</button><button onclick="window.print()" style="background:${thBg};color:#fff;">🖨️ طباعة / PDF</button></div><table><thead><tr><th style="background:${thBg};width:40px;text-align:center;">#</th><th style="background:${thBg};">الاسم</th><th style="background:${thBg};">الجنس</th><th style="background:${thBg};">الرقم المدني</th><th style="background:${thBg};">الهاتف</th><th style="background:${thBg};">الصفحات</th>${extraH}</tr></thead><tbody>${rows}</tbody></table></div><div class="rpt-footer">هذا الكشف سري ومخصص للاستخدام الداخلي — مركز كيور الطبي © 2026</div></div></body></html>`;
+  const extraH=isApproved?`<th style="background:${thBg};">موعد الزيارة</th><th style="background:${thBg};">الخدمة</th><th style="background:${thBg};">حالة الزيارة</th><th style="background:${thBg};">توقيع المؤثر</th>`:'';
+  const headersHTML=`<th style="background:${thBg};width:36px;text-align:center;">#</th><th style="background:${thBg};">الاسم</th><th style="background:${thBg};">الجنس</th><th style="background:${thBg};">الجنسية</th><th style="background:${thBg};">الهاتف</th><th style="background:${thBg};">الرقم المدني</th><th style="background:${thBg};">الصفحات</th>${extraH}`;
+  const html=buildReportHTMLShell(thBg,accentColor,title,emoji,today,list.length,headersHTML,rows,isApproved);
+  const fileName=isApproved?'كشف المقبولين - مركز كيور الطبي.html':'كشف المرفوضين - مركز كيور الطبي.html';
+  await downloadOrShare(html,fileName);
 }
 
-function buildShareableGenderHTML(gender, list) {
+async function shareGenderReport(gender) {
   const isMale=gender==='m';
+  const list=influencers.filter(i=>i.gender===gender);
+  if(!list.length)return;
+  const today=new Date().toLocaleDateString('ar-KW',{year:'numeric',month:'long',day:'numeric'});
   const thBg=isMale?'#1e3a5f':'#4a044e';
   const emoji=isMale?'👨':'👩';
   const title=isMale?'كشف المؤثرين الذكور':'كشف المؤثرات الإناث';
-  const today=new Date().toLocaleDateString('ar-KW',{year:'numeric',month:'long',day:'numeric'});
   const rows=list.map((item,i)=>{
     const stLabel=item.status==='approved'?'✅ مقبول':item.status==='rejected'?'❌ مرفوض':'⏳ قيد المراجعة';
+    const natCell=item.nationality?`🌍 ${item.nationality}`:'—';
     const phoneCell=item.phone?`<a href="tel:${item.phone}" style="color:#0369a1;text-decoration:none;direction:ltr;font-size:12px;">📞 ${item.phone}</a>`:'—';
-    return `<tr style="background:${i%2===1?'#f8fafc':'#fff'}"><td style="text-align:center;font-weight:900;color:${thBg};width:36px;padding:9px 6px;border-bottom:1px solid #e5e7eb;font-family:Tajawal,sans-serif;">${i+1}</td><td style="padding:9px 12px;border-bottom:1px solid #e5e7eb;font-size:13px;font-weight:700;font-family:Tajawal,sans-serif;">${item.name||'—'}</td><td style="padding:9px 12px;border-bottom:1px solid #e5e7eb;font-family:Tajawal,sans-serif;">${phoneCell}</td><td style="padding:9px 12px;border-bottom:1px solid #e5e7eb;font-size:11px;color:#555;direction:ltr;font-family:Tajawal,sans-serif;">${item.civil||'—'}</td><td style="padding:9px 12px;border-bottom:1px solid #e5e7eb;font-size:12px;line-height:1.8;font-family:Tajawal,sans-serif;">${buildSocialsHtml(item)}</td><td style="padding:9px 12px;border-bottom:1px solid #e5e7eb;font-family:Tajawal,sans-serif;">${stLabel}</td></tr>`;
+    return `<tr style="background:${i%2===1?'#f8fafc':'#fff'}"><td style="text-align:center;font-weight:900;width:36px;">${i+1}</td><td style="font-weight:700;">${item.name||'—'}</td><td>${natCell}</td><td style="direction:ltr;">${phoneCell}</td><td style="font-size:11px;direction:ltr;">${item.civil||'—'}</td><td>${buildSocialsHtml(item)}</td><td>${stLabel}</td></tr>`;
   }).join('');
-  return `<!DOCTYPE html><html lang="ar" dir="rtl"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>${emoji} ${title} — مركز كيور الطبي</title><link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;900&display=swap" rel="stylesheet"><style>*{box-sizing:border-box;margin:0;padding:0;}body{font-family:'Tajawal',sans-serif;direction:rtl;background:#f1f5f9;padding:1.5rem;}.wrap{max-width:820px;margin:0 auto;background:#fff;border-radius:16px;box-shadow:0 4px 30px rgba(0,0,0,.12);overflow:hidden;}.rpt-header{text-align:center;background:linear-gradient(135deg,${thBg} 0%,#1a6fa8 100%);padding:2rem;color:#fff;}.rpt-title{font-size:23px;font-weight:900;margin-bottom:5px;}.rpt-sub{font-size:13px;opacity:.85;margin-bottom:.5rem;}.rpt-count{font-size:15px;font-weight:900;background:rgba(255,255,255,.18);display:inline-block;padding:5px 18px;border-radius:20px;}.rpt-body{padding:1.5rem;}.print-actions{display:flex;gap:10px;justify-content:flex-end;margin-bottom:1.2rem;}button{padding:10px 20px;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;font-family:'Tajawal',sans-serif;border:none;}table{width:100%;border-collapse:collapse;direction:rtl;}thead tr th{background:${thBg};color:#fff;padding:10px 12px;font-size:13px;font-weight:700;text-align:right;font-family:'Tajawal',sans-serif;}.rpt-footer{text-align:center;padding:1rem;font-size:11px;color:#888;border-top:1px solid #e5e7eb;background:#f8fafc;}@media print{body{background:#fff;padding:0;}.wrap{box-shadow:none;border-radius:0;}.print-actions{display:none!important;}}</style></head><body><div class="wrap"><div class="rpt-header"><div class="rpt-title">${emoji} ${title}</div><div class="rpt-sub">مركز كيور الطبي — الحملة الإعلانية | ${today}</div><div class="rpt-count">الإجمالي: ${list.length} مؤثر</div></div><div class="rpt-body"><div class="print-actions"><button onclick="window.close()" style="background:#e5e7eb;color:#333;">✕ إغلاق</button><button onclick="window.print()" style="background:${thBg};color:#fff;">🖨️ طباعة / PDF</button></div><table><thead><tr><th style="background:${thBg};width:40px;text-align:center;">#</th><th style="background:${thBg};">الاسم</th><th style="background:${thBg};">الهاتف</th><th style="background:${thBg};">الرقم المدني</th><th style="background:${thBg};">الصفحات</th><th style="background:${thBg};">الحالة</th></tr></thead><tbody>${rows}</tbody></table></div><div class="rpt-footer">هذا الكشف سري ومخصص للاستخدام الداخلي — مركز كيور الطبي © 2026</div></div></body></html>`;
+  const headersHTML=`<th style="background:${thBg};width:36px;text-align:center;">#</th><th style="background:${thBg};">الاسم</th><th style="background:${thBg};">الجنسية</th><th style="background:${thBg};">الهاتف</th><th style="background:${thBg};">الرقم المدني</th><th style="background:${thBg};">الصفحات</th><th style="background:${thBg};">الحالة</th>`;
+  const html=buildReportHTMLShell(thBg,'#1a6fa8',title,emoji,today,list.length,headersHTML,rows,false);
+  const fileName=isMale?'كشف الذكور - مركز كيور الطبي.html':'كشف الإناث - مركز كيور الطبي.html';
+  await downloadOrShare(html,fileName);
 }
 
-// ─── Init ────────────────────────────────────────────────────────
+async function downloadOrShare(html,fileName){
+  const blob=new Blob([html],{type:'text/html'});
+  const file=new File([blob],fileName,{type:'text/html'});
+  try{
+    if(navigator.canShare&&navigator.canShare({files:[file]})){await navigator.share({title:fileName,files:[file]});return;}
+    if(navigator.share){await navigator.share({title:fileName});return;}
+    const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=fileName;a.click();URL.revokeObjectURL(a.href);showToast('✅ تم التحميل','#1a6fa8');
+  }catch(e){if(e.name!=='AbortError')showToast('تعذّرت المشاركة','#dc2626');}
+}
+
+// ─── One-time migrations (run once per version, then never again) ──
+const MIGRATIONS = {
+  // v1: initial batch + updates
+  'v1': function() {
+    function findByIg(handle) {
+      const h = handle.replace('@','').toLowerCase().trim();
+      return influencers.findIndex(i => normalizeIg(i.ig) === h);
+    }
+    // Updates to existing
+    const iYas = findByIg('al_yasmiina');
+    if(iYas !== -1 && !influencers[iYas].name) influencers[iYas].name = 'Yasmeen';
+    const iMazda = findByIg('mazda.alsafi');
+    if(iMazda !== -1 && !influencers[iMazda].tt) { influencers[iMazda].tt='@mazda.alsafi'; influencers[iMazda].tt_url='https://www.tiktok.com/@mazda.alsafi'; }
+    const iTas = findByIg('t.as7o');
+    if(iTas !== -1 && !influencers[iTas].phone) influencers[iTas].phone = '50718730';
+    // New influencers
+    [
+      { name:'', phone:'', ig:'@loloair', ig_url:'https://www.instagram.com/loloair', tt:'@loloair', tt_url:'https://www.tiktok.com/@loloair', snap:'https://snapchat.com/t/NnWB1cLr', status:'pending', gender:'f' },
+      { name:'تهاني سليم (توتا آرتيست)', phone:'95504313', ig:'@tota_artist2', ig_url:'https://www.instagram.com/tota_artist2', tt:'@tota_artist', tt_url:'https://www.tiktok.com/@tota_artist', snap:'https://www.snapchat.com/add/tootaals', status:'pending', gender:'f' },
+      { name:'', phone:'', ig:'@fajersabah_blog', ig_url:'https://www.instagram.com/fajersabah_blog', tt:'', tt_url:'', snap:'', status:'pending', gender:'f' },
+      { name:'', phone:'', ig:'@sara.lifestyle_12', ig_url:'https://www.instagram.com/sara.lifestyle_12', tt:'@saralifestyle0', tt_url:'https://www.tiktok.com/@saralifestyle0', snap:'https://snapchat.com/t/viSRZgl7', status:'pending', gender:'f' },
+      { name:'فرح (فويس اوفر)', phone:'60734767', ig:'@bloog_q8', ig_url:'https://www.instagram.com/bloog_q8', tt:'@bloog_q8', tt_url:'https://www.tiktok.com/@bloog_q8', snap:'https://snapchat.com/t/vpBAizdI', status:'pending', gender:'f' },
+      { name:'', phone:'50909787', ig:'@anjil.21', ig_url:'https://www.instagram.com/anjil.21', tt:'@ftooom_21', tt_url:'https://www.tiktok.com/@ftooom_21', snap:'', status:'pending', gender:'f' },
+      { name:'', phone:'66558707', ig:'@w_alenezi87', ig_url:'https://www.instagram.com/w_alenezi87', tt:'@alzan66', tt_url:'https://www.tiktok.com/@alzan66', snap:'', status:'pending', gender:'f' },
+      { name:'تايقر لاين', phone:'99614924', ig:'@tiger.line_', ig_url:'https://www.instagram.com/tiger.line_', tt:'@tiger.line_', tt_url:'https://www.tiktok.com/@tiger.line_', snap:'', status:'pending', gender:'f' },
+      { name:'بلوقر مزونة', phone:'50296116', ig:'@mazouna.qt', ig_url:'https://www.instagram.com/mazouna.qt', tt:'@mazouna.q8', tt_url:'https://www.tiktok.com/@mazouna.q8', snap:'', status:'pending', gender:'f' },
+      { name:'بلوقر نون (فويس اوفر)', phone:'90061949', ig:'@noon_blogerq8', ig_url:'https://www.instagram.com/noon_blogerq8', tt:'@blwqrnwn25', tt_url:'https://www.tiktok.com/@blwqrnwn25', snap:'https://snapchat.com/t/wmWXPwjr', status:'pending', gender:'f' },
+    ].forEach(item => { if(findByIg(item.ig) === -1) influencers.push(item); });
+  },
+};
+
+function runMigrations() {
+  const done = JSON.parse(localStorage.getItem('cure_migrations') || '{}');
+  let ran = 0;
+  Object.keys(MIGRATIONS).forEach(ver => {
+    if(!done[ver]) { MIGRATIONS[ver](); done[ver] = true; ran++; }
+  });
+  if(ran > 0) localStorage.setItem('cure_migrations', JSON.stringify(done));
+  return ran;
+}
+
 async function init() {
+  initNationalitySelects();
   const loaded = await loadFromStorage();
-  if (!loaded) {
-    influencers = JSON.parse(JSON.stringify(DEFAULT_INFLUENCERS));
-    // Save defaults to storage
-    await saveToStorage();
-  }
-  document.getElementById('loadingOverlay').style.display='none';
+  if(!loaded) { influencers = JSON.parse(JSON.stringify(DEFAULT_INFLUENCERS)); }
+  runMigrations();
+  await saveToStorage();
+  document.getElementById('loadingOverlay').style.display = 'none';
   renderGrid();
 }
-
 init();
 
-// ─── Expose functions globally ──────────────────────────────────
-window.openAddModal=openModal;
-window.closeAddModal=closeModal;
+// ─── Globals ──────────────────────────────────────────────────────
+window.deleteInfluencer=deleteInfluencer; window.cancelDelete=cancelDelete; window.confirmDelete=confirmDelete;
+window.restoreInfluencer=restoreInfluencer; window.permanentDelete=permanentDelete;
+window.cancelPermDelete=cancelPermDelete; window.executePermDelete=executePermDelete; window.executePermanentDelete=executePermanentDelete;
 window.openModal=openModal; window.closeModal=closeModal;
+window.showPhonePopup=showPhonePopup; window.hidePhonePopup=hidePhonePopup; window.closePhonePopup=closePhonePopup;
 window.openBulkModal=openBulkModal; window.closeBulkModal=closeBulkModal;
 window.addInfluencer=addInfluencer; window.confirmBulkAdd=confirmBulkAdd;
 window.openEditModal=openEditModal; window.closeEditModal=closeEditModal;
 window.saveEditInfluencer=saveEditInfluencer;
 window.deleteInfluencer=deleteInfluencer;
-window.setStatus=setStatus; window.setFilter=setFilter;
-window.setFilterFromStat=setFilterFromStat;
+window.setStatus=setStatus; window.setFilter=setFilter; window.setFilterFromStat=setFilterFromStat;
 window.selectGender=selectGender;
-window.openServicePopup=openServicePopup; window.toggleService=toggleService;
+window.openServicePopup=openServicePopup; window.toggleService=toggleService; window.closeServicePopup=closeServicePopup;
 window.openDatePicker=openDatePicker; window.closeDatePicker=closeDatePicker;
 window.clearVisitDate=clearVisitDate; window.dpNavigate=dpNavigate;
 window.dpGoToSelected=dpGoToSelected; window.selectDay=selectDay;
 window.openApptPanel=openApptPanel; window.closeApptPanel=closeApptPanel;
 window.manualSave=manualSave;
-window.dupSingleSkip=dupSingleSkip; window.dupSingleAddAnyway=dupSingleAddAnyway;
-window.dupSingleUpdate=dupSingleUpdate;
-window.setBulkDecision=setBulkDecision; window.applyBulkDecisions=applyBulkDecisions;
-window.closeDupBulk=closeDupBulk;
+window.dupSingleSkip=dupSingleSkip; window.dupSingleAddAnyway=dupSingleAddAnyway; window.dupSingleUpdate=dupSingleUpdate; window.dupSingleApplySelected=dupSingleApplySelected;
+window.setBulkDecision=setBulkDecision; window.applyBulkDecisions=applyBulkDecisions; window.closeDupBulk=closeDupBulk;
 window.openReportFromBtn=openReportFromBtn;
 window.closeReport=closeReport; window.closeReportIfBg=closeReportIfBg;
 window.openStatusReport=openStatusReport; window.openGenderReport=openGenderReport;
