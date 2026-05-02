@@ -267,6 +267,7 @@ body{font-family:'Tajawal',sans-serif;direction:rtl;background:#0d1117;color:#e6
     <div class="stat approved"><div class="stat-num" id="statApproved">0</div><div class="stat-label">✅ مقبولين</div></div>
     <div class="stat rejected"><div class="stat-num" id="statRejected">0</div><div class="stat-label">❌ مرفوضين</div></div>
     <div class="stat"><div class="stat-num" id="statPending">0</div><div class="stat-label">⏳ قيد المراجعة</div></div>
+    <div class="stat" style="cursor:pointer;" onclick="setFilter('visited',document.getElementById('fb-visited'))"><div class="stat-num" id="statVisited" style="color:#34d399;">0</div><div class="stat-label">🏁 اكتملت</div></div>
     <div class="stat" style="cursor:pointer;border:1px solid rgba(220,38,38,0.4);" onclick="setFilter('deleted',document.getElementById('fb-deleted'))"><div class="stat-num" id="statDeleted" style="color:#f87171;">0</div><div class="stat-label">🗑 محذوفين</div></div>
   </div>
   <div class="stats-bar" style="margin-top:.6rem;">
@@ -333,6 +334,7 @@ body{font-family:'Tajawal',sans-serif;direction:rtl;background:#0d1117;color:#e6
   </div>
   <button class="filter-btn" onclick="openApptPanel()" style="white-space:nowrap;border-color:#0891b2;color:#22d3ee;">📅 مواعيد</button>
   <button class="filter-btn" id="fb-deleted" onclick="setFilter('deleted',this)" style="white-space:nowrap;border-color:#6b2020;color:#f87171;flex-shrink:0;">🗑 المحذوفين <span id="deletedBadge" style="display:none;background:#dc2626;color:#fff;border-radius:10px;padding:1px 6px;font-size:10px;margin-right:2px;">0</span></button>
+  <button id="visitedBtn" style="display:none;padding:7px 14px;border-radius:9px;border:1px solid #059669;font-size:13px;cursor:pointer;font-family:Tajawal,sans-serif;white-space:nowrap;font-weight:700;background:#0d1f14;color:#34d399;transition:.15s;" onclick="setFilter('visited',this)">🏁 اكتملت الزيارة</button>
   <button id="reportBtn" style="display:none;padding:7px 14px;border-radius:9px;border:1px solid #1a6fa8;font-size:13px;cursor:pointer;font-family:Tajawal,sans-serif;white-space:nowrap;font-weight:700;background:#1e3a5f;color:#60a5fa;transition:.15s;" onclick="openReportFromBtn()">📋 كشف</button>
 </div>
 
@@ -803,12 +805,17 @@ function updateStats() {
   }
   const statDel=document.getElementById('statDeleted');
   if(statDel) statDel.textContent=deletedInfluencers.length;
+  const statVis=document.getElementById('statVisited');
+  if(statVis) statVis.textContent=influencers.filter(i=>i.status==='approved'&&i.visitStatus==='done').length;
 }
 
 const REPORT_FILTERS = ['approved','rejected','male','female'];
 const REPORT_LABELS = {approved:'📋 كشف المقبولين',rejected:'📋 كشف المرفوضين',male:'📋 كشف الذكور',female:'📋 كشف الإناث'};
 function updateReportBtn(f) {
   const btn=document.getElementById('reportBtn'); if(!btn) return;
+  const vBtn=document.getElementById('visitedBtn');
+  // Show visited button only when approved filter is active
+  if(vBtn) vBtn.style.display=(f==='approved')?'block':'none';
   if(REPORT_FILTERS.includes(f)){
     btn.style.display='block'; btn.textContent=REPORT_LABELS[f];
     const colors={approved:'#1e5c2d',rejected:'#5c1e1e',male:'#1e3a5f',female:'#4a044e'};
@@ -934,6 +941,7 @@ function renderGrid() {
     const searchStr=(name+item.ig+item.tt+item.phone+item.snap+(item.nationality||'')).toLowerCase();
     const matchSearch=!q||searchStr.includes(q);
     const matchFilter=currentFilter==='all'||item.status===currentFilter||
+      (currentFilter==='visited'&&item.status==='approved'&&item.visitStatus==='done')||
       (currentFilter==='ig'&&item.ig)||(currentFilter==='tt'&&item.tt)||(currentFilter==='snap'&&item.snap)||
       (currentFilter==='all3'&&item.ig&&item.tt&&item.snap)||
       (currentFilter==='male'&&item.gender==='m')||(currentFilter==='female'&&item.gender==='f')||
