@@ -841,28 +841,26 @@ function showToast(msg, color='#059669') {
 }
 
 function updateStats() {
-  const total=influencers.length, approved=influencers.filter(i=>i.status==='approved').length,
-        rejected=influencers.filter(i=>i.status==='rejected').length;
+  const visited=influencers.filter(i=>i.status==='approved'&&i.visitStatus==='done').length;
+  const approved=influencers.filter(i=>i.status==='approved'&&i.visitStatus!=='done').length;
+  const rejected=influencers.filter(i=>i.status==='rejected').length;
+  const total=influencers.length;
   document.getElementById('statTotal').textContent=total;
   document.getElementById('statApproved').textContent=approved;
   document.getElementById('statRejected').textContent=rejected;
-  document.getElementById('statPending').textContent=total-approved-rejected;
+  document.getElementById('statPending').textContent=total-influencers.filter(i=>i.status==='approved').length-rejected;
   document.getElementById('statIg').textContent=influencers.filter(i=>i.ig).length;
   document.getElementById('statTt').textContent=influencers.filter(i=>i.tt).length;
   document.getElementById('statSnap').textContent=influencers.filter(i=>i.snap).length;
   document.getElementById('statAll3').textContent=influencers.filter(i=>i.ig&&i.tt&&i.snap).length;
   document.getElementById('statMale').textContent=influencers.filter(i=>i.gender==='m').length;
   document.getElementById('statFemale').textContent=influencers.filter(i=>i.gender==='f').length;
-  // Deleted badge + header stat
   const badge=document.getElementById('deletedBadge');
-  if(badge){
-    badge.textContent=deletedInfluencers.length;
-    badge.style.display=deletedInfluencers.length>0?'inline':'none';
-  }
+  if(badge){badge.textContent=deletedInfluencers.length;badge.style.display=deletedInfluencers.length>0?'inline':'none';}
   const statDel=document.getElementById('statDeleted');
   if(statDel) statDel.textContent=deletedInfluencers.length;
   const statVis=document.getElementById('statVisited');
-  if(statVis) statVis.textContent=influencers.filter(i=>i.status==='approved'&&i.visitStatus==='done').length;
+  if(statVis) statVis.textContent=visited;
 }
 
 const REPORT_FILTERS = ['approved','rejected','male','female'];
