@@ -268,6 +268,7 @@ body{font-family:'Tajawal',sans-serif;direction:rtl;background:#0d1117;color:#e6
     <div class="stat rejected" style="cursor:pointer;" onclick="setFilterFromStat('rejected')"><div class="stat-num" id="statRejected">0</div><div class="stat-label">❌ مرفوضين</div></div>
     <div class="stat" style="cursor:pointer;" onclick="setFilterFromStat('pending')"><div class="stat-num" id="statPending">0</div><div class="stat-label">⏳ قيد المراجعة</div></div>
     <div class="stat" style="cursor:pointer;" onclick="setFilterFromStat('visited')"><div class="stat-num" id="statVisited" style="color:#34d399;">0</div><div class="stat-label">🏁 تمت الزيارة</div></div>
+    <div class="stat" style="cursor:pointer;border:1px solid rgba(202,138,4,0.4);" onclick="setFilterFromStat('cancelled')"><div class="stat-num" id="statCancelled" style="color:#fbbf24;">0</div><div class="stat-label">⚠️ ألغيت الزيارة</div></div>
     <div class="stat" style="cursor:pointer;border:1px solid rgba(220,38,38,0.4);" onclick="setFilter('deleted',document.getElementById('fb-deleted'))"><div class="stat-num" id="statDeleted" style="color:#f87171;">0</div><div class="stat-label">🗑 محذوفين</div></div>
   </div>
   <div class="stats-bar" style="margin-top:.6rem;">
@@ -863,6 +864,8 @@ function updateStats() {
   if(statDel) statDel.textContent=deletedInfluencers.length;
   const statVis=document.getElementById('statVisited');
   if(statVis) statVis.textContent=visited;
+  const statCan=document.getElementById('statCancelled');
+  if(statCan) statCan.textContent=cancelled;
 }
 
 const REPORT_FILTERS = ['approved','rejected','male','female'];
@@ -902,7 +905,7 @@ function setFilter(f, btn) {
 function setFilterFromStat(f) {
   currentFilter=f;
   document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));
-  const map={ig:'fb-ig',tt:'fb-tt',snap:'fb-snap',all3:'fb-all3',male:'fb-male',female:'fb-female',approved:'fb-approved',rejected:'fb-rejected'};
+  const map={ig:'fb-ig',tt:'fb-tt',snap:'fb-snap',all3:'fb-all3',male:'fb-male',female:'fb-female',approved:'fb-approved',rejected:'fb-rejected',visited:'visitedBtn',cancelled:'cancelledBtn'};
   const el=document.getElementById(map[f]); if(el) el.classList.add('active');
   updateReportBtn(f);
   renderGrid();
