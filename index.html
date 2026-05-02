@@ -1367,50 +1367,76 @@ function closeFormImport() {
 }
 
 function parseFormImport() {
-  const text = document.getElementById('formImportText').value;
-  if(!text.trim()) return;
+  const rawText = document.getElementById('formImportText').value;
+  if(!rawText.trim()) return;
+  // Normalize line endings
+  const text = rawText.replace(/\r\n/g,'\n').replace(/\r/g,'\n');
 
-  // Extract fields
-  function extract(label) {
-    const regex = new RegExp(label + '\\s*\\n([^\\n]+)', 'i');
-    const m = text.match(regex);
-    return m ? m[1].trim() : '';
+  // Extract field: find label then get next non-empty line
+  function extract(...labels) {
+    for(const label of labels) {
+      const lines = text.split('\n');
+      for(let i=0; i<lines.length; i++) {
+        if(lines[i].trim().replace(/[:\s]/g,'').includes(label.replace(/[:\s]/g,''))) {
+          // Return next non-empty line
+          for(let j=i+1; j<lines.length; j++) {
+            const val = lines[j].trim();
+            if(val && val.length > 0) return val;
+          }
+        }
+      }
+    }
+    return '';
   }
 
-  const name       = extract('الاسم الثلاثي') || extract('الاسم');
+  // Also try to extract URLs directly from text
+  function extractUrl(domain) {
+    const regex = new RegExp('https?://(?:www\\.)?' + domain + '[^\\s]+', 'i');
+    const m = text.match(regex);
+    return m ? m[0] : '';
+  }
+
+  const name       = extract('الاسم الثلاثي','الاسم');
   const gender_raw = extract('الجنس');
-  const civil      = extract('الرقم المدني');
-  const phone_raw  = extract('رقم التلفون') || extract('رقم الهاتف') || extract('رقم التواصل');
+  const civil      = extract('الرقم المدني','الرقم المدنى');
+  const phone_raw  = extract('رقم التلفون','رقم الهاتف','رقم التواصل','رقم الجوال');
   const nat_raw    = extract('الجنسية');
-  const ig_raw     = extract('انستاجرام') || extract('انستغرام') || extract('Instagram');
-  const tt_raw     = extract('تيك توك') || extract('TikTok');
-  const snap_raw   = extract('سناب شات') || extract('Snapchat') || extract('سناب');
+  const ig_raw     = extract('انستاجرام','انستغرام','Instagram') || extractUrl('instagram.com');
+  const tt_raw     = extract('تيك توك','TikTok','تيك يوك') || extractUrl('tiktok.com');
+  const snap_raw   = extract('سناب شات','Snapchat','سناب') || extractUrl('snapchat.com');
 
   // Normalize
-  const gender = gender_raw.includes('أنثى') || gender_raw.includes('انثى') || gender_raw.includes('female') ? 'f' : gender_raw.includes('ذكر') || gender_raw.includes('male') ? 'm' : '';
-  const phone = normalizePhone(phone_raw);
-  const ig = ig_raw ? '@' + normalizeIg(ig_raw) : '';
-  const ig_url = ig_raw.startsWith('http') ? ig_raw.split('?')[0] : ig ? 'https://www.instagram.com/' + ig.replace('@','') : '';
-  const tt = tt_raw.includes('tiktok.com/@') ? '@' + tt_raw.split('tiktok.com/@').pop().split('?')[0] : tt_raw ? tt_raw : '';
+  const gender = gender_raw.includes('أنثى')||gender_raw.includes('انثى')||gender_raw.toLowerCase().includes('female') ? 'f'
+               : gender_raw.includes('ذكر')||gender_raw.toLowerCase().includes('male') ? 'm' : '';
+  const phone  = normalizePhone(phone_raw);
+  const ig     = ig_raw ? '@'+normalizeIg(ig_raw) : '';
+  const ig_url = ig_raw.startsWith('http') ? ig_raw.split('?')[0].split('&')[0] : ig ? 'https://www.instagram.com/'+ig.replace('@','') : '';
+  const tt     = tt_raw.includes('tiktok.com/@') ? '@'+tt_raw.split('tiktok.com/@').pop().split('?')[0] : '';
   const tt_url = tt_raw.startsWith('http') ? tt_raw.split('?')[0] : '';
 
-  _formImportItem = { name, civil, phone, nationality: nat_raw, gender, ig, ig_url, tt, tt_url, snap: snap_raw, status: 'pending' };
+  _formImportItem = { name, civil, phone, nationality:nat_raw, gender, ig, ig_url, tt, tt_url, snap:snap_raw, status:'pending' };
+
+  // Check duplicate immediately
+  const dup = findDuplicate(_formImportItem);
 
   // Preview
   const preview = document.getElementById('formImportPreview');
   preview.style.display = 'block';
   preview.innerHTML = `
-    <div style="font-weight:700;color:#4ade80;margin-bottom:6px;">✅ تم استخراج البيانات:</div>
-    ${name?`<div>👤 <b>الاسم:</b> ${name}</div>`:''}
+    <div style="font-weight:700;color:${dup?'#fbbf24':'#4ade80'};margin-bottom:6px;">${dup ? '⚠️ هذا الشخص موجود مسبقاً — يمكنك تحديث بياناته' : '✅ تم استخراج البيانات:'}</div>
+    ${name?`<div>👤 <b>الاسم:</b> ${name}</div>`:'<div style="color:#f87171;">⚠️ لم يتم العثور على الاسم</div>'}
     ${gender?`<div>${gender==='f'?'👩 أنثى':'👨 ذكر'}</div>`:''}
     ${civil?`<div>🪪 <b>الرقم المدني:</b> ${civil}</div>`:''}
-    ${phone?`<div>📞 <b>الموبايل:</b> ${phone}</div>`:''}
+    ${phone?`<div>📞 <b>الموبايل:</b> ${phone}</div>`:'<div style="color:#f87171;">⚠️ لم يتم العثور على رقم الموبايل</div>'}
     ${nat_raw?`<div>🌍 <b>الجنسية:</b> ${nat_raw}</div>`:''}
     ${ig?`<div>📸 <b>انستاجرام:</b> ${ig}</div>`:''}
     ${tt?`<div>🎵 <b>تيك توك:</b> ${tt}</div>`:''}
-    ${snap_raw?`<div>👻 <b>سناب:</b> سناب ✓</div>`:''}
+    ${snap_raw?`<div>👻 <b>سناب:</b> ✓</div>`:''}
+    ${dup?`<div style="margin-top:6px;color:#fbbf24;font-size:11px;">تطابق مع: ${dup.reasons.join(' · ')}</div>`:''}
   `;
   document.getElementById('formImportAddBtn').style.display = 'block';
+  document.getElementById('formImportAddBtn').textContent = dup ? '🔄 تحديث الموجود' : '✅ إضافة';
+  document.getElementById('formImportAddBtn').style.background = dup ? '#1a6fa8' : '#059669';
 }
 
 function confirmFormImport() {
