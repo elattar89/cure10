@@ -1790,12 +1790,24 @@ function openApptPanel(){
   const list=document.getElementById('apptList');
   const withDates=influencers.filter(i=>i.visitDate).sort((a,b)=>a.visitDate.localeCompare(b.visitDate));
   if(!withDates.length){list.innerHTML='<div class="appt-empty">لا توجد مواعيد مسجلة</div>';document.getElementById('apptPanelOverlay').classList.add('open');return;}
+  const today=new Date(); today.setHours(0,0,0,0);
   list.innerHTML=withDates.map((item)=>{
     const idx=influencers.indexOf(item);const name=getDisplayName(item,idx);
-    const[y,m,d]=item.visitDate.split('-');const color=getColor(idx);
-    return `<div class="appt-item ${item.status||'pending'}">
-      <div class="appt-date-badge" style="border-color:${color}"><div class="appt-date-day">${parseInt(d)}</div><div class="appt-date-month">${MONTHS_AR[parseInt(m)-1]}</div></div>
-      <div class="appt-info"><div class="appt-name">${name}</div><div class="appt-sub">${item.phone||item.ig||''}</div></div>
+    const dateOnly=item.visitDate.split('T')[0];
+    const[y,m,d]=dateOnly.split('-');const color=getColor(idx);
+    const apptDate=new Date(parseInt(y),parseInt(m)-1,parseInt(d));
+    const isPast=apptDate<today;
+    const timeStr=item.visitDate.includes('T')?item.visitDate.split('T')[1]:'';
+    const timeLabel=timeStr?` · ${timeStr.replace('AM','ص').replace('PM','م')}`:'';
+    return `<div class="appt-item ${item.status||'pending'}" style="${isPast?'opacity:.55;background:rgba(0,0,0,.2);':''}">
+      <div class="appt-date-badge" style="border-color:${isPast?'#484f58':color};${isPast?'background:#21262d;':''}">
+        <div class="appt-date-day" style="${isPast?'color:#6e7681;':''}">${parseInt(d)}</div>
+        <div class="appt-date-month" style="${isPast?'color:#484f58;':''}">${MONTHS_AR[parseInt(m)-1]}</div>
+      </div>
+      <div class="appt-info">
+        <div class="appt-name" style="${isPast?'color:#6e7681;':''}">${name}</div>
+        <div class="appt-sub">${item.phone||item.ig||''}${timeLabel}${isPast?(item.visitStatus==='done'?' · <span style="color:#4ade80;font-size:10px;">✅ تمت</span>':item.visitStatus==='cancelled'?' · <span style="color:#f87171;font-size:10px;">❌ ألغيت</span>':' · <span style="color:#f87171;font-size:10px;">انتهى</span>'):''}</div>
+      </div>
       <span class="appt-status-tag ${item.status||'pending'}">${item.status==='approved'?'✅':item.status==='rejected'?'❌':'⏳'}</span>
     </div>`;
   }).join('');
