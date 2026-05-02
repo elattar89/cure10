@@ -509,6 +509,24 @@ body{font-family:'Tajawal',sans-serif;direction:rtl;background:#0d1117;color:#e6
     <div class="dp-weekday">أر</div><div class="dp-weekday">خ</div><div class="dp-weekday">ج</div><div class="dp-weekday">س</div>
   </div>
   <div class="dp-days" id="dpDays"></div>
+  <div style="display:flex;align-items:center;justify-content:center;gap:6px;padding:.7rem;border-top:1px solid #30363d;margin-top:.4rem;background:#161b22;border-radius:0 0 10px 10px;">
+    <span style="font-size:12px;color:#8b949e;font-family:Tajawal,sans-serif;white-space:nowrap;">⏰ الساعة</span>
+    <select id="dpHour" disabled style="background:#21262d;color:#484f58;border:1px solid #30363d;border-radius:7px;padding:6px 8px;font-size:14px;font-family:Tajawal,sans-serif;cursor:not-allowed;min-width:50px;opacity:.5;">
+      <option value="01">1</option><option value="02">2</option><option value="03">3</option>
+      <option value="04">4</option><option value="05">5</option><option value="06">6</option>
+      <option value="07">7</option><option value="08">8</option><option value="09">9</option>
+      <option value="10">10</option><option value="11">11</option><option value="12">12</option>
+    </select>
+    <span style="color:#484f58;font-size:18px;font-weight:700;">:</span>
+    <select id="dpMinute" disabled style="background:#21262d;color:#484f58;border:1px solid #30363d;border-radius:7px;padding:6px 8px;font-size:14px;font-family:Tajawal,sans-serif;cursor:not-allowed;min-width:50px;opacity:.5;">
+      <option value="00">00</option><option value="15">15</option>
+      <option value="30">30</option><option value="45">45</option>
+    </select>
+    <select id="dpAmPm" disabled style="background:#21262d;color:#484f58;border:1px solid #30363d;border-radius:7px;padding:6px 8px;font-size:14px;font-family:Tajawal,sans-serif;cursor:not-allowed;min-width:60px;opacity:.5;">
+      <option value="AM">صباحاً</option>
+      <option value="PM">مساءً</option>
+    </select>
+  </div>
   <button class="dp-close-btn" onclick="closeDatePicker()">تأكيد ✓</button>
   <button class="dp-clear-btn" onclick="clearVisitDate()">مسح التاريخ 🗑</button>
 </div>
@@ -704,8 +722,19 @@ function getDisplayName(item, idx) {
 function getColor(idx){ return COLORS[idx % COLORS.length]; }
 function formatDateAr(iso) {
   if (!iso) return '';
-  const [y,m,d] = iso.split('-');
-  return parseInt(d)+' '+MONTHS_AR[parseInt(m)-1]+' '+y;
+  const parts = iso.split('T');
+  const [y,m,d] = parts[0].split('-');
+  let result = parseInt(d)+' '+MONTHS_AR[parseInt(m)-1]+' '+y;
+  if(parts[1]){
+    const timeStr = parts[1];
+    const isAM = timeStr.includes('AM');
+    const isPM = timeStr.includes('PM');
+    const clean = timeStr.replace('AM','').replace('PM','').trim();
+    const [hh,mm] = clean.split(':');
+    const label = isAM ? 'ص' : isPM ? 'م' : '';
+    result += ' | '+parseInt(hh)+':'+(mm||'00')+' '+label;
+  }
+  return result;
 }
 function normalizePhone(p){
   // Convert Arabic-Indic digits to Western digits first
@@ -965,7 +994,9 @@ function renderGrid() {
     const name=getDisplayName(item,idx);
     const searchStr=(name+item.ig+item.tt+item.phone+item.snap+(item.nationality||'')).toLowerCase();
     const matchSearch=!q||searchStr.includes(q);
-    const matchFilter=currentFilter==='all'||item.status===currentFilter||
+    const matchFilter=currentFilter==='all'||
+      (currentFilter==='approved'&&item.status==='approved'&&item.visitStatus!=='done')||
+      (currentFilter==='rejected'&&item.status==='rejected')||
       (currentFilter==='visited'&&item.status==='approved'&&item.visitStatus==='done')||
       (currentFilter==='ig'&&item.ig)||(currentFilter==='tt'&&item.tt)||(currentFilter==='snap'&&item.snap)||
       (currentFilter==='all3'&&item.ig&&item.tt&&item.snap)||
@@ -994,6 +1025,7 @@ function renderGrid() {
       const snapHandle=getSnapHandle(item.snap);
       socials+=`<a class="social-link" href="${snapUrl}" target="_blank"><span class="social-icon snap-icon"><svg width="11" height="11" viewBox="0 0 24 24" fill="#000"><path d="M12.166.011C9.033.011 6.099 1.871 4.91 4.66c-.53 1.236-.425 3.566-.362 4.994-.33.15-.727.24-1.17.133-.315-.075-.627.154-.68.475-.081.497.286.898.75 1.012.63.154 1.236.124 1.784-.047.083-.024.163-.054.241-.086.41 1.24 1.14 2.41 2.177 3.299-.754.378-2.15.89-3.914 1.01-.282.018-.52.208-.573.488-.245 1.304 2.36 2.014 3.69 2.338.244.059.41.28.4.53-.02.457.02.76.107.97.068.163.237.255.408.215.332-.079.654-.232.997-.232.388 0 .639.104 1.012.316.762.437 1.627.943 3.219.943 1.57 0 2.44-.498 3.193-.934.372-.213.63-.325 1.012-.325.338 0 .657.152.987.23.172.041.342-.052.41-.214.086-.21.127-.513.107-.97-.01-.25.156-.47.4-.53 1.33-.323 3.934-1.033 3.69-2.337-.054-.28-.291-.47-.573-.488-1.765-.12-3.16-.632-3.914-1.01 1.036-.889 1.767-2.059 2.177-3.299.078.032.158.062.241.086.548.171 1.154.201 1.784.047.464-.114.831-.515.75-1.012-.053-.321-.365-.55-.68-.475-.443.107-.84.017-1.17-.133.063-1.428.168-3.758-.362-4.994C17.9 1.871 14.966.011 12.166.011z"/></svg></span><span>${snapHandle}</span></a>`;
     }
+    const isApproved = item.status === 'approved';
     const svcLabel=item.services&&item.services.length?'الخدمة : '+item.services.join(' · '):'اختر الخدمة';
     const hasSvc=item.services&&item.services.length>0;
     const hasDate=!!item.visitDate;
@@ -1004,7 +1036,10 @@ function renderGrid() {
       <div class="card-top">
         <div class="avatar" style="background:${color}">${initial}</div>
         <div class="card-info">
-          <div class="card-name">${name}</div>
+          <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
+            <div class="card-name">${name}</div>
+            ${item.visitStatus==='done'?`<div style="display:flex;gap:1px;">${[1,2,3,4,5].map(s=>`<span onclick="setVisitRating(${idx},${s})" style="cursor:pointer;font-size:16px;line-height:1;color:${(item.visitRating||0)>=s?'#f59e0b':'#30363d'};transition:.15s;">★</span>`).join('')}</div>`:''}
+          </div>
           ${item.phone?`<div class="card-phone" onclick="showPhonePopup('${item.phone}','${(item.name||item.ig||'').replace(/'/g,"\\'")}',event)" style="cursor:pointer;" title="اضغط للتواصل">📞 ${item.phone}</div>`:''}
           ${item.civil?`<div class="civil-badge">🪪 ${item.civil}</div>`:''}
           ${item.nationality?`<div class="nationality-badge">🌍 ${item.nationality}</div>`:''}
@@ -1019,11 +1054,17 @@ function renderGrid() {
         ${item.status!=='pending'?`<button class="action-btn reset-btn" onclick="setStatus(${idx},'pending')">↺ إعادة</button>`:''}
         <button class="action-btn" onclick="openEditModal(${idx})">✏️ تعديل</button>
         <button class="action-btn" onclick="deleteInfluencer(${idx})" style="border-color:#dc2626;color:#f87171;">🗑</button>
-        ${item.status==='approved'&&item.phone?`<button class="action-btn" onclick="sendWhatsApp(${idx})" style="border-color:#25d366;color:#25d366;font-size:12px;">📲 إرسال الموافقة</button>`:''}
+        ${item.status==='approved'&&item.phone?`<div style="display:flex;align-items:center;gap:5px;flex-wrap:wrap;">
+          <button class="action-btn" id="waBtn_${idx}" onclick="sendWhatsApp(${idx})" style="border-color:${item.waSent?'#484f58':'#25d366'};color:${item.waSent?'#484f58':'#25d366'};font-size:12px;${item.waSent?'opacity:.5;':''}">📲 إرسال الموافقة</button>
+          <label style="display:flex;align-items:center;gap:4px;cursor:pointer;font-size:11px;color:${item.waSent?'#25d366':'#6e7681'};">
+            <input type="checkbox" id="waCk_${idx}" ${item.waSent?'checked':''} onchange="toggleWaSent(${idx},this)" style="width:15px;height:15px;cursor:pointer;accent-color:#25d366;">
+            تم الإرسال مسبقاً
+          </label>
+        </div>`:''}
       </div>
       <button id="dlctBtn_${idx}" class="svc-btn ${hasDlct?'has-service':''}" style="${hasDlct?'border-color:#0891b2;color:#22d3ee;':''}" onclick="openDialectPopup(${idx},event)"><span id="dlctLabel_${idx}">${dlctLabel}</span></button>
-      <button id="svcBtn_${idx}" class="svc-btn ${hasSvc?'has-service':''}" onclick="openServicePopup(${idx},event)"><span id="svcLabel_${idx}">${svcLabel}</span></button>
-      <button class="visit-date-btn ${hasDate?'has-date':''}" onclick="openDatePicker(${idx},event)">${dateLabel}</button>
+      <button id="svcBtn_${idx}" class="svc-btn ${hasSvc?'has-service':''}" ${!isApproved?'disabled title="يجب قبول المؤثر أولاً"':''} onclick="${isApproved?`openServicePopup(${idx},event)`:''}" style="${!isApproved?'opacity:.4;cursor:not-allowed;':''}" ><span id="svcLabel_${idx}">${svcLabel}</span></button>
+      <button class="visit-date-btn ${hasDate?'has-date':''}" ${!isApproved?'disabled title="يجب قبول المؤثر أولاً"':''} onclick="${isApproved?`openDatePicker(${idx},event)`:''}" style="${!isApproved?'opacity:.4;cursor:not-allowed;':''}">${dateLabel}</button>
     </div>`;
   });
   grid.innerHTML=html||'<div style="text-align:center;padding:3rem;color:#484f58;font-size:14px;">لا توجد نتائج</div>';
@@ -1031,6 +1072,11 @@ function renderGrid() {
 }
 
 function setStatus(idx,status){ influencers[idx].status=status; renderGrid(); saveFile(); }
+function setVisitRating(idx, rating) {
+  influencers[idx].visitRating = rating;
+  saveFile(); renderGrid();
+}
+window.setVisitRating = setVisitRating;
 
 // ── Delete with confirmation modal ────────────────────────────────
 function deleteInfluencer(idx) {
@@ -1323,7 +1369,7 @@ function dupSingleUpdate() { dupSingleApplySelected(); } // backward compat
 
 function sendWhatsApp(idx) {
   const item = influencers[idx];
-  if(!item.phone) return;
+  if(!item.phone || item.waSent) return;
   const name = item.name || item.ig || 'مؤثر';
   const phone = item.phone.replace(/\D/g,'');
   const fullPhone = phone.startsWith('965') ? phone : '965' + phone;
@@ -1351,7 +1397,27 @@ https://v0-modern-contact-form-2g.vercel.app/
 إرسال هذه الرسالة لا تعني الموافقة النهائية.
 شكراً ونتشرف بوجودكم`;
   window.open(`https://wa.me/${fullPhone}?text=${encodeURIComponent(msg)}`, '_blank');
+  // Auto-check the sent checkbox
+  item.waSent = true;
+  saveFile();
+  const ck = document.getElementById('waCk_' + idx);
+  const btn = document.getElementById('waBtn_' + idx);
+  if(ck) ck.checked = true;
+  if(btn) { btn.style.borderColor='#484f58'; btn.style.color='#484f58'; btn.style.opacity='.5'; }
 }
+function toggleWaSent(idx, cb) {
+  influencers[idx].waSent = cb.checked;
+  saveFile();
+  const btn = document.getElementById('waBtn_' + idx);
+  const lbl = cb.parentElement;
+  if(btn) {
+    btn.style.borderColor = cb.checked ? '#484f58' : '#25d366';
+    btn.style.color = cb.checked ? '#484f58' : '#25d366';
+    btn.style.opacity = cb.checked ? '.5' : '1';
+  }
+  if(lbl) lbl.style.color = cb.checked ? '#25d366' : '#6e7681';
+}
+window.toggleWaSent = toggleWaSent;
 window.sendWhatsApp = sendWhatsApp;
 
 // ── Form Import ───────────────────────────────────────────────────
@@ -1567,18 +1633,52 @@ document.addEventListener('click', function(e){
 function openDatePicker(idx,e){
   e.stopPropagation();dpTargetIdx=idx;
   const item=influencers[idx];
-  if(item.visitDate){const[y,m,d]=item.visitDate.split('-');dpYear=parseInt(y);dpMonth=parseInt(m)-1;}
-  else{const now=new Date();dpYear=now.getFullYear();dpMonth=now.getMonth();}
+  if(item.visitDate){
+    const parts=item.visitDate.split('T');
+    const[y,m,d]=parts[0].split('-');
+    dpYear=parseInt(y);dpMonth=parseInt(m)-1;
+    if(parts[1]){
+      const[hh,mm]=parts[1].replace('AM','').replace('PM','').trim().split(':');
+      const ampm=parts[1].includes('PM')?'PM':'AM';
+      document.getElementById('dpHour').value=String(parseInt(hh)||9).padStart(2,'0');
+      document.getElementById('dpMinute').value=mm||'00';
+      document.getElementById('dpAmPm').value=ampm;
+    } else {
+      document.getElementById('dpHour').value='09';
+      document.getElementById('dpMinute').value='00';
+      document.getElementById('dpAmPm').value='AM';
+    }
+  } else {
+    const now=new Date();dpYear=now.getFullYear();dpMonth=now.getMonth();
+    document.getElementById('dpHour').value='09';
+    document.getElementById('dpMinute').value='00';
+    document.getElementById('dpAmPm').value='AM';
+  }
   const popup=document.getElementById('datePickerPopup');
   const rect=e.target.getBoundingClientRect();
   let top=rect.bottom+8,left=rect.left;
   if(left+290>window.innerWidth)left=window.innerWidth-300;
-  if(top+340>window.innerHeight)top=rect.top-345;
+  if(top+420>window.innerHeight)top=rect.top-425;
   popup.style.top=top+'px';popup.style.left=left+'px';
   popup.classList.add('open');renderDpSelects();renderDpDays();
+  // Enable time only if date already set, otherwise disable
+  if(item.visitDate) enableTimeSelects(); else disableTimeSelects();
 }
-function closeDatePicker(){document.getElementById('datePickerPopup').classList.remove('open');dpTargetIdx=null;}
-function clearVisitDate(){if(dpTargetIdx!==null){influencers[dpTargetIdx].visitDate='';closeDatePicker();renderGrid();saveFile();}}
+function closeDatePicker(){
+  if(dpTargetIdx!==null && influencers[dpTargetIdx].visitDate){
+    const dateOnly=influencers[dpTargetIdx].visitDate.split('T')[0];
+    const hh=document.getElementById('dpHour').value||'09';
+    const mm=document.getElementById('dpMinute').value||'00';
+    const ap=document.getElementById('dpAmPm').value||'AM';
+    influencers[dpTargetIdx].visitDate=dateOnly+'T'+hh+':'+mm+ap;
+    renderGrid();saveFile();
+  }
+  document.getElementById('datePickerPopup').classList.remove('open');
+  dpTargetIdx=null;
+}
+function clearVisitDate(){
+  if(dpTargetIdx!==null){influencers[dpTargetIdx].visitDate='';document.getElementById('datePickerPopup').classList.remove('open');dpTargetIdx=null;renderGrid();saveFile();}
+}
 function dpNavigate(dir){dpMonth+=dir;if(dpMonth>11){dpMonth=0;dpYear++;}if(dpMonth<0){dpMonth=11;dpYear--;}renderDpSelects();renderDpDays();}
 function renderDpSelects(){
   const mSel=document.getElementById('dpMonthSelect'),ySel=document.getElementById('dpYearSelect');
@@ -1591,7 +1691,8 @@ function renderDpDays(){
   document.getElementById('dpMonthYear').textContent=MONTHS_AR[dpMonth]+' '+dpYear;
   const firstDay=new Date(dpYear,dpMonth,1).getDay();
   const daysInMonth=new Date(dpYear,dpMonth+1,0).getDate();
-  const today=new Date();const selectedDate=dpTargetIdx!==null?influencers[dpTargetIdx].visitDate:'';
+  const today=new Date();
+  const selectedDate=dpTargetIdx!==null?(influencers[dpTargetIdx].visitDate||'').split('T')[0]:'';
   let html='';
   for(let i=0;i<firstDay;i++)html+=`<button class="dp-day empty"></button>`;
   for(let d=1;d<=daysInMonth;d++){
@@ -1602,10 +1703,27 @@ function renderDpDays(){
   }
   document.getElementById('dpDays').innerHTML=html;
 }
+function disableTimeSelects() {
+  ['dpHour','dpMinute','dpAmPm'].forEach(id=>{
+    const el=document.getElementById(id);
+    if(el){el.disabled=true;el.style.color='#484f58';el.style.borderColor='#30363d';el.style.cursor='not-allowed';el.style.opacity='.5';}
+  });
+}
+function enableTimeSelects() {
+  ['dpHour','dpMinute','dpAmPm'].forEach(id=>{
+    const el=document.getElementById(id);
+    if(el){el.disabled=false;el.style.color='#e6edf3';el.style.borderColor='#1a6fa8';el.style.cursor='pointer';el.style.opacity='1';}
+  });
+}
 function selectDay(d){
   if(dpTargetIdx===null)return;
   const iso=`${dpYear}-${String(dpMonth+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
-  influencers[dpTargetIdx].visitDate=iso;renderDpDays();closeDatePicker();renderGrid();saveFile();
+  const hh=document.getElementById('dpHour').value||'09';
+  const mm=document.getElementById('dpMinute').value||'00';
+  const ap=document.getElementById('dpAmPm').value||'AM';
+  influencers[dpTargetIdx].visitDate=iso+'T'+hh+':'+mm+ap;
+  enableTimeSelects();
+  renderDpDays();
 }
 
 function openApptPanel(){
@@ -1919,6 +2037,32 @@ const MIGRATIONS = {
       { name:'بلوقر ومودل هاجر', phone:'65601757', ig:'@ilx__1b', ig_url:'https://www.instagram.com/ilx__1b', tt:'@ilx__1b', tt_url:'https://www.tiktok.com/@ilx__1b', snap:'https://snapchat.com/t/Tx5ZnU7i', status:'pending', gender:'f' },
       { name:'بلوقر روز', phone:'', ig:'@roz.blogr', ig_url:'https://www.instagram.com/roz.blogr', tt:'@blog.roz', tt_url:'https://www.tiktok.com/@blog.roz', snap:'https://www.snapchat.com/add/blog.roz', status:'pending', gender:'f' },
     ].forEach(item => { if(findByIg(item.ig) === -1) influencers.push(item); });
+  },
+
+  // v3: sync from Firebase 03/05/2026
+  'v3': function() {
+    function findByIg(handle) {
+      const h = (handle||'').replace('@','').toLowerCase().trim();
+      return influencers.findIndex(i => normalizeIg(i.ig) === h);
+    }
+    // New influencers from Firebase not in local code
+    [
+      { name:'كلير عادل تادرس', phone:'60609780', civil:'285022305317', nationality:'مصري', gender:'f', ig:'@clair.tadrous', ig_url:'https://www.instagram.com/clair.tadrous', tt:'@clairtadrous2', tt_url:'https://www.tiktok.com/@clairtadrous2', snap:'https://www.snapchat.com/add/clair.koky', status:'approved', visitDate:'2026-05-04', dialects:['مصري','شامي'] },
+      { name:'ريم المصري', phone:'60451168', civil:'', nationality:'مصري', gender:'f', ig:'@reemalmasryofficial', ig_url:'https://www.instagram.com/reemalmasryofficial', tt:'', tt_url:'', snap:'', status:'approved', dialects:['مصري','كويتي'] },
+      { name:'ام عزيزان', phone:'', civil:'', nationality:'', gender:'f', ig:'@tt.ii36', ig_url:'https://www.instagram.com/tt.ii36', tt:'@omazez6', tt_url:'https://www.tiktok.com/@omazez6', snap:'', status:'rejected' },
+      { name:'فاي الطفيلان', phone:'99104651', civil:'', nationality:'', gender:'f', ig:'@ajmii.330', ig_url:'https://www.instagram.com/ajmii.330', tt:'', tt_url:'', snap:'https://snapchat.com/t/LaqtmDQD', status:'rejected' },
+      { name:'ايمان محمد حريز', phone:'51777608', civil:'292022100886', nationality:'غير محدد الجنسية', gender:'f', ig:'@just_blogy', ig_url:'https://www.instagram.com/just_blogy', tt:'@just_blogy', tt_url:'https://www.tiktok.com/@just_blogy', snap:'https://snapchat.com/t/S4xlNIcZ', status:'approved' },
+      { name:'نورة عبدالله سعود', phone:'66993534', civil:'280051100465', nationality:'كويتي', gender:'f', ig:'@No0ur.11', ig_url:'https://www.instagram.com/No0ur.11', tt:'@No0ur.11', tt_url:'https://www.tiktok.com/@No0ur.11', snap:'', status:'approved', visitDate:'2026-05-02', services:['بوتوكس'], dialects:['كويتي'], visitStatus:'done' },
+      { name:'Saja', phone:'41022378', civil:'289030500225', nationality:'', gender:'f', ig:'@its.mee.saya', ig_url:'https://www.instagram.com/its.mee.saya', tt:'@its.mee.saya', tt_url:'https://www.tiktok.com/@its.mee.saya', snap:'https://www.snapchat.com/add/saya-kw', status:'approved', visitDate:'2026-05-03', dialects:['كويتي'] },
+      { name:'وفاء نزار الخطيب', phone:'65060474', civil:'290082600867', nationality:'كويتي', gender:'f', ig:'@nonah_blogger', ig_url:'https://www.instagram.com/nonah_blogger', tt:'@nonah_blogger', tt_url:'https://www.tiktok.com/@nonah_blogger', snap:'https://snapchat.com/t/lax8MXLY', status:'approved', dialects:['كويتي'] },
+      { name:'حوراء', phone:'55855832', civil:'287090500068', nationality:'كويتي', gender:'f', ig:'@modacode.kw', ig_url:'https://www.instagram.com/modacode.kw', tt:'@modacode.kw', tt_url:'https://www.tiktok.com/@modacode.kw', snap:'', status:'approved', services:['فيلر'], visitStatus:'done', visitDate:'2026-04-30', dialects:['كويتي'], visitRating:1 },
+    ].forEach(item => { if(findByIg(item.ig) === -1) influencers.push(item); });
+
+    // Update existing with missing data
+    const iMonay = findByIg('monayasine'); if(iMonay!==-1 && !influencers[iMonay].nationality) influencers[iMonay].nationality='';
+    const iSiham = findByIg('siham_7ala'); if(iSiham!==-1){ if(!influencers[iSiham].civil) influencers[iSiham].civil='272051800912'; if(!influencers[iSiham].nationality) influencers[iSiham].nationality='لبناني'; }
+    const iTota = findByIg('tota_artist2'); if(iTota!==-1){ if(!influencers[iTota].civil) influencers[iTota].civil='281061400845'; if(!influencers[iTota].nationality) influencers[iTota].nationality='كويتي'; }
+    const iMnar = findByIg('t2rif'); if(iMnar!==-1){ if(!influencers[iMnar].civil) influencers[iMnar].civil='298050903683'; if(!influencers[iMnar].nationality) influencers[iMnar].nationality='كويتي'; }
   },
 };
 
