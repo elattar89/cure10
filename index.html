@@ -263,11 +263,11 @@ body{font-family:'Tajawal',sans-serif;direction:rtl;background:#0d1117;color:#e6
   <h1>المؤثرين — مركز كيور الطبي</h1>
   <p>قاعدة بيانات المؤثرين للحملة الإعلانية</p>
   <div class="stats-bar">
-    <div class="stat"><div class="stat-num" id="statTotal">0</div><div class="stat-label">إجمالي</div></div>
-    <div class="stat approved"><div class="stat-num" id="statApproved">0</div><div class="stat-label">✅ مقبولين</div></div>
-    <div class="stat rejected"><div class="stat-num" id="statRejected">0</div><div class="stat-label">❌ مرفوضين</div></div>
-    <div class="stat"><div class="stat-num" id="statPending">0</div><div class="stat-label">⏳ قيد المراجعة</div></div>
-    <div class="stat" style="cursor:pointer;" onclick="setFilter('visited',document.getElementById('fb-visited'))"><div class="stat-num" id="statVisited" style="color:#34d399;">0</div><div class="stat-label">🏁 اكتملت</div></div>
+    <div class="stat" style="cursor:pointer;" onclick="setFilterFromStat('all')"><div class="stat-num" id="statTotal">0</div><div class="stat-label">إجمالي</div></div>
+    <div class="stat approved" style="cursor:pointer;" onclick="setFilterFromStat('approved')"><div class="stat-num" id="statApproved">0</div><div class="stat-label">✅ مقبولين</div></div>
+    <div class="stat rejected" style="cursor:pointer;" onclick="setFilterFromStat('rejected')"><div class="stat-num" id="statRejected">0</div><div class="stat-label">❌ مرفوضين</div></div>
+    <div class="stat" style="cursor:pointer;" onclick="setFilterFromStat('pending')"><div class="stat-num" id="statPending">0</div><div class="stat-label">⏳ قيد المراجعة</div></div>
+    <div class="stat" style="cursor:pointer;" onclick="setFilterFromStat('visited')"><div class="stat-num" id="statVisited" style="color:#34d399;">0</div><div class="stat-label">🏁 تمت الزيارة</div></div>
     <div class="stat" style="cursor:pointer;border:1px solid rgba(220,38,38,0.4);" onclick="setFilter('deleted',document.getElementById('fb-deleted'))"><div class="stat-num" id="statDeleted" style="color:#f87171;">0</div><div class="stat-label">🗑 محذوفين</div></div>
   </div>
   <div class="stats-bar" style="margin-top:.6rem;">
@@ -858,9 +858,11 @@ function setFilter(f, btn) {
 function setFilterFromStat(f) {
   currentFilter=f;
   document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));
-  const map={ig:'fb-ig',tt:'fb-tt',snap:'fb-snap',all3:'fb-all3',male:'fb-male',female:'fb-female'};
+  const map={ig:'fb-ig',tt:'fb-tt',snap:'fb-snap',all3:'fb-all3',male:'fb-male',female:'fb-female',approved:'fb-approved',rejected:'fb-rejected'};
   const el=document.getElementById(map[f]); if(el) el.classList.add('active');
-  updateReportBtn(f); window.scrollTo({top:200,behavior:'smooth'}); renderGrid();
+  updateReportBtn(f);
+  renderGrid();
+  setTimeout(()=>{ document.getElementById('grid').scrollIntoView({behavior:'smooth',block:'start'}); },100);
 }
 
 // ── Nationality groups ────────────────────────────────────────────
