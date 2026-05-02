@@ -350,7 +350,18 @@ body{font-family:'Tajawal',sans-serif;direction:rtl;background:#0d1117;color:#e6
   <div>مركز كيور الطبي © 2026 — جميع الحقوق محفوظة</div>
 </div>
 
-<!-- Form Import Modal -->
+<!-- Notes Modal -->
+<div class="modal-overlay hidden" id="notesOverlay">
+  <div class="modal" style="max-width:460px;">
+    <h3>📝 ملاحظات</h3>
+    <div id="notesName" style="font-size:13px;color:#8b949e;margin-bottom:.8rem;"></div>
+    <textarea id="notesText" style="width:100%;height:200px;background:#0d1117;border:1px solid #ca8a04;border-radius:10px;color:#e6edf3;font-size:14px;padding:.8rem;font-family:Tajawal,sans-serif;resize:vertical;direction:rtl;line-height:1.7;" placeholder="اكتب ملاحظاتك هنا..."></textarea>
+    <div class="modal-actions">
+      <button class="modal-cancel" onclick="closeNotes()">إلغاء</button>
+      <button class="modal-save" style="background:#ca8a04;" onclick="saveNotes()">💾 حفظ الملاحظات</button>
+    </div>
+  </div>
+</div>
 <div class="modal-overlay hidden" id="formImportOverlay">
   <div class="modal" style="max-width:480px;">
     <h3>📋 إضافة من فورم</h3>
@@ -1040,20 +1051,23 @@ function renderGrid() {
             <div class="card-name">${name}</div>
             ${item.visitStatus==='done'?`<div style="display:flex;gap:1px;">${[1,2,3,4,5].map(s=>`<span onclick="setVisitRating(${idx},${s})" style="cursor:pointer;font-size:16px;line-height:1;color:${(item.visitRating||0)>=s?'#f59e0b':'#30363d'};transition:.15s;">★</span>`).join('')}</div>`:''}
           </div>
-          ${item.phone?`<div class="card-phone" onclick="showPhonePopup('${item.phone}','${(item.name||item.ig||'').replace(/'/g,"\\'")}',event)" style="cursor:pointer;" title="اضغط للتواصل">📞 ${item.phone}</div>`:''}
+          ${item.phone?`<div class="card-phone" onclick="showPhonePopup('${item.phone}','${(item.name||item.ig||'').replace(/'/g,"\\'")}',event)" style="cursor:pointer;color:#e6edf3;font-weight:600;" title="اضغط للتواصل">📞 ${item.phone}</div>`:''}
           ${item.civil?`<div class="civil-badge">🪪 ${item.civil}</div>`:''}
           ${item.nationality?`<div class="nationality-badge">🌍 ${item.nationality}</div>`:''}
           ${item.gender?`<span class="gender-badge ${item.gender}">${item.gender==='m'?'👨 ذكر':'👩 أنثى'}</span>`:''}
         </div>
-        <span class="status-badge ${item.status||'pending'}">${item.status==='approved'?'✅ مقبول':item.status==='rejected'?'❌ مرفوض':'⏳ قيد المراجعة'}</span>
+        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex-shrink:0;">
+          <span class="status-badge ${item.status||'pending'}">${item.status==='approved'?'✅ مقبول':item.status==='rejected'?'❌ مرفوض':'⏳ قيد المراجعة'}</span>
+          <span onclick="openEditModal(${idx})" style="font-size:11px;color:#e6edf3;cursor:pointer;white-space:nowrap;padding:3px 8px;border-radius:6px;border:1px solid #30363d;background:#21262d;">✏️ تعديل</span>
+        </div>
       </div>
       ${socials?`<div class="social-links">${socials}</div>`:''}
       <div class="card-actions">
         ${item.status!=='approved'?`<button class="action-btn approve" onclick="setStatus(${idx},'approved')">✅ قبول</button>`:''}
         ${item.status!=='rejected'?`<button class="action-btn reject" onclick="setStatus(${idx},'rejected')">❌ رفض</button>`:''}
         ${item.status!=='pending'?`<button class="action-btn reset-btn" onclick="setStatus(${idx},'pending')">↺ إعادة</button>`:''}
-        <button class="action-btn" onclick="openEditModal(${idx})">✏️ تعديل</button>
-        <button class="action-btn" onclick="deleteInfluencer(${idx})" style="border-color:#dc2626;color:#f87171;">🗑</button>
+        <button class="action-btn" onclick="deleteInfluencer(${idx})" style="border-color:#dc2626;color:#f87171;">✕ حذف</button>
+        ${item.status==='approved'?`<button class="action-btn" onclick="openNotes(${idx})" style="border-color:${item.notes?'#ca8a04':'#484f58'};color:${item.notes?'#fbbf24':'#8b949e'};${item.notes?'background:#2d1f0a;':''}">📝 ${item.notes?'ملاحظات ●':'ملاحظات'}</button>`:''}
         ${item.status==='approved'&&item.phone?`<div style="display:flex;align-items:center;gap:5px;flex-wrap:wrap;">
           <button class="action-btn" id="waBtn_${idx}" onclick="sendWhatsApp(${idx})" style="border-color:${item.waSent?'#484f58':'#25d366'};color:${item.waSent?'#484f58':'#25d366'};font-size:12px;${item.waSent?'opacity:.5;':''}">📲 إرسال الموافقة</button>
           <label style="display:flex;align-items:center;gap:4px;cursor:pointer;font-size:11px;color:${item.waSent?'#25d366':'#6e7681'};">
@@ -1072,6 +1086,29 @@ function renderGrid() {
 }
 
 function setStatus(idx,status){ influencers[idx].status=status; renderGrid(); saveFile(); }
+
+// ── Notes ─────────────────────────────────────────────────────────
+let _notesIdx = null;
+function openNotes(idx) {
+  _notesIdx = idx;
+  const item = influencers[idx];
+  document.getElementById('notesName').textContent = getDisplayName(item, idx);
+  document.getElementById('notesText').value = item.notes || '';
+  document.getElementById('notesOverlay').classList.remove('hidden');
+  setTimeout(()=>document.getElementById('notesText').focus(), 100);
+}
+function closeNotes() {
+  document.getElementById('notesOverlay').classList.add('hidden');
+  _notesIdx = null;
+}
+function saveNotes() {
+  if(_notesIdx === null) return;
+  influencers[_notesIdx].notes = document.getElementById('notesText').value.trim();
+  saveFile(); renderGrid();
+  closeNotes();
+  showToast('✅ تم حفظ الملاحظات', '#ca8a04');
+}
+window.openNotes=openNotes; window.closeNotes=closeNotes; window.saveNotes=saveNotes;
 function setVisitRating(idx, rating) {
   influencers[idx].visitRating = rating;
   saveFile(); renderGrid();
