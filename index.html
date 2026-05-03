@@ -362,8 +362,8 @@ body{font-family:'Tajawal',sans-serif;direction:rtl;background:#0d1117;color:#e6
   </div>
   <!-- Guest Buttons inside header -->
   <div id="guestBtns" style="display:none;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:1rem;">
-    <button onclick="openStatusReport('approved')" style="padding:12px 24px;border-radius:10px;border:1px solid #16a34a;background:#0d1f14;color:#4ade80;font-size:15px;font-weight:700;cursor:pointer;font-family:Tajawal,sans-serif;">📋 كشف المقبولين</button>
-    <button onclick="openGuestAppts()" style="padding:12px 24px;border-radius:10px;border:1px solid #0891b2;background:#0e2433;color:#22d3ee;font-size:15px;font-weight:700;cursor:pointer;font-family:Tajawal,sans-serif;">📅 مواعيد الزيارات</button>
+    <button onclick="guestOpenReport()" style="padding:12px 24px;border-radius:10px;border:1px solid #16a34a;background:#0d1f14;color:#4ade80;font-size:15px;font-weight:700;cursor:pointer;font-family:Tajawal,sans-serif;">📋 كشف المقبولين</button>
+    <button onclick="guestOpenAppts()" style="padding:12px 24px;border-radius:10px;border:1px solid #0891b2;background:#0e2433;color:#22d3ee;font-size:15px;font-weight:700;cursor:pointer;font-family:Tajawal,sans-serif;">📅 مواعيد الزيارات</button>
     <button onclick="guestRefresh()" style="padding:12px 24px;border-radius:10px;border:1px solid #484f58;background:#21262d;color:#8b949e;font-size:13px;font-weight:700;cursor:pointer;font-family:Tajawal,sans-serif;">🔄 تحديث</button>
   </div>
 </div>
@@ -2990,23 +2990,51 @@ function openGuestReport() {
   const div = document.createElement('div'); div.id = 'reportContainer'; div.innerHTML = html;
   document.body.appendChild(div);
 }
-async function guestRefresh() {
+function guestOpenReport() {
+  if(influencers.length === 0) {
+    showToast('⏳ جاري تحميل البيانات...', '#1a6fa8');
+    tryLoadFirebase().then(function() {
+      runMigrations();
+      influencers.forEach(function(item){ if(item.phone) item.phone = normalizePhone(item.phone); });
+      updateStats();
+      openStatusReport('approved');
+    }).catch(function(){ openStatusReport('approved'); });
+  } else {
+    openStatusReport('approved');
+  }
+}
+function guestOpenAppts() {
+  if(influencers.length === 0) {
+    showToast('⏳ جاري تحميل البيانات...', '#1a6fa8');
+    tryLoadFirebase().then(function() {
+      runMigrations();
+      influencers.forEach(function(item){ if(item.phone) item.phone = normalizePhone(item.phone); });
+      updateStats();
+      openGuestAppts();
+    }).catch(function(){ openGuestAppts(); });
+  } else {
+    openGuestAppts();
+  }
+}
+window.guestOpenReport = guestOpenReport;
+window.guestOpenAppts = guestOpenAppts;
+function guestRefresh() {
   const btn = document.querySelector('#guestBtns button:last-child');
   if(btn) btn.textContent = '⏳ جاري التحديث...';
-  try {
-    const loaded = await tryLoadFirebase();
+  tryLoadFirebase().then(function(loaded) {
     if(loaded) {
       runMigrations();
-      influencers.forEach(item => { if(item.phone) item.phone = normalizePhone(item.phone); });
+      influencers.forEach(function(item){ if(item.phone) item.phone = normalizePhone(item.phone); });
       updateStats();
       showToast('✅ تم تحديث البيانات', '#059669');
     } else {
       showToast('⚠️ تعذر التحديث — تحقق من الاتصال', '#d97706');
     }
-  } catch(e) {
+    if(btn) btn.textContent = '🔄 تحديث';
+  }).catch(function() {
     showToast('⚠️ تعذر التحديث', '#d97706');
-  }
-  if(btn) btn.textContent = '🔄 تحديث';
+    if(btn) btn.textContent = '🔄 تحديث';
+  });
 }
 window.guestRefresh = guestRefresh;
 function openGuestAppts() {
@@ -3077,6 +3105,7 @@ window.shareGuestReport = shareGuestReport;
 function renderGuestView() {
   const list = document.getElementById('guestApptList');
   if(!list) return;
+  list.innerHTML = ''; // clear first to prevent duplicates
   const today = new Date(); today.setHours(0,0,0,0);
   const withDates = influencers
     .filter(i => i.visitDate && i.status === 'approved')
@@ -3177,9 +3206,10 @@ async function init() {
     updateStats();
     await saveToStorage();
     // Poll Firebase every 30s for live updates
-    setInterval(async () => {
-      const loaded = await tryLoadFirebase();
-      if(loaded) { runMigrations(); influencers.forEach(item=>{if(item.phone)item.phone=normalizePhone(item.phone);}); updateStats(); }
+    setInterval(function() {
+      tryLoadFirebase().then(function(loaded) {
+        if(loaded) { runMigrations(); influencers.forEach(function(item){if(item.phone)item.phone=normalizePhone(item.phone);}); updateStats(); }
+      }).catch(function(){});
     }, 30000);
     return;
   }
@@ -3189,11 +3219,10 @@ async function init() {
   // Check missed visits after short delay
   setTimeout(checkMissedVisits, 800);
   // Poll Firebase every 30s to sync with other devices
-  setInterval(async () => {
-    try {
-      const loaded = await tryLoadFirebase();
+  setInterval(function() {
+    tryLoadFirebase().then(function(loaded) {
       if(loaded) { updateStats(); }
-    } catch(e) {}
+    }).catch(function(){});
   }, 30000);
   } catch(err) {
     console.error('Init error:', err);
