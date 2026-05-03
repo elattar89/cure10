@@ -2,12 +2,17 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#0d1117">
 <title>المؤثرين — مركز كيور الطبي</title>
 <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;900&display=swap" rel="stylesheet">
 <style>
-*{box-sizing:border-box;margin:0;padding:0;}
-body{font-family:'Tajawal',sans-serif;direction:rtl;background:#0d1117;color:#e6edf3;min-height:100vh;}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+body{font-family:'Tajawal',sans-serif;direction:rtl;background:#0d1117;color:#e6edf3;min-height:100vh;-webkit-text-size-adjust:100%;-ms-text-size-adjust:100%;overflow-x:hidden;}
 .header{background:linear-gradient(135deg,#0a3d62 0%,#1a6fa8 60%,#22a6d6 100%);padding:2rem 2rem 2.5rem;text-align:center;position:relative;overflow:hidden;}
 .header::before{content:'';position:absolute;top:-80px;left:-80px;width:300px;height:300px;border-radius:50%;background:rgba(255,255,255,0.04);}
 .header::after{content:'';position:absolute;bottom:-100px;right:-60px;width:350px;height:350px;border-radius:50%;background:rgba(255,255,255,0.03);}
@@ -184,14 +189,39 @@ body{font-family:'Tajawal',sans-serif;direction:rtl;background:#0d1117;color:#e6
 @media(max-width:600px){
   .grid{grid-template-columns:1fr;}
   .header h1{font-size:18px;}
-  .stats-bar{gap:.5rem;}
-  .stat{padding:.5rem .8rem;min-width:60px;}
-  .stat-num{font-size:18px;}
+  .header{padding:1.2rem 1rem 1.5rem;}
+  .stats-bar{gap:.4rem;}
+  .stat{padding:.4rem .6rem;min-width:55px;}
+  .stat-num{font-size:16px;}
+  .stat-label{font-size:9px;}
   .filter-btns{display:flex;flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch;padding-bottom:4px;}
   .filter-btns::-webkit-scrollbar{display:none;}
-  .filter-btn{white-space:nowrap;flex-shrink:0;}
-  .toolbar{flex-wrap:nowrap;overflow-x:auto;gap:6px;}
+  .filter-btn{white-space:nowrap;flex-shrink:0;font-size:11px;padding:6px 10px;}
+  .toolbar{flex-wrap:nowrap;overflow-x:auto;gap:6px;padding:.5rem;}
   .toolbar::-webkit-scrollbar{display:none;}
+  .card{padding:.8rem;}
+  .card-name{font-size:13px;}
+  .action-btn{font-size:11px;padding:5px 8px;}
+  .modal{padding:1rem;max-height:92vh;}
+  .modal input,.modal select{font-size:14px;}
+  .fab{width:44px;height:44px;font-size:20px;}
+  .report-modal{padding:.8rem;border-radius:10px;}
+  .report-actions{flex-wrap:wrap;gap:6px;}
+  .report-btn-print,.report-btn-share,.report-btn-close{font-size:12px;padding:7px 12px;}
+}
+@media(max-width:400px){
+  .stat{padding:.3rem .4rem;min-width:48px;}
+  .stat-num{font-size:14px;}
+  .header h1{font-size:16px;}
+}
+/* iOS Safari fix */
+@supports (-webkit-touch-callout: none) {
+  .modal{max-height:85vh;}
+  input,select,textarea{font-size:16px !important;}
+}
+/* Touch devices */
+@media (hover: none) and (pointer: coarse) {
+  .filter-btn,.action-btn,.modal-save,.modal-cancel{min-height:38px;}
 }
 .report-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.8);z-index:2000;padding:1rem;overflow:hidden;}
 .report-overlay.open{display:flex;align-items:flex-start;justify-content:center;}
