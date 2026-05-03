@@ -2749,6 +2749,11 @@ const MIGRATIONS = {
     const iTota = findByIg('tota_artist2'); if(iTota!==-1){ if(!influencers[iTota].civil) influencers[iTota].civil='281061400845'; if(!influencers[iTota].nationality) influencers[iTota].nationality='كويتي'; }
     const iMnar = findByIg('t2rif'); if(iMnar!==-1){ if(!influencers[iMnar].civil) influencers[iMnar].civil='298050903683'; if(!influencers[iMnar].nationality) influencers[iMnar].nationality='كويتي'; }
   },
+
+  // v4: cleanup duplicates caused by v3 running on top of Firebase data
+  'v4': function() {
+    removeDuplicates();
+  },
 };
 
 function runMigrations() {
@@ -3254,7 +3259,7 @@ async function init() {
     // Poll Firebase every 30s for live updates
     setInterval(function() {
       tryLoadFirebase().then(function(loaded) {
-        if(loaded) { runMigrations(); influencers.forEach(function(item){if(item.phone)item.phone=normalizePhone(item.phone);}); updateStats(); }
+        if(loaded) { removeDuplicates(); influencers.forEach(function(item){if(item.phone)item.phone=normalizePhone(item.phone);}); updateStats(); }
       }).catch(function(){});
     }, 30000);
     return;
@@ -3267,7 +3272,7 @@ async function init() {
   // Poll Firebase every 30s to sync with other devices
   setInterval(function() {
     tryLoadFirebase().then(function(loaded) {
-      if(loaded) { updateStats(); }
+      if(loaded) { removeDuplicates(); updateStats(); renderGrid(); }
     }).catch(function(){});
   }, 30000);
   } catch(err) {
