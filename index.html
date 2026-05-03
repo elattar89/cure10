@@ -397,7 +397,7 @@ body{font-family:'Tajawal',sans-serif;direction:rtl;background:#0d1117;color:#e6
 </div>
 
 <!-- Missed Visits Modal -->
-<div class="modal-overlay hidden" id="missedVisitsOverlay">
+<div class="modal-overlay hidden" id="missedVisitsOverlay" onclick="if(event.target===this)closeMissedVisits()">
   <div class="modal" style="max-width:500px;">
     <h3>📅 مواعيد تحتاج تأكيد</h3>
     <p style="font-size:13px;color:#8b949e;margin-bottom:1rem;">المواعيد التالية انتهت ولم يتم تحديد حالتها — هل تمت الزيارة؟</p>
@@ -409,7 +409,7 @@ body{font-family:'Tajawal',sans-serif;direction:rtl;background:#0d1117;color:#e6
 </div>
 
 <!-- Notes Modal -->
-<div class="modal-overlay hidden" id="notesOverlay">
+<div class="modal-overlay hidden" id="notesOverlay" onclick="if(event.target===this)closeNotes()">
   <div class="modal" style="max-width:460px;">
     <h3>📝 ملاحظات</h3>
     <div id="notesName" style="font-size:13px;color:#8b949e;margin-bottom:.8rem;"></div>
@@ -420,7 +420,7 @@ body{font-family:'Tajawal',sans-serif;direction:rtl;background:#0d1117;color:#e6
     </div>
   </div>
 </div>
-<div class="modal-overlay hidden" id="formImportOverlay">
+<div class="modal-overlay hidden" id="formImportOverlay" onclick="if(event.target===this)closeFormImport()">
   <div class="modal" style="max-width:480px;">
     <h3>📋 إضافة من فورم</h3>
     <p style="font-size:12px;color:#6e7681;margin-bottom:.8rem;">الصق محتوى الإيميل اللي وصلك من الفورم كاملاً</p>
@@ -464,7 +464,7 @@ body{font-family:'Tajawal',sans-serif;direction:rtl;background:#0d1117;color:#e6
 </div>
 
 <!-- Add Modal -->
-<div class="modal-overlay hidden" id="addModalOverlay">
+<div class="modal-overlay hidden" id="addModalOverlay" onclick="if(event.target===this)closeModal()">
   <div class="modal">
     <h3>
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1a6fa8" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
@@ -494,7 +494,7 @@ body{font-family:'Tajawal',sans-serif;direction:rtl;background:#0d1117;color:#e6
 </div>
 
 <!-- Edit Modal -->
-<div class="modal-overlay hidden" id="editModalOverlay">
+<div class="modal-overlay hidden" id="editModalOverlay" onclick="if(event.target===this)closeEditModal()">
   <div class="modal">
     <h3>
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1a6fa8" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
@@ -524,7 +524,7 @@ body{font-family:'Tajawal',sans-serif;direction:rtl;background:#0d1117;color:#e6
 </div>
 
 <!-- Bulk Modal -->
-<div class="modal-overlay hidden" id="bulkModalOverlay">
+<div class="modal-overlay hidden" id="bulkModalOverlay" onclick="if(event.target===this)closeBulkModal()">
   <div class="modal">
     <h3>⚡ إضافة جماعية للمؤثرين</h3>
     <div class="bulk-hint">الصق قائمة المؤثرين — كل مؤثر في سطر منفصل.<br>مقبول: رقم موبايل، @username انستاجرام، رابط انستاجرام، رابط تيك توك، رابط سناب، أو مزيج منها.</div>
@@ -537,7 +537,7 @@ body{font-family:'Tajawal',sans-serif;direction:rtl;background:#0d1117;color:#e6
 </div>
 
 <!-- Duplicate single modal - field by field comparison -->
-<div class="modal-overlay hidden" id="dupSingleOverlay">
+<div class="modal-overlay hidden" id="dupSingleOverlay" onclick="if(event.target===this)dupSingleSkip()">
   <div class="modal" style="max-width:500px;">
     <h3>⚠️ مؤثر موجود مسبقاً</h3>
     <div id="dupSingleBody"></div>
@@ -601,7 +601,7 @@ body{font-family:'Tajawal',sans-serif;direction:rtl;background:#0d1117;color:#e6
 </div>
 
 <!-- Appointments Panel -->
-<div class="appt-panel-overlay" id="apptPanelOverlay">
+<div class="appt-panel-overlay" id="apptPanelOverlay" onclick="if(event.target===this)closeApptPanel()">
   <div class="appt-panel">
     <div class="appt-panel-header">
       <h3>📅 مواعيد الزيارات</h3>
@@ -612,7 +612,7 @@ body{font-family:'Tajawal',sans-serif;direction:rtl;background:#0d1117;color:#e6
 </div>
 
 <!-- Delete Confirmation Modal (move to trash) -->
-<div class="modal-overlay hidden" id="deleteConfirmOverlay">
+<div class="modal-overlay hidden" id="deleteConfirmOverlay" onclick="if(event.target===this)cancelDelete()">
   <div class="modal" style="max-width:360px;text-align:center;">
     <div style="font-size:40px;margin-bottom:.5rem;">🗑</div>
     <h3 style="justify-content:center;margin-bottom:.5rem;font-size:16px;">تأكيد الحذف</h3>
@@ -626,7 +626,7 @@ body{font-family:'Tajawal',sans-serif;direction:rtl;background:#0d1117;color:#e6
 </div>
 
 <!-- Permanent Delete Confirmation Modal -->
-<div class="modal-overlay hidden" id="permDeleteOverlay">
+<div class="modal-overlay hidden" id="permDeleteOverlay" onclick="if(event.target===this)cancelPermDelete()">
   <div class="modal" style="max-width:360px;text-align:center;">
     <div style="font-size:40px;margin-bottom:.5rem;">⚠️</div>
     <h3 style="justify-content:center;margin-bottom:.5rem;font-size:16px;color:#f87171;">حذف نهائي</h3>
@@ -1064,19 +1064,20 @@ function renderGrid() {
   }
 
   // ── Normal view ───────────────────────────────────────────────
-  // Sort: done → cancelled → has date (by date) → approved no date → others
+  // Sort: pending → cancelled → approved → rejected
   const sorted = [...influencers].map((item,idx)=>({item,idx})).sort((a,b)=>{
     const order = i => {
-      if(i.status==='approved'&&i.visitStatus==='done') return 0;
+      if(!i.status||i.status==='pending') return 0;
       if(i.status==='approved'&&i.visitStatus==='cancelled') return 1;
-      if(i.status==='approved'&&i.visitDate) return 2;
+      if(i.status==='approved'&&i.visitStatus==='done') return 2;
       if(i.status==='approved') return 3;
-      return 4;
+      if(i.status==='rejected') return 4;
+      return 5;
     };
     const oa=order(a.item), ob=order(b.item);
     if(oa!==ob) return oa-ob;
-    // Sort by date within same group
-    if(oa===2&&a.item.visitDate&&b.item.visitDate) return a.item.visitDate.localeCompare(b.item.visitDate);
+    // Sort approved with date by date
+    if(oa===3&&a.item.visitDate&&b.item.visitDate) return a.item.visitDate.localeCompare(b.item.visitDate);
     return 0;
   });
   sorted.forEach(({item,idx})=>{
@@ -2170,12 +2171,14 @@ function openStatusReport(type) {
       const dateStr=item.visitDate?formatDateAr(item.visitDate):'—';
       const vs=item.visitStatus||'';
       const doneA=vs==='done'?'background:#15803d;color:#fff;':'background:#f0fdf4;color:#15803d;';
-      const cancA=vs==='cancelled'?'background:#dc2626;color:#fff;':'background:#fef2f2;color:#dc2626;';
+      const cancA=vs==='cancelled'?'background:#ca8a04;color:#fff;':'background:#fefce8;color:#ca8a04;';
       const svcLabel=(item.services&&item.services.length)?item.services.map(s=>`<span style="display:inline-block;background:#f3e8ff;color:#7c3aed;border:1px solid #c084fc;border-radius:5px;padding:2px 7px;font-size:11px;margin:1px;">${s}</span>`).join(' '):'—';
-      const rowBg=vs==='done'?'#f0fdf4':vs==='cancelled'?'#fef2f2':(i%2===1?'#f8fafc':'#fff');
-      return `<tr id="rrow_${realIdx}" style="background:${rowBg}">
+      const rowBg=vs==='done'?'#bbf7d0':vs==='cancelled'?'#fef08a':(i%2===1?'#f8fafc':'#fff');
+      const rowBorder=vs==='done'?'border-right:4px solid #16a34a;':vs==='cancelled'?'border-right:4px solid #ca8a04;':'';
+      const vsLabel=vs==='done'?'<br><span style="font-size:10px;color:#16a34a;font-weight:700;">✅ تمت الزيارة</span>':vs==='cancelled'?'<br><span style="font-size:10px;color:#ca8a04;font-weight:700;">⚠️ ألغيت الزيارة</span>':'';
+      return `<tr id="rrow_${realIdx}" style="background:${rowBg};${rowBorder}">
         <td style="text-align:center;font-weight:900;color:${thBg};width:30px;padding:8px 6px;">${i+1}</td>
-        <td style="font-weight:700;font-size:13px;min-width:100px;">${name}</td>
+        <td style="font-weight:700;font-size:13px;min-width:100px;">${name}${vsLabel}</td>
         <td style="min-width:50px;">${gLabel}</td>
         <td style="min-width:70px;">${natCell}</td>
         <td style="direction:ltr;min-width:90px;">${phoneCell}</td>
@@ -2185,7 +2188,7 @@ function openStatusReport(type) {
         <td style="min-width:80px;">${svcLabel}</td>
         <td style="min-width:100px;"><div style="display:flex;gap:4px;flex-direction:column;">
           <button onclick="setVisitStatus(${realIdx},'done')" style="padding:5px 8px;border-radius:6px;border:1px solid #15803d;font-size:11px;font-weight:700;cursor:pointer;font-family:Tajawal,sans-serif;white-space:nowrap;${doneA}">✅ تمت</button>
-          <button onclick="setVisitStatus(${realIdx},'cancelled')" style="padding:5px 8px;border-radius:6px;border:1px solid #dc2626;font-size:11px;font-weight:700;cursor:pointer;font-family:Tajawal,sans-serif;white-space:nowrap;${cancA}">❌ ألغيت</button>
+          <button onclick="setVisitStatus(${realIdx},'cancelled')" style="padding:5px 8px;border-radius:6px;border:1px solid #ca8a04;font-size:11px;font-weight:700;cursor:pointer;font-family:Tajawal,sans-serif;white-space:nowrap;${cancA}">⚠️ ألغيت</button>
         </div></td>
         <td style="min-width:150px;border-left:1px solid #e5e7eb;">
           <div style="height:45px;border-bottom:1.5px solid #374151;margin:10px 8px 0;position:relative;">
@@ -2205,7 +2208,7 @@ function openStatusReport(type) {
     }
   }).join('');
   const extraH=isApproved?`<th style="background:${thBg};min-width:90px;">موعد الزيارة</th><th style="background:${thBg};min-width:80px;">الخدمة</th><th style="background:${thBg};min-width:100px;">حالة الزيارة</th><th style="background:${thBg};min-width:150px;">توقيع المؤثر</th>`:'';
-  const html=`<div class="report-overlay open" id="reportOverlay">
+  const html=`<div class="report-overlay open" id="reportOverlay" onclick="if(event.target===this)closeReport()">
     <div class="report-modal" style="max-width:1100px;">
       <div class="report-actions">
         <button class="report-btn-close" onclick="closeReport()">✕ إغلاق</button>
@@ -2253,7 +2256,7 @@ function openGenderReport(gender) {
       <td>${stLabel}</td>
     </tr>`;
   }).join('');
-  const html=`<div class="report-overlay open" id="reportOverlay">
+  const html=`<div class="report-overlay open" id="reportOverlay" onclick="if(event.target===this)closeReport()">
     <div class="report-modal">
       <div class="report-actions">
         <button class="report-btn-close" onclick="closeReport()">✕ إغلاق</button>
@@ -2553,7 +2556,7 @@ function openGuestReport() {
       </td>
     </tr>`;
   }).join('');
-  const html = `<div class="report-overlay open" id="reportOverlay">
+  const html = `<div class="report-overlay open" id="reportOverlay" onclick="if(event.target===this)closeReport()">
     <div class="report-modal" style="max-width:1000px;">
       <div class="report-actions">
         <button class="report-btn-close" onclick="closeReport()">✕ إغلاق</button>
@@ -2588,7 +2591,7 @@ function openGuestAppts() {
   let overlay = document.getElementById('guestApptOverlay');
   if(!overlay) {
     document.body.insertAdjacentHTML('beforeend', `
-      <div id="guestApptOverlay" style="position:fixed;inset:0;z-index:3000;background:#0d1117;display:flex;align-items:flex-start;justify-content:center;padding:1rem;overflow-y:auto;">
+      <div id="guestApptOverlay" style="position:fixed;inset:0;z-index:3000;background:#0d1117;display:flex;align-items:flex-start;justify-content:center;padding:1rem;overflow-y:auto;" onclick="if(event.target===this)document.getElementById('guestApptOverlay').style.display='none'">
         <div style="width:100%;max-width:500px;margin:auto;">
           <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;padding-bottom:.8rem;border-bottom:1px solid #21262d;">
             <div style="font-size:18px;font-weight:900;color:#e6edf3;">📅 مواعيد الزيارات</div>
