@@ -3097,7 +3097,6 @@ async function init() {
     const fab = document.getElementById('fabBtn');
     if(fab) fab.style.display = 'none';
     document.querySelectorAll('.stat').forEach(s => { s.style.cursor='default'; s.setAttribute('onclick',''); });
-    updateStats();
     // Only add buttons once
     if(!document.getElementById('guestBtns')) {
       document.querySelector('.header').insertAdjacentHTML('beforeend', `
@@ -3107,6 +3106,7 @@ async function init() {
         </div>
       `);
     }
+    updateStats(); // update after data loaded
     await saveToStorage();
     return;
   }
