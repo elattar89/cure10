@@ -2782,17 +2782,67 @@ function checkAuth() {
   document.getElementById('loginScreen').style.display = 'none';
   return true;
 }
-// Clear any old auth cookies
+// Immediately show guest UI if user is guest (before data loads)
+(function() {
+  const auth = (function() {
+    const ss = sessionStorage.getItem('cure_auth');
+    if(ss) return ss;
+    try {
+      const raw = localStorage.getItem('cure_auth_v2');
+      if(raw) { const e = JSON.parse(raw); if(e && e.user && (Date.now()-e.ts) < 4*60*60*1000) return e.user; }
+    } catch(e) {}
+    return null;
+  })();
+  if(auth === 'guest') {
+    document.addEventListener('DOMContentLoaded', function() {
+      // Hide admin-only elements immediately
+      ['fabBtn'].forEach(id => { const el=document.getElementById(id); if(el) el.style.display='none'; });
+      ['.toolbar','.page-footer'].forEach(sel => { const el=document.querySelector(sel); if(el) el.style.display='none'; });
+      const grid = document.getElementById('grid'); if(grid) grid.style.display='none';
+      // Show guest header with buttons right away
+      const header = document.querySelector('.header');
+      if(header && !document.getElementById('guestBtns')) {
+        header.insertAdjacentHTML('beforeend', `
+          <div id="guestBtns" style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:1rem;">
+            <button onclick="openGuestReport()" style="padding:10px 20px;border-radius:10px;border:1px solid #16a34a;background:#0d1f14;color:#4ade80;font-size:14px;font-weight:700;cursor:pointer;font-family:Tajawal,sans-serif;">📋 كشف المقبولين</button>
+            <button onclick="openGuestAppts()" style="padding:10px 20px;border-radius:10px;border:1px solid #0891b2;background:#0e2433;color:#22d3ee;font-size:14px;font-weight:700;cursor:pointer;font-family:Tajawal,sans-serif;">📅 مواعيد الزيارات</button>
+          </div>
+        `);
+      }
+      // Make stats non-clickable
+      document.querySelectorAll('.stat').forEach(s => { s.style.cursor='default'; s.setAttribute('onclick',''); });
+    });
+  }
+})();
 document.cookie = 'cure_auth=;path=/;max-age=0;expires=Thu, 01 Jan 1970 00:00:00 GMT';
 
 function setAuth(user) {
-  sessionStorage.setItem('cure_auth', user);
+  // Use localStorage with timestamp (expires when browser closes via check)
+  const entry = { user, ts: Date.now() };
+  localStorage.setItem('cure_auth_v2', JSON.stringify(entry));
+  sessionStorage.setItem('cure_auth', user); // backup
 }
 function getAuth() {
-  return sessionStorage.getItem('cure_auth');
+  // Try sessionStorage first
+  const ss = sessionStorage.getItem('cure_auth');
+  if(ss) return ss;
+  // Try localStorage with expiry (4 hours)
+  try {
+    const raw = localStorage.getItem('cure_auth_v2');
+    if(raw) {
+      const entry = JSON.parse(raw);
+      if(entry && entry.user && (Date.now() - entry.ts) < 4 * 60 * 60 * 1000) {
+        sessionStorage.setItem('cure_auth', entry.user); // restore to session
+        return entry.user;
+      }
+      localStorage.removeItem('cure_auth_v2'); // expired
+    }
+  } catch(e) {}
+  return null;
 }
 function clearAuth() {
   sessionStorage.removeItem('cure_auth');
+  localStorage.removeItem('cure_auth_v2');
 }
 function isGuest() {
   return getAuth() === 'guest';
