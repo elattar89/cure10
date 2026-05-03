@@ -2890,10 +2890,21 @@ function checkAuth() {
 document.cookie = 'cure_auth=;path=/;max-age=0;expires=Thu, 01 Jan 1970 00:00:00 GMT';
 localStorage.removeItem('cure_auth_v2');
 
-// Auto guest login from URL parameter - MUST be before anything else
+// Clear auth on back/forward navigation on ALL devices
+window.addEventListener('pageshow', function(e) {
+  if(e.persisted) {
+    sessionStorage.removeItem('cure_auth');
+    window.location.reload();
+  }
+});
+
+// Also handle popstate (back button) on all browsers
+window.addEventListener('popstate', function() {
+  sessionStorage.removeItem('cure_auth');
+  window.location.reload();
+});
 if(new URLSearchParams(window.location.search).get('guest') === '1') {
-  sessionStorage.setItem('cure_auth', 'guest');
-  // Immediately hide admin elements via CSS
+  // Only apply CSS - don't auto-login, user must press Guest Login button
   const style = document.createElement('style');
   style.textContent = `
     .fab, .page-footer, .toolbar, #grid { display: none !important; }
@@ -2907,8 +2918,6 @@ function setAuth(user) {
   if(user !== 'guest') localStorage.setItem('cure_admin_auth', user);
 }
 function getAuth() {
-  // Guest URL always = guest
-  if(window.location.search.indexOf('guest=1') !== -1) return 'guest';
   return sessionStorage.getItem('cure_auth');
 }
 function clearAuth() { sessionStorage.removeItem('cure_auth'); }
