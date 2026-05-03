@@ -2062,8 +2062,12 @@ document.addEventListener('input', function(e) {
 
 function manualSave(){
   const btn=document.getElementById('manualSaveBtn');
-  saveFile();btn.classList.add('saving');btn.textContent='✅ تم الحفظ!';
-  setTimeout(()=>{btn.textContent='💾 حفظ يدوي';btn.classList.remove('saving');},2000);
+  const removed = removeDuplicates();
+  saveFile();
+  btn.classList.add('saving');
+  btn.textContent = removed > 0 ? `✅ حُذف ${removed} تكرار!` : '✅ تم الحفظ!';
+  if(removed > 0) { renderGrid(); showToast(`🧹 تم حذف ${removed} تكرار`, '#ca8a04'); }
+  setTimeout(()=>{btn.textContent='💾 حفظ يدوي';btn.classList.remove('saving');},2500);
 }
 window.openFormImport=openFormImport; window.closeFormImport=closeFormImport;
 window.parseFormImport=parseFormImport; window.confirmFormImport=confirmFormImport;
@@ -2280,9 +2284,17 @@ function openApptPanel(){
   const list=document.getElementById('apptList');
   list.innerHTML = ''; // clear first to prevent duplicates
   const withDates=influencers.filter(i=>i.visitDate).sort((a,b)=>a.visitDate.localeCompare(b.visitDate));
-  if(!withDates.length){list.innerHTML='<div class="appt-empty">لا توجد مواعيد مسجلة</div>';document.getElementById('apptPanelOverlay').classList.add('open');return;}
+  // Remove duplicates by real index in influencers array
+  const seenIdx = new Set();
+  const uniqueDates = withDates.filter(item => {
+    const idx = influencers.indexOf(item);
+    if(seenIdx.has(idx)) return false;
+    seenIdx.add(idx);
+    return true;
+  });
+  if(!uniqueDates.length){list.innerHTML='<div class="appt-empty">لا توجد مواعيد مسجلة</div>';document.getElementById('apptPanelOverlay').classList.add('open');return;}
   const today=new Date(); today.setHours(0,0,0,0);
-  list.innerHTML=withDates.map((item)=>{
+  list.innerHTML=uniqueDates.map((item)=>{
     const idx=influencers.indexOf(item);const name=getDisplayName(item,idx);
     const dateOnly=item.visitDate.split('T')[0];
     const[y,m,d]=dateOnly.split('-');const color=getColor(idx);
