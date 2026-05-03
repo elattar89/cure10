@@ -780,7 +780,7 @@ async function saveToStorage() {
   showSaveIndicator();
 }
 async function loadFromStorage() {
-  // 1. Load from localStorage first (instant, works everywhere)
+  // Try localStorage first (instant)
   let localLoaded = false;
   try {
     const ls = localStorage.getItem(LS_KEY);
@@ -798,41 +798,54 @@ async function loadFromStorage() {
     }
   } catch(e) {}
 
-  // 2. Always try Firebase to get latest data (with short timeout)
-  try {
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 6000);
-    const res = await fetch(`${DB_URL}/${DB_PATH}.json`, { signal: controller.signal, mode: 'cors' });
-    clearTimeout(timeoutId);
-    if (res.ok) {
-      const val = await res.json();
-      if (val && val.data) {
-        const parsed = JSON.parse(val.data);
-        if (Array.isArray(parsed) && parsed.length > 0) {
-          influencers = parsed;
-          try { localStorage.setItem(LS_KEY, JSON.stringify(influencers)); } catch(e) {}
-          localLoaded = true;
+  // Try Firebase with multiple methods
+  const loaded = await tryLoadFirebase();
+  return loaded || localLoaded;
+}
+
+async function tryLoadFirebase() {
+  // Method 1: fetch with no-cors workaround
+  const urls = [
+    `${DB_URL}/${DB_PATH}.json`,
+    `${DB_URL}/${DB_PATH}.json?print=pretty`,
+  ];
+  for(const url of urls) {
+    try {
+      const res = await Promise.race([
+        fetch(url, { method: 'GET', headers: { 'Accept': 'application/json' }, mode: 'cors' }),
+        new Promise((_,rej) => setTimeout(() => rej(new Error('timeout')), 7000))
+      ]);
+      if(res && res.ok) {
+        const val = await res.json();
+        if(val && val.data) {
+          const parsed = JSON.parse(val.data);
+          if(Array.isArray(parsed) && parsed.length > 0) {
+            influencers = parsed;
+            try { localStorage.setItem(LS_KEY, JSON.stringify(influencers)); } catch(e) {}
+            // Also load deleted
+            try {
+              const res2 = await Promise.race([
+                fetch(`${DB_URL}/${DB_DELETED_PATH}.json`, { mode: 'cors' }),
+                new Promise((_,rej) => setTimeout(() => rej(), 5000))
+              ]);
+              if(res2 && res2.ok) {
+                const val2 = await res2.json();
+                if(val2 && val2.data) {
+                  const p2 = JSON.parse(val2.data);
+                  if(Array.isArray(p2)) {
+                    deletedInfluencers = p2;
+                    try { localStorage.setItem(LS_DELETED_KEY, JSON.stringify(p2)); } catch(e) {}
+                  }
+                }
+              }
+            } catch(e2) {}
+            return true;
+          }
         }
       }
-    }
-    const controller2 = new AbortController();
-    const timeoutId2 = setTimeout(() => controller2.abort(), 6000);
-    const res2 = await fetch(`${DB_URL}/${DB_DELETED_PATH}.json`, { signal: controller2.signal, mode: 'cors' });
-    clearTimeout(timeoutId2);
-    if (res2.ok) {
-      const val2 = await res2.json();
-      if (val2 && val2.data) {
-        const parsed2 = JSON.parse(val2.data);
-        if (Array.isArray(parsed2)) {
-          deletedInfluencers = parsed2;
-          try { localStorage.setItem(LS_DELETED_KEY, JSON.stringify(deletedInfluencers)); } catch(e) {}
-        }
-      }
-    }
-  } catch(e) {
-    // Firebase blocked or slow — use localStorage data
+    } catch(e) {}
   }
-  return influencers.length > 0 || localLoaded;
+  return false;
 }
 function showSaveIndicator() {
   const el = document.getElementById('saveIndicator');
@@ -2471,7 +2484,7 @@ function openGenderReport(gender) {
 
 // --- Share functions ----------------------------------------------
 async function shareStatusReport(type) {
-  logActivity('report', `مشاركة كشف: ${type==='approved'?'المقبولين':'المرفوضين'} — ${sessionStorage.getItem('cure_auth')||''}`);
+  logActivity('report', `مشاركة كشف: ${type==='approved'?'المقبولين':'المرفوضين'} — ${getAuth()||''}`);
   const isApproved=type==='approved';
   const list=influencers.filter(i=>i.status===type);
   if(!list.length)return;
@@ -2655,7 +2668,7 @@ function removeDuplicates() {
 // -- Log all print events ------------------------------------------
 const _origPrint = window.print.bind(window);
 window.print = function() {
-  logActivity('report', `طباعة/PDF كشف — ${sessionStorage.getItem('cure_auth')||'غير معروف'}`);
+  logActivity('report', `طباعة/PDF كشف — ${getAuth()||'غير معروف'}`);
   _origPrint();
 };
 const LOG_KEY = 'cure_activity_log';
@@ -2666,7 +2679,7 @@ const LOG_ICONS = {
   'date':'📅','report':'📋','send_wa':'📲','bulk':'⚡','form':'📋',
 };
 function logActivity(action, details='') {
-  const user = sessionStorage.getItem('cure_auth') || 'غير معروف';
+  const user = getAuth() || 'غير معروف';
   const now = new Date();
   const time = now.toLocaleString('ar-KW', {day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
   const entry = { user, action, details, time, ts: now.getTime() };
@@ -2736,7 +2749,7 @@ function doLogin() {
   const user = document.getElementById('loginUser').value.trim().toLowerCase();
   const pass = document.getElementById('loginPass').value;
   if(USERS[user] && USERS[user] === pass) {
-    sessionStorage.setItem('cure_auth', user);
+    setAuth(user);
     document.getElementById('loginScreen').style.display = 'none';
     updateWelcome();
     logActivity('login', `تسجيل دخول: ${user}`);
@@ -2748,7 +2761,7 @@ function doLogin() {
   }
 }
 function guestLogin() {
-  sessionStorage.setItem('cure_auth', 'guest');
+  setAuth('guest');
   document.getElementById('loginScreen').style.display = 'none';
   updateWelcome();
   logActivity('login', 'تسجيل دخول: Guest');
@@ -2756,24 +2769,40 @@ function guestLogin() {
 }
 window.guestLogin = guestLogin;
 function logout() {
-  logActivity('logout', `تسجيل خروج: ${sessionStorage.getItem('cure_auth')||''}`);
-  sessionStorage.removeItem('cure_auth');
+  logActivity('logout', `تسجيل خروج: ${getAuth()||''}`);
+  clearAuth();
   location.reload();
 }
 window.logout = logout;
 function checkAuth() {
-  if(!sessionStorage.getItem('cure_auth')) {
+  if(!getAuth()) {
     document.getElementById('loginScreen').style.display = 'flex';
     return false;
   }
   document.getElementById('loginScreen').style.display = 'none';
   return true;
 }
+function setAuth(user) {
+  setAuth(user);
+  // Also save as cookie for cross-browser compatibility
+  document.cookie = `cure_auth=${user};path=/;max-age=86400`;
+}
+function getAuth() {
+  const ss = getAuth();
+  if(ss) return ss;
+  // Try cookie
+  const match = document.cookie.match(/cure_auth=([^;]+)/);
+  return match ? match[1] : null;
+}
+function clearAuth() {
+  clearAuth();
+  document.cookie = 'cure_auth=;path=/;max-age=0';
+}
 function isGuest() {
-  return sessionStorage.getItem('cure_auth') === 'guest';
+  return getAuth() === 'guest';
 }
 function updateWelcome() {
-  const user = sessionStorage.getItem('cure_auth') || '';
+  const user = getAuth() || '';
   const el = document.getElementById('welcomeMsg');
   if(el && user) el.textContent = user === 'guest' ? '👤 Guest' : '👋 مرحباً ' + user;
 }
