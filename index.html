@@ -2761,11 +2761,7 @@ function doLogin() {
   }
 }
 function guestLogin() {
-  setAuth('guest');
-  document.getElementById('loginScreen').style.display = 'none';
-  updateWelcome();
-  logActivity('login', 'تسجيل دخول: Guest');
-  init();
+  window.location.href = window.location.pathname + '?guest=1';
 }
 window.guestLogin = guestLogin;
 function logout() {
@@ -2785,9 +2781,16 @@ function checkAuth() {
 document.cookie = 'cure_auth=;path=/;max-age=0;expires=Thu, 01 Jan 1970 00:00:00 GMT';
 localStorage.removeItem('cure_auth_v2');
 
-// Auto guest login from URL parameter
+// Auto guest login from URL parameter - MUST be before anything else
 if(new URLSearchParams(window.location.search).get('guest') === '1') {
   sessionStorage.setItem('cure_auth', 'guest');
+  // Immediately hide admin elements via CSS
+  const style = document.createElement('style');
+  style.textContent = `
+    .fab, .page-footer, .toolbar, #grid { display: none !important; }
+    .stat { cursor: default !important; pointer-events: none !important; }
+  `;
+  document.head.appendChild(style);
 }
 
 function setAuth(user) { sessionStorage.setItem('cure_auth', user); }
