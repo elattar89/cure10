@@ -2667,103 +2667,13 @@ async function downloadOrShare(html,fileName){
   }catch(e){if(e.name!=='AbortError')showToast('تعذّرت المشاركة','#dc2626');}
 }
 
-// --- One-time migrations (run once per version, then never again) --
-const MIGRATIONS = {
-  // v1: initial batch + updates
-  'v1': function() {
-    function findByIg(handle) {
-      const h = handle.replace('@','').toLowerCase().trim();
-      return influencers.findIndex(i => normalizeIg(i.ig) === h);
-    }
-    // Updates to existing
-    const iYas = findByIg('al_yasmiina');
-    if(iYas !== -1 && !influencers[iYas].name) influencers[iYas].name = 'Yasmeen';
-    const iMazda = findByIg('mazda.alsafi');
-    if(iMazda !== -1 && !influencers[iMazda].tt) { influencers[iMazda].tt='@mazda.alsafi'; influencers[iMazda].tt_url='https://www.tiktok.com/@mazda.alsafi'; }
-    const iTas = findByIg('t.as7o');
-    if(iTas !== -1 && !influencers[iTas].phone) influencers[iTas].phone = '50718730';
-    // New influencers
-    [
-      { name:'', phone:'', ig:'@loloair', ig_url:'https://www.instagram.com/loloair', tt:'@loloair', tt_url:'https://www.tiktok.com/@loloair', snap:'https://snapchat.com/t/NnWB1cLr', status:'pending', gender:'f' },
-      { name:'تهاني سليم (توتا آرتيست)', phone:'95504313', ig:'@tota_artist2', ig_url:'https://www.instagram.com/tota_artist2', tt:'@tota_artist', tt_url:'https://www.tiktok.com/@tota_artist', snap:'https://www.snapchat.com/add/tootaals', status:'pending', gender:'f' },
-      { name:'', phone:'', ig:'@fajersabah_blog', ig_url:'https://www.instagram.com/fajersabah_blog', tt:'', tt_url:'', snap:'', status:'pending', gender:'f' },
-      { name:'', phone:'', ig:'@sara.lifestyle_12', ig_url:'https://www.instagram.com/sara.lifestyle_12', tt:'@saralifestyle0', tt_url:'https://www.tiktok.com/@saralifestyle0', snap:'https://snapchat.com/t/viSRZgl7', status:'pending', gender:'f' },
-      { name:'فرح (فويس اوفر)', phone:'60734767', ig:'@bloog_q8', ig_url:'https://www.instagram.com/bloog_q8', tt:'@bloog_q8', tt_url:'https://www.tiktok.com/@bloog_q8', snap:'https://snapchat.com/t/vpBAizdI', status:'pending', gender:'f' },
-      { name:'', phone:'50909787', ig:'@anjil.21', ig_url:'https://www.instagram.com/anjil.21', tt:'@ftooom_21', tt_url:'https://www.tiktok.com/@ftooom_21', snap:'', status:'pending', gender:'f' },
-      { name:'', phone:'66558707', ig:'@w_alenezi87', ig_url:'https://www.instagram.com/w_alenezi87', tt:'@alzan66', tt_url:'https://www.tiktok.com/@alzan66', snap:'', status:'pending', gender:'f' },
-      { name:'تايقر لاين', phone:'99614924', ig:'@tiger.line_', ig_url:'https://www.instagram.com/tiger.line_', tt:'@tiger.line_', tt_url:'https://www.tiktok.com/@tiger.line_', snap:'', status:'pending', gender:'f' },
-      { name:'بلوقر مزونة', phone:'50296116', ig:'@mazouna.qt', ig_url:'https://www.instagram.com/mazouna.qt', tt:'@mazouna.q8', tt_url:'https://www.tiktok.com/@mazouna.q8', snap:'', status:'pending', gender:'f' },
-      { name:'بلوقر نون (فويس اوفر)', phone:'90061949', ig:'@noon_blogerq8', ig_url:'https://www.instagram.com/noon_blogerq8', tt:'@blwqrnwn25', tt_url:'https://www.tiktok.com/@blwqrnwn25', snap:'https://snapchat.com/t/wmWXPwjr', status:'pending', gender:'f' },
-    ].forEach(item => { if(findByIg(item.ig) === -1) item.addedAt=Date.now();influencers.push(item); });
-  },
-
-  // v2: new batch 02/05/2026
-  'v2': function() {
-    function findByIg(handle) {
-      const h = handle.replace('@','').toLowerCase().trim();
-      return influencers.findIndex(i => normalizeIg(i.ig) === h);
-    }
-    // Updates to existing
-    const i2al8 = findByIg('2al8__');
-    if(i2al8 !== -1 && !influencers[i2al8].name) influencers[i2al8].name = 'الدانة';
-    const iDodi = findByIg('dodiwhite94');
-    if(iDodi !== -1 && !influencers[iDodi].name) influencers[iDodi].name = 'ضي';
-    const iPj2lk = findByIg('pj2lk');
-    if(iPj2lk !== -1 && !influencers[iPj2lk].name) influencers[iPj2lk].name = 'الماسة';
-    // New influencers
-    [
-      { name:'بلوقر الترف', phone:'97503260', ig:'@tarif_p8', ig_url:'https://www.instagram.com/tarif_p8', tt:'@tarif_p8', tt_url:'https://www.tiktok.com/@tarif_p8', snap:'https://snapchat.com/t/qRlH6Uzc', status:'pending', gender:'f' },
-      { name:'بلوقر ومودل هاجر', phone:'65601757', ig:'@ilx__1b', ig_url:'https://www.instagram.com/ilx__1b', tt:'@ilx__1b', tt_url:'https://www.tiktok.com/@ilx__1b', snap:'https://snapchat.com/t/Tx5ZnU7i', status:'pending', gender:'f' },
-      { name:'بلوقر روز', phone:'', ig:'@roz.blogr', ig_url:'https://www.instagram.com/roz.blogr', tt:'@blog.roz', tt_url:'https://www.tiktok.com/@blog.roz', snap:'https://www.snapchat.com/add/blog.roz', status:'pending', gender:'f' },
-    ].forEach(item => { if(findByIg(item.ig) === -1) item.addedAt=Date.now();influencers.push(item); });
-  },
-
-  // v3: sync from Firebase 03/05/2026
-  'v3': function() {
-    function findByIg(handle) {
-      const h = (handle||'').replace('@','').toLowerCase().trim();
-      return influencers.findIndex(i => normalizeIg(i.ig) === h);
-    }
-    // New influencers from Firebase not in local code
-    [
-      { name:'كلير عادل تادرس', phone:'60609780', civil:'285022305317', nationality:'مصري', gender:'f', ig:'@clair.tadrous', ig_url:'https://www.instagram.com/clair.tadrous', tt:'@clairtadrous2', tt_url:'https://www.tiktok.com/@clairtadrous2', snap:'https://www.snapchat.com/add/clair.koky', status:'approved', visitDate:'2026-05-04', dialects:['مصري','شامي'] },
-      { name:'ريم المصري', phone:'60451168', civil:'', nationality:'مصري', gender:'f', ig:'@reemalmasryofficial', ig_url:'https://www.instagram.com/reemalmasryofficial', tt:'', tt_url:'', snap:'', status:'approved', dialects:['مصري','كويتي'] },
-      { name:'ام عزيزان', phone:'', civil:'', nationality:'', gender:'f', ig:'@tt.ii36', ig_url:'https://www.instagram.com/tt.ii36', tt:'@omazez6', tt_url:'https://www.tiktok.com/@omazez6', snap:'', status:'rejected' },
-      { name:'فاي الطفيلان', phone:'99104651', civil:'', nationality:'', gender:'f', ig:'@ajmii.330', ig_url:'https://www.instagram.com/ajmii.330', tt:'', tt_url:'', snap:'https://snapchat.com/t/LaqtmDQD', status:'rejected' },
-      { name:'ايمان محمد حريز', phone:'51777608', civil:'292022100886', nationality:'غير محدد الجنسية', gender:'f', ig:'@just_blogy', ig_url:'https://www.instagram.com/just_blogy', tt:'@just_blogy', tt_url:'https://www.tiktok.com/@just_blogy', snap:'https://snapchat.com/t/S4xlNIcZ', status:'approved' },
-      { name:'نورة عبدالله سعود', phone:'66993534', civil:'280051100465', nationality:'كويتي', gender:'f', ig:'@No0ur.11', ig_url:'https://www.instagram.com/No0ur.11', tt:'@No0ur.11', tt_url:'https://www.tiktok.com/@No0ur.11', snap:'', status:'approved', visitDate:'2026-05-02', services:['بوتوكس'], dialects:['كويتي'], visitStatus:'done' },
-      { name:'Saja', phone:'41022378', civil:'289030500225', nationality:'', gender:'f', ig:'@its.mee.saya', ig_url:'https://www.instagram.com/its.mee.saya', tt:'@its.mee.saya', tt_url:'https://www.tiktok.com/@its.mee.saya', snap:'https://www.snapchat.com/add/saya-kw', status:'approved', visitDate:'2026-05-03', dialects:['كويتي'] },
-      { name:'وفاء نزار الخطيب', phone:'65060474', civil:'290082600867', nationality:'كويتي', gender:'f', ig:'@nonah_blogger', ig_url:'https://www.instagram.com/nonah_blogger', tt:'@nonah_blogger', tt_url:'https://www.tiktok.com/@nonah_blogger', snap:'https://snapchat.com/t/lax8MXLY', status:'approved', dialects:['كويتي'] },
-      { name:'حوراء', phone:'55855832', civil:'287090500068', nationality:'كويتي', gender:'f', ig:'@modacode.kw', ig_url:'https://www.instagram.com/modacode.kw', tt:'@modacode.kw', tt_url:'https://www.tiktok.com/@modacode.kw', snap:'', status:'approved', services:['فيلر'], visitStatus:'done', visitDate:'2026-04-30', dialects:['كويتي'], visitRating:1 },
-    ].forEach(item => { if(findByIg(item.ig) === -1) item.addedAt=Date.now();influencers.push(item); });
-
-    // Update dalaly3_ with form data
-    const iDalaly = findByIg('dalaly3_');
-    if(iDalaly !== -1) {
-      if(!influencers[iDalaly].name) influencers[iDalaly].name = 'دلال احمد العطار';
-      if(!influencers[iDalaly].civil) influencers[iDalaly].civil = '298011901458';
-      if(!influencers[iDalaly].nationality) influencers[iDalaly].nationality = 'كويتي';
-      influencers[iDalaly].phone = '55025286'; // fix Arabic digits
-    } if(iMonay!==-1 && !influencers[iMonay].nationality) influencers[iMonay].nationality='';
-    const iSiham = findByIg('siham_7ala'); if(iSiham!==-1){ if(!influencers[iSiham].civil) influencers[iSiham].civil='272051800912'; if(!influencers[iSiham].nationality) influencers[iSiham].nationality='لبناني'; }
-    const iTota = findByIg('tota_artist2'); if(iTota!==-1){ if(!influencers[iTota].civil) influencers[iTota].civil='281061400845'; if(!influencers[iTota].nationality) influencers[iTota].nationality='كويتي'; }
-    const iMnar = findByIg('t2rif'); if(iMnar!==-1){ if(!influencers[iMnar].civil) influencers[iMnar].civil='298050903683'; if(!influencers[iMnar].nationality) influencers[iMnar].nationality='كويتي'; }
-  },
-
-  // v4: cleanup duplicates caused by v3 running on top of Firebase data
-  'v4': function() {
-    removeDuplicates();
-  },
-};
+// --- Migrations disabled - data is managed directly on Firebase ---
+// Migrations disabled - all data is managed directly on Firebase
+const MIGRATIONS = {};
 
 function runMigrations() {
-  const done = JSON.parse(localStorage.getItem('cure_migrations') || '{}');
-  let ran = 0;
-  Object.keys(MIGRATIONS).forEach(ver => {
-    if(!done[ver]) { MIGRATIONS[ver](); done[ver] = true; ran++; }
-  });
-  if(ran > 0) localStorage.setItem('cure_migrations', JSON.stringify(done));
-  return ran;
+  // Disabled - no longer needed
+  return 0;
 }
 
 // -- Remove duplicates on every load ------------------------------
@@ -3036,7 +2946,6 @@ function guestOpenReport() {
   if(influencers.length === 0) {
     showToast('⏳ جاري تحميل البيانات...', '#1a6fa8');
     tryLoadFirebase().then(function() {
-      runMigrations();
       influencers.forEach(function(item){ if(item.phone) item.phone = normalizePhone(item.phone); });
       updateStats();
       openStatusReport('approved');
@@ -3049,7 +2958,6 @@ function guestOpenAppts() {
   if(influencers.length === 0) {
     showToast('⏳ جاري تحميل البيانات...', '#1a6fa8');
     tryLoadFirebase().then(function() {
-      runMigrations();
       influencers.forEach(function(item){ if(item.phone) item.phone = normalizePhone(item.phone); });
       updateStats();
       openGuestAppts();
@@ -3065,7 +2973,6 @@ function guestRefresh() {
   if(btn) btn.textContent = '⏳ جاري التحديث...';
   tryLoadFirebase().then(function(loaded) {
     if(loaded) {
-      runMigrations();
       influencers.forEach(function(item){ if(item.phone) item.phone = normalizePhone(item.phone); });
       updateStats();
       showToast('✅ تم تحديث البيانات', '#059669');
@@ -3244,7 +3151,6 @@ async function init() {
   initNationalitySelects();
   const loaded = await loadFromStorage();
   if(!loaded) { influencers = JSON.parse(JSON.stringify(DEFAULT_INFLUENCERS)); }
-  runMigrations();
   influencers.forEach(item => { if(item.phone) item.phone = normalizePhone(item.phone); });
   const removed = removeDuplicates();
   document.getElementById('loadingOverlay').style.display = 'none';
