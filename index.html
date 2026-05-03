@@ -278,29 +278,14 @@ body{font-family:'Tajawal',sans-serif;direction:rtl;background:#0d1117;color:#e6
   .report-header h2{ font-size:16px!important; }
   .report-header p{ font-size:10px!important; }
 }
-<style id="guestStyle">
-/* Guest mode - hidden by default, shown via JS */
 </style>
+<style id="guestStyle"></style>
 <script>
 if(window.location.search.indexOf('guest=1') !== -1) {
-  document.getElementById('guestStyle').textContent = `
-    #fabBtn, .fab, .page-footer, .toolbar, #grid { display: none !important; }
-    .stat { cursor: default !important; pointer-events: none !important; }
-  `;
-  // Show guest buttons as soon as DOM is ready
-  document.addEventListener('DOMContentLoaded', function() {
-    const header = document.querySelector('.header');
-    if(header && !document.getElementById('guestBtns')) {
-      header.insertAdjacentHTML('beforeend', `
-        <div id="guestBtns" style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:1rem;">
-          <button onclick="openStatusReport('approved')" style="padding:12px 24px;border-radius:10px;border:1px solid #16a34a;background:#0d1f14;color:#4ade80;font-size:15px;font-weight:700;cursor:pointer;font-family:Tajawal,sans-serif;">📋 كشف المقبولين</button>
-          <button onclick="openGuestAppts()" style="padding:12px 24px;border-radius:10px;border:1px solid #0891b2;background:#0e2433;color:#22d3ee;font-size:15px;font-weight:700;cursor:pointer;font-family:Tajawal,sans-serif;">📅 مواعيد الزيارات</button>
-        </div>
-      `);
-    }
-  });
+  document.getElementById('guestStyle').textContent = '#fabBtn,button.fab,.page-footer,.toolbar,#grid{display:none!important}.stat{cursor:default!important;pointer-events:none!important}#guestBtns{display:flex!important}';
 }
 </script>
+</head>
 <body>
 
 <!-- Login Screen -->
@@ -363,6 +348,11 @@ if(window.location.search.indexOf('guest=1') !== -1) {
     <div class="stat" style="cursor:pointer;" onclick="setFilterFromStat('visited')"><div class="stat-num" id="statVisited" style="color:#34d399;">0</div><div class="stat-label">🏁 تمت الزيارة</div></div>
     <div class="stat" style="cursor:pointer;border:1px solid rgba(202,138,4,0.4);" onclick="setFilterFromStat('cancelled')"><div class="stat-num" id="statCancelled" style="color:#fbbf24;">0</div><div class="stat-label">⚠️ ألغيت الزيارة</div></div>
     <div class="stat" style="cursor:pointer;border:1px solid rgba(220,38,38,0.4);" onclick="setFilter('deleted',document.getElementById('fb-deleted'))"><div class="stat-num" id="statDeleted" style="color:#f87171;">0</div><div class="stat-label">🗑 محذوفين</div></div>
+  </div>
+  <!-- Guest Buttons - shown only via guest CSS -->
+  <div id="guestBtns" style="display:none;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:1rem;">
+    <button onclick="openStatusReport('approved')" style="padding:12px 24px;border-radius:10px;border:1px solid #16a34a;background:#0d1f14;color:#4ade80;font-size:15px;font-weight:700;cursor:pointer;font-family:Tajawal,sans-serif;">📋 كشف المقبولين</button>
+    <button onclick="openGuestAppts()" style="padding:12px 24px;border-radius:10px;border:1px solid #0891b2;background:#0e2433;color:#22d3ee;font-size:15px;font-weight:700;cursor:pointer;font-family:Tajawal,sans-serif;">📅 مواعيد الزيارات</button>
   </div>
   <div class="stats-bar" style="margin-top:.6rem;">
     <div class="stat" style="cursor:pointer" onclick="setFilterFromStat('ig',this)"><div class="stat-num" id="statIg">0</div><div class="stat-label" style="display:flex;align-items:center;justify-content:center;gap:4px;"><svg width="12" height="12" viewBox="0 0 24 24" fill="url(#ig-g1)"><defs><linearGradient id="ig-g1" x1="0%" y1="100%" x2="100%" y2="0%"><stop offset="0%" style="stop-color:#f09433"/><stop offset="50%" style="stop-color:#dc2743"/><stop offset="100%" style="stop-color:#bc1888"/></linearGradient></defs><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>انستاجرام</div></div>
@@ -2785,7 +2775,8 @@ window.guestLogin = guestLogin;
 function logout() {
   logActivity('logout', `تسجيل خروج: ${getAuth()||''}`);
   clearAuth();
-  location.reload();
+  // Remove ?guest=1 from URL and reload
+  window.location.href = window.location.pathname;
 }
 window.logout = logout;
 function checkAuth() {
@@ -3065,14 +3056,6 @@ async function init() {
     const fab = document.getElementById('fabBtn'); if(fab) fab.style.display = 'none';
     document.querySelectorAll('.stat').forEach(s => { s.style.cursor='default'; s.setAttribute('onclick',''); });
     updateStats();
-    if(!document.getElementById('guestBtns')) {
-      document.querySelector('.header').insertAdjacentHTML('beforeend', `
-        <div id="guestBtns" style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:1rem;">
-          <button onclick="openStatusReport('approved')" style="padding:12px 24px;border-radius:10px;border:1px solid #16a34a;background:#0d1f14;color:#4ade80;font-size:15px;font-weight:700;cursor:pointer;font-family:Tajawal,sans-serif;">📋 كشف المقبولين</button>
-          <button onclick="openGuestAppts()" style="padding:12px 24px;border-radius:10px;border:1px solid #0891b2;background:#0e2433;color:#22d3ee;font-size:15px;font-weight:700;cursor:pointer;font-family:Tajawal,sans-serif;">📅 مواعيد الزيارات</button>
-        </div>
-      `);
-    }
     await saveToStorage();
     // Poll Firebase every 30s for live updates
     setInterval(async () => {
