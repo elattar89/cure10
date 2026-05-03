@@ -3147,11 +3147,20 @@ function renderGuestView() {
   const withDates = influencers
     .filter(i => i.visitDate && i.status === 'approved')
     .sort((a,b) => a.visitDate.localeCompare(b.visitDate));
-  if(!withDates.length) {
+  // Hide duplicate: same person + same day
+  const seenNameDate = new Set();
+  const uniqueDates = withDates.filter(item => {
+    const dateOnly = item.visitDate.split('T')[0];
+    const key = (normalizePhone(item.phone) || normalizeIg(item.ig) || item.name || '') + '_' + dateOnly;
+    if(seenNameDate.has(key)) return false;
+    seenNameDate.add(key);
+    return true;
+  });
+  if(!uniqueDates.length) {
     list.innerHTML = '<div style="text-align:center;color:#484f58;padding:2rem;">لا توجد مواعيد مسجلة</div>';
     return;
   }
-  list.innerHTML = withDates.map(item => {
+  list.innerHTML = uniqueDates.map(item => {
     const idx = influencers.indexOf(item);
     const dateOnly = item.visitDate.split('T')[0];
     const [y,m,d] = dateOnly.split('-');
