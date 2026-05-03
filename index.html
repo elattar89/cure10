@@ -277,17 +277,6 @@ body{font-family:'Tajawal',sans-serif;direction:rtl;background:#0d1117;color:#e6
   .report-header h2{ font-size:16px!important; }
   .report-header p{ font-size:10px!important; }
 }
-/* Guest buttons - always clickable */
-#guestBtns button{touch-action:manipulation;-webkit-tap-highlight-color:transparent;pointer-events:auto!important;}
-/* Guest mobile layout */
-@media(max-width:600px){
-  #guestBtns{flex-direction:column!important;padding:0 1rem!important;gap:10px!important;margin-top:.8rem!important;width:100%!important;box-sizing:border-box;}
-  #guestBtns button{width:100%!important;padding:16px!important;font-size:16px!important;min-height:54px!important;border-radius:12px!important;}
-  .stats-bar{gap:.3rem!important;margin-top:.6rem!important;}
-  .stat{padding:.3rem .45rem!important;min-width:48px!important;border-radius:10px!important;}
-  .stat-num{font-size:14px!important;}
-  .stat-label{font-size:9px!important;}
-}
 </style>
 <style id="guestStyle"></style>
 <script>
@@ -295,7 +284,7 @@ body{font-family:'Tajawal',sans-serif;direction:rtl;background:#0d1117;color:#e6
   var isGuest = window.location.search.indexOf('guest=1') !== -1;
   if(isGuest) {
     var s = document.getElementById('guestStyle');
-    s.textContent = '#fabBtn,.fab,.page-footer,.toolbar,#grid,#statsBar2{display:none!important}.stat{cursor:default!important;pointer-events:none!important}#guestBtns{display:flex!important;pointer-events:auto!important}#guestBtns *{pointer-events:auto!important}';
+    s.textContent = '#fabBtn,.fab,.page-footer,.toolbar,#grid{display:none!important}.stat{cursor:default!important;pointer-events:none!important}#guestBtns{display:flex!important}';
   }
 })();
 </script>
@@ -826,73 +815,49 @@ async function loadFromStorage() {
   return loaded || localLoaded;
 }
 
-function tryLoadFirebase() {
-  return new Promise(function(resolve) {
-    var url = DB_URL + '/' + DB_PATH + '.json';
-    
-    function processData(text) {
-      try {
-        var val = JSON.parse(text);
+async function tryLoadFirebase() {
+  // Method 1: fetch with no-cors workaround
+  const urls = [
+    `${DB_URL}/${DB_PATH}.json`,
+    `${DB_URL}/${DB_PATH}.json?print=pretty`,
+  ];
+  for(const url of urls) {
+    try {
+      const res = await Promise.race([
+        fetch(url, { method: 'GET', headers: { 'Accept': 'application/json' }, mode: 'cors' }),
+        new Promise((_,rej) => setTimeout(() => rej(new Error('timeout')), 7000))
+      ]);
+      if(res && res.ok) {
+        const val = await res.json();
         if(val && val.data) {
-          var parsed = JSON.parse(val.data);
+          const parsed = JSON.parse(val.data);
           if(Array.isArray(parsed) && parsed.length > 0) {
             influencers = parsed;
             try { localStorage.setItem(LS_KEY, JSON.stringify(influencers)); } catch(e) {}
-            // Load deleted too
-            var xhr2 = new XMLHttpRequest();
-            xhr2.open('GET', DB_URL + '/' + DB_DELETED_PATH + '.json', true);
-            xhr2.timeout = 5000;
-            xhr2.onload = function() {
-              try {
-                if(xhr2.status === 200) {
-                  var v2 = JSON.parse(xhr2.responseText);
-                  if(v2 && v2.data) {
-                    var p2 = JSON.parse(v2.data);
-                    if(Array.isArray(p2)) {
-                      deletedInfluencers = p2;
-                      try { localStorage.setItem(LS_DELETED_KEY, JSON.stringify(p2)); } catch(e) {}
-                    }
+            // Also load deleted
+            try {
+              const res2 = await Promise.race([
+                fetch(`${DB_URL}/${DB_DELETED_PATH}.json`, { mode: 'cors' }),
+                new Promise((_,rej) => setTimeout(() => rej(), 5000))
+              ]);
+              if(res2 && res2.ok) {
+                const val2 = await res2.json();
+                if(val2 && val2.data) {
+                  const p2 = JSON.parse(val2.data);
+                  if(Array.isArray(p2)) {
+                    deletedInfluencers = p2;
+                    try { localStorage.setItem(LS_DELETED_KEY, JSON.stringify(p2)); } catch(e) {}
                   }
                 }
-              } catch(e) {}
-            };
-            xhr2.send();
+              }
+            } catch(e2) {}
             return true;
           }
         }
-      } catch(e) {}
-      return false;
-    }
-
-    // Try XMLHttpRequest first (better on iOS Safari)
-    var xhr = new XMLHttpRequest();
-    xhr.open('GET', url, true);
-    xhr.timeout = 8000;
-    xhr.onload = function() {
-      if(xhr.status === 200 && processData(xhr.responseText)) {
-        resolve(true);
-      } else {
-        tryFetch();
       }
-    };
-    xhr.onerror = tryFetch;
-    xhr.ontimeout = tryFetch;
-    xhr.send();
-
-    function tryFetch() {
-      if(!window.fetch) { resolve(false); return; }
-      var timer = setTimeout(function(){ resolve(false); }, 7000);
-      fetch(url, { mode: 'cors' }).then(function(res) {
-        clearTimeout(timer);
-        return res.text();
-      }).then(function(text) {
-        resolve(processData(text));
-      }).catch(function() {
-        clearTimeout(timer);
-        resolve(false);
-      });
-    }
-  });
+    } catch(e) {}
+  }
+  return false;
 }
 function showSaveIndicator() {
   const el = document.getElementById('saveIndicator');
@@ -2331,7 +2296,7 @@ function openApptPanel(){
       </div>
       <div class="appt-info">
         <div class="appt-name" style="${isPast?'color:#6e7681;':''}">${name}</div>
-        <div class="appt-sub">${item.phone||item.ig||''}${timeLabel}${isPast?(item.visitStatus==='done'?' · <span style="color:#4ade80;font-size:10px;">✅ تمت</span>':item.visitStatus==='cancelled'?' · <span style="color:#f87171;font-size:10px;">❌ ألغيت</span>':' · <span style="color:#f87171;font-size:10px;">انتهى</span>'):''}</div>
+        <div class="appt-sub">${item.phone||item.ig||''}${timeLabel}${item.visitStatus==='done'?' · <span style="color:#4ade80;font-size:10px;">✅ تمت</span>':item.visitStatus==='cancelled'?' · <span style="color:#f87171;font-size:10px;">❌ ألغيت</span>':isPast?' · <span style="color:#f87171;font-size:10px;">انتهى</span>':''}</div>
       </div>
       <span class="appt-status-tag ${item.status||'pending'}">${item.status==='approved'?'✅':item.status==='rejected'?'❌':'⏳'}</span>
     </div>`;
@@ -3098,11 +3063,11 @@ function openGuestAppts() {
   let overlay = document.getElementById('guestApptOverlay');
   if(!overlay) {
     document.body.insertAdjacentHTML('beforeend', `
-      <div id="guestApptOverlay" style="position:fixed;top:0;left:0;width:100%;height:100%;z-index:3000;background:#0d1117;overflow-y:auto;-webkit-overflow-scrolling:touch;">
-        <div style="width:100%;max-width:500px;margin:0 auto;padding:.8rem .8rem 5rem;">
+      <div id="guestApptOverlay" style="position:fixed;inset:0;z-index:3000;background:#0d1117;display:flex;align-items:flex-start;justify-content:center;padding:.5rem;overflow-y:auto;-webkit-overflow-scrolling:touch;height:100%;height:100dvh;" onclick="if(event.target===this)document.getElementById('guestApptOverlay').style.display='none'">
+        <div style="width:100%;max-width:500px;margin:0 auto;padding-bottom:2rem;">
           <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;padding-bottom:.8rem;border-bottom:1px solid #21262d;position:sticky;top:0;background:#0d1117;z-index:1;padding-top:.5rem;">
             <div style="font-size:18px;font-weight:900;color:#e6edf3;">📅 مواعيد الزيارات</div>
-            <button onclick="document.getElementById('guestApptOverlay').remove()" style="background:#21262d;border:1px solid #30363d;color:#e6edf3;width:44px;height:44px;border-radius:50%;cursor:pointer;font-size:20px;flex-shrink:0;touch-action:manipulation;">✕</button>
+            <button onclick="document.getElementById('guestApptOverlay').style.display='none'" style="background:#21262d;border:1px solid #30363d;color:#e6edf3;width:36px;height:36px;border-radius:50%;cursor:pointer;font-size:18px;flex-shrink:0;">✕</button>
           </div>
           <div id="guestApptList" style="display:flex;flex-direction:column;gap:12px;"></div>
         </div>
@@ -3110,7 +3075,7 @@ function openGuestAppts() {
     `);
     overlay = document.getElementById('guestApptOverlay');
   } else {
-    overlay.style.display = 'block';
+    overlay.style.display = 'flex';
   }
   renderGuestView();
 }
@@ -3261,35 +3226,11 @@ async function init() {
     const fab = document.getElementById('fabBtn'); if(fab) fab.style.display = 'none';
     document.querySelectorAll('.stat').forEach(s => { s.style.cursor='default'; s.setAttribute('onclick',''); });
     updateStats();
-
-    const isMobile = window.innerWidth <= 600;
-    if(isMobile) {
-      // Mobile: full screen simple layout
-      document.querySelector('.header').style.paddingBottom = '1.2rem';
-      // Make stats smaller and tighter
-      document.querySelectorAll('.stat').forEach(s => {
-        s.style.padding = '.3rem .5rem';
-        s.style.minWidth = '50px';
-      });
-      // Guest buttons stacked vertically and full width
-      var gb = document.getElementById('guestBtns');
-      if(gb) {
-        gb.style.flexDirection = 'column';
-        gb.style.padding = '0 1rem';
-        gb.style.gap = '8px';
-        gb.style.width = '100%';
-      }
-    }
-
     await saveToStorage();
     // Poll Firebase every 30s for live updates
     setInterval(function() {
       tryLoadFirebase().then(function(loaded) {
-        if(loaded) {
-          runMigrations();
-          influencers.forEach(function(item){if(item.phone)item.phone=normalizePhone(item.phone);});
-          updateStats();
-        }
+        if(loaded) { runMigrations(); influencers.forEach(function(item){if(item.phone)item.phone=normalizePhone(item.phone);}); updateStats(); }
       }).catch(function(){});
     }, 30000);
     return;
