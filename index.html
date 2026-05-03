@@ -86,7 +86,7 @@ body{font-family:'Tajawal',sans-serif;direction:rtl;background:#0d1117;color:#e6
 .add-bottom-btn:hover{transform:translateY(-2px);box-shadow:0 6px 24px rgba(26,111,168,0.6);}
 .save-bottom-btn{padding:12px 28px;border-radius:12px;background:linear-gradient(135deg,#1a5c3a,#22c55e);border:none;color:#fff;font-size:15px;font-weight:700;cursor:pointer;font-family:'Tajawal',sans-serif;transition:all .15s;}
 .save-bottom-btn.saving{background:linear-gradient(135deg,#0f3a22,#15803d);}
-.fab{position:fixed;bottom:24px;left:24px;width:52px;height:52px;border-radius:50%;background:linear-gradient(135deg,#0a3d62,#1a6fa8);border:none;color:#fff;font-size:24px;cursor:pointer;box-shadow:0 4px 20px rgba(26,111,168,0.5);display:flex;align-items:center;justify-content:center;z-index:200;transition:transform .2s;}
+.fab{position:fixed;top:12px;right:12px;width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,#0a3d62,#1a6fa8);border:none;color:#fff;font-size:22px;cursor:pointer;box-shadow:0 4px 20px rgba(26,111,168,0.5);display:flex;align-items:center;justify-content:center;z-index:9999;transition:transform .2s;}
 .fab:hover{transform:scale(1.1);}
 .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:4500;display:flex;align-items:center;justify-content:center;padding:1rem;}
 .modal-overlay.hidden{display:none;}
@@ -1079,7 +1079,7 @@ function renderGrid() {
   }
 
   // -- Normal view -----------------------------------------------
-  // Sort: pending → cancelled → approved → rejected
+  // Sort: pending (newest first) → cancelled → approved (newest first) → rejected
   const sorted = [...influencers].map((item,idx)=>({item,idx})).sort((a,b)=>{
     const order = i => {
       if(!i.status||i.status==='pending') return 0;
@@ -1091,9 +1091,12 @@ function renderGrid() {
     };
     const oa=order(a.item), ob=order(b.item);
     if(oa!==ob) return oa-ob;
-    // Sort approved with date by date
+    // Within approved-with-date group: sort by date
     if(oa===3&&a.item.visitDate&&b.item.visitDate) return a.item.visitDate.localeCompare(b.item.visitDate);
-    return 0;
+    // Within same group: newest first (by addedAt or index reversed)
+    const ta = a.item.addedAt||0, tb = b.item.addedAt||0;
+    if(ta&&tb) return tb-ta;
+    return b.idx-a.idx;
   });
   sorted.forEach(({item,idx})=>{
     const name=getDisplayName(item,idx);
@@ -1346,7 +1349,7 @@ function confirmDelete() {
 function restoreInfluencer(deletedIdx) {
   const item = deletedInfluencers[deletedIdx];
   delete item.deletedAt;
-  influencers.push(item);
+  item.addedAt=Date.now();influencers.push(item);
   deletedInfluencers.splice(deletedIdx, 1);
   renderGrid(); saveFile();
   showToast('✅ تمت استعادة المؤثر','#059669');
@@ -1411,7 +1414,7 @@ function addInfluencer() {
   const newItem={name,phone,civil,nationality,gender,ig:igHandle,ig_url:igRaw.startsWith('http')?igRaw:(igRaw?'https://www.instagram.com/'+igRaw.replace('@',''):''),tt:ttHandle,tt_url:ttRaw.startsWith('http')?ttRaw:(ttRaw?'https://www.tiktok.com/'+ttHandle:''),snap,status:'pending',visitDate:''};
   const dup=findDuplicate(newItem);
   if(dup){closeModal();showSingleDupWarning(newItem,dup);return;}
-  influencers.push(newItem); closeModal();
+  newItem.addedAt=Date.now();influencers.push(newItem); closeModal();
   ['mName','mPhone','mCivil','mIg','mTt','mSnap'].forEach(id=>document.getElementById(id).value='');
   document.getElementById('mNationality').value='';
   const base='flex:1;padding:9px;border-radius:9px;font-size:13px;cursor:pointer;font-family:Tajawal,sans-serif;';
@@ -1493,7 +1496,7 @@ function confirmBulkAdd() {
   if(parsed.length===0) return;
   _bulkClean=[];_bulkPending=[];
   parsed.forEach(item=>{const dup=findDuplicate(item);if(dup)_bulkPending.push({item,dup});else _bulkClean.push(item);});
-  if(_bulkPending.length===0){influencers.push(..._bulkClean);closeBulkModal();renderGrid();saveFile();showToast('✅ تم إضافة '+_bulkClean.length+' مؤثر بنجاح!','#059669');return;}
+  if(_bulkPending.length===0){_bulkClean.forEach(i=>{if(!i.addedAt)i.addedAt=Date.now();});influencers.push(..._bulkClean);closeBulkModal();renderGrid();saveFile();showToast('✅ تم إضافة '+_bulkClean.length+' مؤثر بنجاح!','#059669');return;}
   closeBulkModal();_bulkDecisions={};renderBulkDupModal();document.getElementById('dupBulkOverlay').classList.remove('hidden');
 }
 function renderBulkDupModal() {
@@ -1516,7 +1519,7 @@ function applyBulkDecisions(){
   let added=0,updated=0,skipped=0;
   _bulkPending.forEach((entry,i)=>{
     const dec=_bulkDecisions[i]||'skip';
-    if(dec==='add'){influencers.push(entry.item);added++;}
+    if(dec==='add'){entry.item.addedAt=Date.now();influencers.push(entry.item);added++;}
     else if(dec==='update'){
       const ex=influencers[entry.dup.idx];
       if(!ex.name&&entry.item.name)ex.name=entry.item.name;
@@ -1527,7 +1530,7 @@ function applyBulkDecisions(){
       updated++;
     } else skipped++;
   });
-  influencers.push(..._bulkClean);added+=_bulkClean.length;
+  _bulkClean.forEach(i=>{if(!i.addedAt)i.addedAt=Date.now();});influencers.push(..._bulkClean);added+=_bulkClean.length;
   document.getElementById('dupBulkOverlay').classList.add('hidden');
   renderGrid();saveFile();showToast('✅ '+added+' أُضيف · 🔄 '+updated+' حُدّث · ⏭ '+skipped+' تخطّي','#059669');
 }
@@ -1730,7 +1733,7 @@ function parseFormImport() {
   const tt     = tt_raw.includes('tiktok.com/@') ? '@'+tt_raw.split('tiktok.com/@').pop().split('?')[0] : '';
   const tt_url = tt_raw.startsWith('http') ? tt_raw.split('?')[0] : '';
 
-  _formImportItem = { name, civil, phone, nationality:nat_raw, gender, ig, ig_url, tt, tt_url, snap:snap_raw, status:'pending' };
+  _formImportItem = { name, civil, phone, nationality:nat_raw, gender, ig, ig_url, tt, tt_url, snap:snap_raw, status:'pending', addedAt:Date.now() };
 
   // Check duplicate immediately
   const dup = findDuplicate(_formImportItem);
@@ -2396,7 +2399,7 @@ const MIGRATIONS = {
       { name:'تايقر لاين', phone:'99614924', ig:'@tiger.line_', ig_url:'https://www.instagram.com/tiger.line_', tt:'@tiger.line_', tt_url:'https://www.tiktok.com/@tiger.line_', snap:'', status:'pending', gender:'f' },
       { name:'بلوقر مزونة', phone:'50296116', ig:'@mazouna.qt', ig_url:'https://www.instagram.com/mazouna.qt', tt:'@mazouna.q8', tt_url:'https://www.tiktok.com/@mazouna.q8', snap:'', status:'pending', gender:'f' },
       { name:'بلوقر نون (فويس اوفر)', phone:'90061949', ig:'@noon_blogerq8', ig_url:'https://www.instagram.com/noon_blogerq8', tt:'@blwqrnwn25', tt_url:'https://www.tiktok.com/@blwqrnwn25', snap:'https://snapchat.com/t/wmWXPwjr', status:'pending', gender:'f' },
-    ].forEach(item => { if(findByIg(item.ig) === -1) influencers.push(item); });
+    ].forEach(item => { if(findByIg(item.ig) === -1) item.addedAt=Date.now();influencers.push(item); });
   },
 
   // v2: new batch 02/05/2026
@@ -2417,7 +2420,7 @@ const MIGRATIONS = {
       { name:'بلوقر الترف', phone:'97503260', ig:'@tarif_p8', ig_url:'https://www.instagram.com/tarif_p8', tt:'@tarif_p8', tt_url:'https://www.tiktok.com/@tarif_p8', snap:'https://snapchat.com/t/qRlH6Uzc', status:'pending', gender:'f' },
       { name:'بلوقر ومودل هاجر', phone:'65601757', ig:'@ilx__1b', ig_url:'https://www.instagram.com/ilx__1b', tt:'@ilx__1b', tt_url:'https://www.tiktok.com/@ilx__1b', snap:'https://snapchat.com/t/Tx5ZnU7i', status:'pending', gender:'f' },
       { name:'بلوقر روز', phone:'', ig:'@roz.blogr', ig_url:'https://www.instagram.com/roz.blogr', tt:'@blog.roz', tt_url:'https://www.tiktok.com/@blog.roz', snap:'https://www.snapchat.com/add/blog.roz', status:'pending', gender:'f' },
-    ].forEach(item => { if(findByIg(item.ig) === -1) influencers.push(item); });
+    ].forEach(item => { if(findByIg(item.ig) === -1) item.addedAt=Date.now();influencers.push(item); });
   },
 
   // v3: sync from Firebase 03/05/2026
@@ -2437,7 +2440,7 @@ const MIGRATIONS = {
       { name:'Saja', phone:'41022378', civil:'289030500225', nationality:'', gender:'f', ig:'@its.mee.saya', ig_url:'https://www.instagram.com/its.mee.saya', tt:'@its.mee.saya', tt_url:'https://www.tiktok.com/@its.mee.saya', snap:'https://www.snapchat.com/add/saya-kw', status:'approved', visitDate:'2026-05-03', dialects:['كويتي'] },
       { name:'وفاء نزار الخطيب', phone:'65060474', civil:'290082600867', nationality:'كويتي', gender:'f', ig:'@nonah_blogger', ig_url:'https://www.instagram.com/nonah_blogger', tt:'@nonah_blogger', tt_url:'https://www.tiktok.com/@nonah_blogger', snap:'https://snapchat.com/t/lax8MXLY', status:'approved', dialects:['كويتي'] },
       { name:'حوراء', phone:'55855832', civil:'287090500068', nationality:'كويتي', gender:'f', ig:'@modacode.kw', ig_url:'https://www.instagram.com/modacode.kw', tt:'@modacode.kw', tt_url:'https://www.tiktok.com/@modacode.kw', snap:'', status:'approved', services:['فيلر'], visitStatus:'done', visitDate:'2026-04-30', dialects:['كويتي'], visitRating:1 },
-    ].forEach(item => { if(findByIg(item.ig) === -1) influencers.push(item); });
+    ].forEach(item => { if(findByIg(item.ig) === -1) item.addedAt=Date.now();influencers.push(item); });
 
     // Update dalaly3_ with form data
     const iDalaly = findByIg('dalaly3_');
