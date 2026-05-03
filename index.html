@@ -31,7 +31,8 @@ body{font-family:'Tajawal',sans-serif;direction:rtl;background:#0d1117;color:#e6
 .stat-label{font-size:11px;color:#a8d8ea;}
 .stat.approved .stat-num{color:#4ade80;}
 .stat.rejected .stat-num{color:#f87171;}
-.toolbar{padding:1rem 1.2rem;background:#161b22;border-bottom:1px solid #21262d;display:flex;gap:10px;align-items:center;flex-wrap:wrap;position:sticky;top:0;z-index:100;}
+.toolbar{padding:.8rem 1rem;background:#161b22;border-bottom:1px solid #21262d;display:flex;gap:8px;align-items:center;flex-wrap:wrap;overflow-x:auto;-webkit-overflow-scrolling:touch;}
+.toolbar::-webkit-scrollbar{display:none;}
 .search-wrap{flex:1;min-width:180px;position:relative;}
 .search-wrap input{width:100%;padding:8px 36px 8px 12px;background:#21262d;border:1px solid #30363d;border-radius:9px;color:#e6edf3;font-size:13px;font-family:'Tajawal',sans-serif;direction:rtl;}
 .search-wrap input:focus{outline:none;border-color:#1a6fa8;}
@@ -2867,12 +2868,15 @@ function doLogin() {
     document.getElementById('loginScreen').style.display = 'none';
     updateWelcome();
     logActivity('login', `تسجيل دخول: ${user}`);
-    // Remove ?guest=1 from URL if present
+    // Clear ALL guest CSS and restore admin view
+    var gs = document.getElementById('guestStyle');
+    if(gs) gs.textContent = '';
+    // Remove any dynamically added guest styles
+    document.querySelectorAll('style').forEach(function(s) {
+      if(s.textContent.includes('page-footer') || s.textContent.includes('guestBtns')) s.textContent = '';
+    });
     if(window.location.search.indexOf('guest=1') !== -1) {
       window.history.replaceState({}, '', window.location.pathname);
-      // Remove guest CSS
-      var gs = document.getElementById('guestStyle');
-      if(gs) gs.textContent = '';
     }
     init();
   } else {
@@ -3234,7 +3238,13 @@ async function init() {
     // Poll Firebase every 30s for live updates
     setInterval(function() {
       tryLoadFirebase().then(function(loaded) {
-        if(loaded) { runMigrations(); influencers.forEach(function(item){if(item.phone)item.phone=normalizePhone(item.phone);}); updateStats(); }
+        if(loaded) {
+          runMigrations();
+          influencers.forEach(function(item){if(item.phone)item.phone=normalizePhone(item.phone);});
+          updateStats();
+          // Only re-render appts if overlay is open
+          if(document.getElementById('guestApptOverlay')) renderGuestView();
+        }
       }).catch(function(){});
     }, 30000);
     return;
