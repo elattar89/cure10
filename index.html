@@ -2290,14 +2290,14 @@ function openApptPanel(){
     const timeStr=item.visitDate.includes('T')?item.visitDate.split('T')[1]:'';
     const timeLabel=timeStr?` · ${timeStr.replace('AM','ص').replace('PM','م')}`:'';
     const isDone = item.visitStatus === 'done';
-    return `<div class="appt-item ${item.status||'pending'}" style="${isDone?'opacity:.4;filter:grayscale(1);':isPast?'opacity:.55;background:rgba(0,0,0,.2);':''}${!isGuest()?'cursor:pointer;':''}" ${!isGuest()?`onclick="showApptCard(${idx})"`:''}>
+    return `<div class="appt-item ${item.status||'pending'}" style="${isDone?'background:rgba(0,0,0,.25);border-color:#30363d;':isPast&&!isDone?'opacity:.55;background:rgba(0,0,0,.2);':''}${!isGuest()?'cursor:pointer;':''}" ${!isGuest()?`onclick="showApptCard(${idx})"`:''}>
       <div class="appt-date-badge" style="border-color:${isDone?'#484f58':isPast?'#484f58':color};${isDone||isPast?'background:#21262d;':''}">
-        <div class="appt-date-day" style="${isDone||isPast?'color:#6e7681;':''}">${parseInt(d)}</div>
-        <div class="appt-date-month" style="${isDone||isPast?'color:#484f58;':''}">${MONTHS_AR[parseInt(m)-1]}</div>
+        <div class="appt-date-day" style="${isDone?'color:#6e7681;':isPast?'color:#6e7681;':''}">${parseInt(d)}</div>
+        <div class="appt-date-month" style="${isDone?'color:#484f58;':isPast?'color:#484f58;':''}">${MONTHS_AR[parseInt(m)-1]}</div>
       </div>
       <div class="appt-info">
-        <div class="appt-name" style="${isDone?'color:#4ade80;':isPast?'color:#6e7681;':''}">${name}</div>
-        <div class="appt-sub">${item.phone||item.ig||''}${timeLabel}${isDone?' · <span style="color:#4ade80;font-size:10px;">✅ تمت</span>':item.visitStatus==='cancelled'?' · <span style="color:#f87171;font-size:10px;">❌ ألغيت</span>':isPast?' · <span style="color:#f87171;font-size:10px;">انتهى</span>':''}</div>
+        <div class="appt-name" style="${isDone?'color:#8b949e;':isPast?'color:#6e7681;':''}">${name}</div>
+        <div class="appt-sub">${item.phone||item.ig||''}${timeLabel}${isDone?' · <span style="color:#4ade80;font-size:10px;font-weight:700;">✅ تمت</span>':item.visitStatus==='cancelled'?' · <span style="color:#f87171;font-size:10px;">❌ ألغيت</span>':isPast?' · <span style="color:#f87171;font-size:10px;">انتهى</span>':''}</div>
       </div>
       <span class="appt-status-tag ${item.status||'pending'}">${item.status==='approved'?'✅':item.status==='rejected'?'❌':'⏳'}</span>
     </div>`;
