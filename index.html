@@ -2783,19 +2783,17 @@ function checkAuth() {
   return true;
 }
 function setAuth(user) {
-  setAuth(user);
-  // Also save as cookie for cross-browser compatibility
+  sessionStorage.setItem('cure_auth', user);
   document.cookie = `cure_auth=${user};path=/;max-age=86400`;
 }
 function getAuth() {
-  const ss = getAuth();
+  const ss = sessionStorage.getItem('cure_auth');
   if(ss) return ss;
-  // Try cookie
   const match = document.cookie.match(/cure_auth=([^;]+)/);
   return match ? match[1] : null;
 }
 function clearAuth() {
-  clearAuth();
+  sessionStorage.removeItem('cure_auth');
   document.cookie = 'cure_auth=;path=/;max-age=0';
 }
 function isGuest() {
