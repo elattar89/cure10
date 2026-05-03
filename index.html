@@ -295,7 +295,7 @@ body{font-family:'Tajawal',sans-serif;direction:rtl;background:#0d1117;color:#e6
   var isGuest = window.location.search.indexOf('guest=1') !== -1;
   if(isGuest) {
     var s = document.getElementById('guestStyle');
-    s.textContent = '#fabBtn,.fab,.page-footer,.toolbar,#grid{display:none!important}.stat{cursor:default!important;pointer-events:none!important}#guestBtns{display:flex!important}';
+    s.textContent = '#fabBtn,.fab,.page-footer,.toolbar,#grid,#statsBar2{display:none!important}.stat{cursor:default!important;pointer-events:none!important}#guestBtns{display:flex!important;pointer-events:auto!important}#guestBtns *{pointer-events:auto!important}';
   }
 })();
 </script>
@@ -826,49 +826,73 @@ async function loadFromStorage() {
   return loaded || localLoaded;
 }
 
-async function tryLoadFirebase() {
-  // Method 1: fetch with no-cors workaround
-  const urls = [
-    `${DB_URL}/${DB_PATH}.json`,
-    `${DB_URL}/${DB_PATH}.json?print=pretty`,
-  ];
-  for(const url of urls) {
-    try {
-      const res = await Promise.race([
-        fetch(url, { method: 'GET', headers: { 'Accept': 'application/json' }, mode: 'cors' }),
-        new Promise((_,rej) => setTimeout(() => rej(new Error('timeout')), 7000))
-      ]);
-      if(res && res.ok) {
-        const val = await res.json();
+function tryLoadFirebase() {
+  return new Promise(function(resolve) {
+    var url = DB_URL + '/' + DB_PATH + '.json';
+    
+    function processData(text) {
+      try {
+        var val = JSON.parse(text);
         if(val && val.data) {
-          const parsed = JSON.parse(val.data);
+          var parsed = JSON.parse(val.data);
           if(Array.isArray(parsed) && parsed.length > 0) {
             influencers = parsed;
             try { localStorage.setItem(LS_KEY, JSON.stringify(influencers)); } catch(e) {}
-            // Also load deleted
-            try {
-              const res2 = await Promise.race([
-                fetch(`${DB_URL}/${DB_DELETED_PATH}.json`, { mode: 'cors' }),
-                new Promise((_,rej) => setTimeout(() => rej(), 5000))
-              ]);
-              if(res2 && res2.ok) {
-                const val2 = await res2.json();
-                if(val2 && val2.data) {
-                  const p2 = JSON.parse(val2.data);
-                  if(Array.isArray(p2)) {
-                    deletedInfluencers = p2;
-                    try { localStorage.setItem(LS_DELETED_KEY, JSON.stringify(p2)); } catch(e) {}
+            // Load deleted too
+            var xhr2 = new XMLHttpRequest();
+            xhr2.open('GET', DB_URL + '/' + DB_DELETED_PATH + '.json', true);
+            xhr2.timeout = 5000;
+            xhr2.onload = function() {
+              try {
+                if(xhr2.status === 200) {
+                  var v2 = JSON.parse(xhr2.responseText);
+                  if(v2 && v2.data) {
+                    var p2 = JSON.parse(v2.data);
+                    if(Array.isArray(p2)) {
+                      deletedInfluencers = p2;
+                      try { localStorage.setItem(LS_DELETED_KEY, JSON.stringify(p2)); } catch(e) {}
+                    }
                   }
                 }
-              }
-            } catch(e2) {}
+              } catch(e) {}
+            };
+            xhr2.send();
             return true;
           }
         }
+      } catch(e) {}
+      return false;
+    }
+
+    // Try XMLHttpRequest first (better on iOS Safari)
+    var xhr = new XMLHttpRequest();
+    xhr.open('GET', url, true);
+    xhr.timeout = 8000;
+    xhr.onload = function() {
+      if(xhr.status === 200 && processData(xhr.responseText)) {
+        resolve(true);
+      } else {
+        tryFetch();
       }
-    } catch(e) {}
-  }
-  return false;
+    };
+    xhr.onerror = tryFetch;
+    xhr.ontimeout = tryFetch;
+    xhr.send();
+
+    function tryFetch() {
+      if(!window.fetch) { resolve(false); return; }
+      var timer = setTimeout(function(){ resolve(false); }, 7000);
+      fetch(url, { mode: 'cors' }).then(function(res) {
+        clearTimeout(timer);
+        return res.text();
+      }).then(function(text) {
+        resolve(processData(text));
+      }).catch(function() {
+        clearTimeout(timer);
+        resolve(false);
+      });
+    }
+  });
 }
 function showSaveIndicator() {
   const el = document.getElementById('saveIndicator');
