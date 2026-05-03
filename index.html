@@ -278,8 +278,18 @@ body{font-family:'Tajawal',sans-serif;direction:rtl;background:#0d1117;color:#e6
   .report-header h2{ font-size:16px!important; }
   .report-header p{ font-size:10px!important; }
 }
+<style id="guestStyle">
+/* Guest mode - hidden by default, shown via JS */
 </style>
-</head>
+<script>
+// Apply guest CSS immediately if guest URL
+if(window.location.search.indexOf('guest=1') !== -1) {
+  document.getElementById('guestStyle').textContent = `
+    #fabBtn, .page-footer, .toolbar, #grid, #apptPanelOverlay { display: none !important; }
+    .stat { cursor: default !important; pointer-events: none !important; }
+  `;
+}
+</script>
 <body>
 
 <!-- Login Screen -->
@@ -3044,19 +3054,17 @@ async function init() {
     document.querySelector('.toolbar').style.display = 'none';
     document.getElementById('grid').style.display = 'none';
     document.querySelector('.page-footer').style.display = 'none';
-    const fab = document.getElementById('fabBtn');
-    if(fab) fab.style.display = 'none';
+    const fab = document.getElementById('fabBtn'); if(fab) fab.style.display = 'none';
     document.querySelectorAll('.stat').forEach(s => { s.style.cursor='default'; s.setAttribute('onclick',''); });
-    // Only add buttons once
+    updateStats();
     if(!document.getElementById('guestBtns')) {
       document.querySelector('.header').insertAdjacentHTML('beforeend', `
         <div id="guestBtns" style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:1rem;">
-          <button onclick="openGuestReport()" style="padding:10px 20px;border-radius:10px;border:1px solid #16a34a;background:#0d1f14;color:#4ade80;font-size:14px;font-weight:700;cursor:pointer;font-family:Tajawal,sans-serif;">📋 كشف المقبولين</button>
-          <button onclick="openGuestAppts()" style="padding:10px 20px;border-radius:10px;border:1px solid #0891b2;background:#0e2433;color:#22d3ee;font-size:14px;font-weight:700;cursor:pointer;font-family:Tajawal,sans-serif;">📅 مواعيد الزيارات</button>
+          <button onclick="openStatusReport('approved')" style="padding:12px 24px;border-radius:10px;border:1px solid #16a34a;background:#0d1f14;color:#4ade80;font-size:15px;font-weight:700;cursor:pointer;font-family:Tajawal,sans-serif;">📋 كشف المقبولين</button>
+          <button onclick="openGuestAppts()" style="padding:12px 24px;border-radius:10px;border:1px solid #0891b2;background:#0e2433;color:#22d3ee;font-size:15px;font-weight:700;cursor:pointer;font-family:Tajawal,sans-serif;">📅 مواعيد الزيارات</button>
         </div>
       `);
     }
-    updateStats(); // update after data loaded
     await saveToStorage();
     return;
   }
