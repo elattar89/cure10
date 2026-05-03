@@ -2585,17 +2585,16 @@ function openGuestReport() {
   document.body.appendChild(div);
 }
 function openGuestAppts() {
-  // Create or show guest appointments modal
   let overlay = document.getElementById('guestApptOverlay');
   if(!overlay) {
     document.body.insertAdjacentHTML('beforeend', `
-      <div id="guestApptOverlay" style="position:fixed;inset:0;z-index:3000;background:rgba(0,0,0,0.8);display:flex;align-items:flex-start;justify-content:center;padding:1rem;overflow-y:auto;">
+      <div id="guestApptOverlay" style="position:fixed;inset:0;z-index:3000;background:#0d1117;display:flex;align-items:flex-start;justify-content:center;padding:1rem;overflow-y:auto;">
         <div style="width:100%;max-width:500px;margin:auto;">
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;padding-bottom:.8rem;border-bottom:1px solid #21262d;">
             <div style="font-size:18px;font-weight:900;color:#e6edf3;">📅 مواعيد الزيارات</div>
             <button onclick="document.getElementById('guestApptOverlay').style.display='none'" style="background:#21262d;border:1px solid #30363d;color:#e6edf3;width:32px;height:32px;border-radius:50%;cursor:pointer;font-size:16px;">✕</button>
           </div>
-          <div id="guestApptList" style="display:flex;flex-direction:column;gap:10px;"></div>
+          <div id="guestApptList" style="display:flex;flex-direction:column;gap:12px;"></div>
         </div>
       </div>
     `);
@@ -2685,6 +2684,19 @@ function renderGuestView() {
           <div style="font-size:15px;font-weight:700;color:#e6edf3;">${name}</div>
           ${item.services&&item.services.length?`<div style="font-size:12px;color:#c084fc;">💉 ${item.services.join(' · ')}</div>`:''}
           <div style="font-size:12px;margin-top:2px;">${vs==='done'?'<span style="color:#4ade80;">✅ تمت الزيارة</span>':vs==='cancelled'?'<span style="color:#fbbf24;">⚠️ ألغيت الزيارة</span>':isToday?'<span style="color:#f59e0b;">⭐ اليوم</span>':''}</div>
+        </div>
+      </div>
+      <!-- Services -->
+      <div style="margin-bottom:.7rem;">
+        <div style="font-size:11px;color:#8b949e;margin-bottom:5px;">💉 الخدمة:</div>
+        <div style="display:flex;flex-wrap:wrap;gap:6px;">
+          ${SERVICES.map(s => {
+            const checked = item.services && item.services.includes(s);
+            return `<label style="display:flex;align-items:center;gap:4px;cursor:pointer;background:${checked?'#1a0a2e':'#21262d'};border:1px solid ${checked?'#7c3aed':'#30363d'};border-radius:8px;padding:5px 10px;font-size:12px;color:${checked?'#c084fc':'#8b949e'};">
+              <input type="checkbox" ${checked?'checked':''} onchange="guestToggleService(${idx},'${s}',this)" style="accent-color:#7c3aed;width:13px;height:13px;">
+              ${s}
+            </label>`;
+          }).join('')}
         </div>
       </div>
       <!-- Time picker -->
