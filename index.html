@@ -277,6 +277,17 @@ body{font-family:'Tajawal',sans-serif;direction:rtl;background:#0d1117;color:#e6
   .report-header h2{ font-size:16px!important; }
   .report-header p{ font-size:10px!important; }
 }
+/* Guest buttons - always clickable */
+#guestBtns button{touch-action:manipulation;-webkit-tap-highlight-color:transparent;pointer-events:auto!important;}
+/* Guest mobile layout */
+@media(max-width:600px){
+  #guestBtns{flex-direction:column!important;padding:0 1rem!important;gap:10px!important;margin-top:.8rem!important;width:100%!important;box-sizing:border-box;}
+  #guestBtns button{width:100%!important;padding:16px!important;font-size:16px!important;min-height:54px!important;border-radius:12px!important;}
+  .stats-bar{gap:.3rem!important;margin-top:.6rem!important;}
+  .stat{padding:.3rem .45rem!important;min-width:48px!important;border-radius:10px!important;}
+  .stat-num{font-size:14px!important;}
+  .stat-label{font-size:9px!important;}
+}
 </style>
 <style id="guestStyle"></style>
 <script>
@@ -3063,11 +3074,11 @@ function openGuestAppts() {
   let overlay = document.getElementById('guestApptOverlay');
   if(!overlay) {
     document.body.insertAdjacentHTML('beforeend', `
-      <div id="guestApptOverlay" style="position:fixed;inset:0;z-index:3000;background:#0d1117;display:flex;align-items:flex-start;justify-content:center;padding:.5rem;overflow-y:auto;-webkit-overflow-scrolling:touch;height:100%;height:100dvh;" onclick="if(event.target===this)document.getElementById('guestApptOverlay').style.display='none'">
-        <div style="width:100%;max-width:500px;margin:0 auto;padding-bottom:2rem;">
+      <div id="guestApptOverlay" style="position:fixed;top:0;left:0;width:100%;height:100%;z-index:3000;background:#0d1117;overflow-y:auto;-webkit-overflow-scrolling:touch;">
+        <div style="width:100%;max-width:500px;margin:0 auto;padding:.8rem .8rem 5rem;">
           <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;padding-bottom:.8rem;border-bottom:1px solid #21262d;position:sticky;top:0;background:#0d1117;z-index:1;padding-top:.5rem;">
             <div style="font-size:18px;font-weight:900;color:#e6edf3;">📅 مواعيد الزيارات</div>
-            <button onclick="document.getElementById('guestApptOverlay').style.display='none'" style="background:#21262d;border:1px solid #30363d;color:#e6edf3;width:36px;height:36px;border-radius:50%;cursor:pointer;font-size:18px;flex-shrink:0;">✕</button>
+            <button onclick="document.getElementById('guestApptOverlay').remove()" style="background:#21262d;border:1px solid #30363d;color:#e6edf3;width:44px;height:44px;border-radius:50%;cursor:pointer;font-size:20px;flex-shrink:0;touch-action:manipulation;">✕</button>
           </div>
           <div id="guestApptList" style="display:flex;flex-direction:column;gap:12px;"></div>
         </div>
@@ -3075,7 +3086,7 @@ function openGuestAppts() {
     `);
     overlay = document.getElementById('guestApptOverlay');
   } else {
-    overlay.style.display = 'flex';
+    overlay.style.display = 'block';
   }
   renderGuestView();
 }
@@ -3226,11 +3237,35 @@ async function init() {
     const fab = document.getElementById('fabBtn'); if(fab) fab.style.display = 'none';
     document.querySelectorAll('.stat').forEach(s => { s.style.cursor='default'; s.setAttribute('onclick',''); });
     updateStats();
+
+    const isMobile = window.innerWidth <= 600;
+    if(isMobile) {
+      // Mobile: full screen simple layout
+      document.querySelector('.header').style.paddingBottom = '1.2rem';
+      // Make stats smaller and tighter
+      document.querySelectorAll('.stat').forEach(s => {
+        s.style.padding = '.3rem .5rem';
+        s.style.minWidth = '50px';
+      });
+      // Guest buttons stacked vertically and full width
+      var gb = document.getElementById('guestBtns');
+      if(gb) {
+        gb.style.flexDirection = 'column';
+        gb.style.padding = '0 1rem';
+        gb.style.gap = '8px';
+        gb.style.width = '100%';
+      }
+    }
+
     await saveToStorage();
     // Poll Firebase every 30s for live updates
     setInterval(function() {
       tryLoadFirebase().then(function(loaded) {
-        if(loaded) { runMigrations(); influencers.forEach(function(item){if(item.phone)item.phone=normalizePhone(item.phone);}); updateStats(); }
+        if(loaded) {
+          runMigrations();
+          influencers.forEach(function(item){if(item.phone)item.phone=normalizePhone(item.phone);});
+          updateStats();
+        }
       }).catch(function(){});
     }, 30000);
     return;
