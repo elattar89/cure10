@@ -25,18 +25,18 @@ body{font-family:'Tajawal',sans-serif;direction:rtl;background:#0d1117;color:#e6
 .stat-label{font-size:11px;color:#a8d8ea;}
 .stat.approved .stat-num{color:#4ade80;}
 .stat.rejected .stat-num{color:#f87171;}
-.toolbar{padding:1rem 1.2rem;background:#161b22;border-bottom:1px solid #21262d;display:flex;gap:10px;align-items:center;flex-wrap:wrap;position:sticky;top:0;z-index:100;}
+.toolbar{padding:.8rem 1.2rem;background:#0d1117;border-bottom:2px solid #30363d;display:flex;gap:10px;align-items:center;flex-wrap:wrap;position:sticky;top:0;z-index:100;}
 .search-wrap{flex:1;min-width:180px;position:relative;}
-.search-wrap input{width:100%;padding:8px 36px 8px 12px;background:#21262d;border:1px solid #30363d;border-radius:9px;color:#e6edf3;font-size:13px;font-family:'Tajawal',sans-serif;direction:rtl;}
-.search-wrap input:focus{outline:none;border-color:#1a6fa8;}
+.search-wrap input{width:100%;padding:8px 36px 8px 12px;background:#161b22;border:1px solid #30363d;border-radius:9px;color:#e6edf3;font-size:13px;font-family:'Tajawal',sans-serif;direction:rtl;}
+.search-wrap input:focus{outline:none;border-color:#7c3aed;box-shadow:0 0 0 2px rgba(124,58,237,0.15);}
 .search-wrap input::placeholder{color:#6e7681;}
 .search-icon{position:absolute;left:10px;top:50%;transform:translateY(-50%);color:#6e7681;}
 .filter-btns{display:flex;gap:6px;flex-wrap:wrap;}
-.filter-btn{padding:6px 12px;border-radius:7px;border:1px solid #30363d;background:#21262d;color:#8b949e;font-size:12px;cursor:pointer;font-family:'Tajawal',sans-serif;transition:all .15s;}
-.filter-btn.active,.filter-btn:hover{background:#1a6fa8;border-color:#1a6fa8;color:#fff;}
+.filter-btn{padding:6px 12px;border-radius:7px;border:1px solid #30363d;background:#161b22;color:#8b949e;font-size:12px;cursor:pointer;font-family:'Tajawal',sans-serif;transition:all .15s;}
+.filter-btn.active,.filter-btn:hover{background:#7c3aed;border-color:#7c3aed;color:#fff;}
 .filter-btn.f-approved.active{background:#16a34a;border-color:#16a34a;}
 .filter-btn.f-rejected.active{background:#dc2626;border-color:#dc2626;}
-.count-badge{background:#21262d;border:1px solid #30363d;color:#8b949e;font-size:12px;padding:6px 12px;border-radius:7px;white-space:nowrap;}
+.count-badge{background:#161b22;border:1px solid #30363d;color:#8b949e;font-size:12px;padding:6px 12px;border-radius:7px;white-space:nowrap;}
 .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:.9rem;padding:1.2rem;}
 .card{background:#161b22;border:1px solid #21262d;border-radius:14px;padding:1rem;transition:border-color .2s,transform .15s;position:relative;}
 .card:hover{border-color:#2d333b;transform:translateY(-1px);}
@@ -384,25 +384,25 @@ body{font-family:'Tajawal',sans-serif;direction:rtl;background:#0d1117;color:#e6
     <span class="search-icon"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg></span>
   </div>
   <div class="filter-btns">
-    <button class="filter-btn active" id="fb-all" onclick="setFilter('all',this)">الكل</button>
-    <button class="filter-btn f-approved" id="fb-approved" onclick="setFilter('approved',this)">✅ مقبولين</button>
-    <button class="filter-btn f-rejected" id="fb-rejected" onclick="setFilter('rejected',this)">⛔ مرفوضين</button>
-    <button class="filter-btn" onclick="setFilter('pending',this)">⏳ قيد المراجعة</button>
-    <button class="filter-btn" id="fb-ig" onclick="setFilter('ig',this)" style="display:flex;align-items:center;gap:5px;">
+    <button class="filter-btn active" id="fb-all" onclick="setFilter('all',this)" style="display:none;">الكل</button>
+    <button class="filter-btn f-approved" id="fb-approved" onclick="setFilter('approved',this)" style="display:none;">✅ مقبولين</button>
+    <button class="filter-btn f-rejected" id="fb-rejected" onclick="setFilter('rejected',this)" style="display:none;">⛔ مرفوضين</button>
+    <button class="filter-btn" onclick="setFilter('pending',this)" style="display:none;">⏳ قيد المراجعة</button>
+    <button class="filter-btn" id="fb-ig" onclick="setFilter('ig',this)" style="display:none;align-items:center;gap:5px;">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="url(#ig-grad-tb)"><defs><linearGradient id="ig-grad-tb" x1="0%" y1="100%" x2="100%" y2="0%"><stop offset="0%" style="stop-color:#f09433"/><stop offset="25%" style="stop-color:#e6683c"/><stop offset="50%" style="stop-color:#dc2743"/><stop offset="75%" style="stop-color:#cc2366"/><stop offset="100%" style="stop-color:#bc1888"/></linearGradient></defs><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>
       انستاجرام
     </button>
-    <button class="filter-btn" id="fb-tt" onclick="setFilter('tt',this)" style="display:flex;align-items:center;gap:5px;">
+    <button class="filter-btn" id="fb-tt" onclick="setFilter('tt',this)" style="display:none;align-items:center;gap:5px;">
       <svg width="14" height="14" viewBox="0 0 24 24"><path fill="#69C9D0" d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-2.88 2.5 2.89 2.89 0 0 1-2.89-2.89 2.89 2.89 0 0 1 2.89-2.89c.28 0 .54.04.79.1V9.01a6.34 6.34 0 0 0-.79-.05 6.34 6.34 0 0 0-6.34 6.34 6.34 6.34 0 0 0 6.34 6.34 6.34 6.34 0 0 0 6.33-6.34V8.69a8.18 8.18 0 0 0 4.78 1.52V6.76a4.86 4.86 0 0 1-3-.07z"/><path fill="#EE1D52" d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-2.88 2.5 2.89 2.89 0 0 1-2.89-2.89 2.89 2.89 0 0 1 2.89-2.89c.28 0 .54.04.79.1V9.01a6.34 6.34 0 0 0-.79-.05 6.34 6.34 0 0 0-6.34 6.34 6.34 6.34 0 0 0 6.34 6.34 6.34 6.34 0 0 0 6.33-6.34V8.69a8.18 8.18 0 0 0 4.78 1.52V6.76a4.86 4.86 0 0 1-1-.07z" opacity=".5"/></svg>
       تيك توك
     </button>
-    <button class="filter-btn" id="fb-snap" onclick="setFilter('snap',this)" style="display:flex;align-items:center;gap:5px;">
+    <button class="filter-btn" id="fb-snap" onclick="setFilter('snap',this)" style="display:none;align-items:center;gap:5px;">
       <svg width="14" height="14" viewBox="0 0 24 24"><path fill="#FFFC00" d="M12.166.011C9.033.011 6.099 1.871 4.91 4.66c-.53 1.236-.425 3.566-.362 4.994-.33.15-.727.24-1.17.133-.315-.075-.627.154-.68.475-.081.497.286.898.75 1.012.63.154 1.236.124 1.784-.047.083-.024.163-.054.241-.086.41 1.24 1.14 2.41 2.177 3.299-.754.378-2.15.89-3.914 1.01-.282.018-.52.208-.573.488-.245 1.304 2.36 2.014 3.69 2.338.244.059.41.28.4.53-.02.457.02.76.107.97.068.163.237.255.408.215.332-.079.654-.232.997-.232.388 0 .639.104 1.012.316.762.437 1.627.943 3.219.943 1.57 0 2.44-.498 3.193-.934.372-.213.63-.325 1.012-.325.338 0 .657.152.987.23.172.041.342-.052.41-.214.086-.21.127-.513.107-.97-.01-.25.156-.47.4-.53 1.33-.323 3.934-1.033 3.69-2.337-.054-.28-.291-.47-.573-.488-1.765-.12-3.16-.632-3.914-1.01 1.036-.889 1.767-2.059 2.177-3.299.078.032.158.062.241.086.548.171 1.154.201 1.784.047.464-.114.831-.515.75-1.012-.053-.321-.365-.55-.68-.475-.443.107-.84.017-1.17-.133.063-1.428.168-3.758-.362-4.994C17.9 1.871 14.966.011 12.166.011z"/></svg>
       سناب
     </button>
-    <button class="filter-btn" id="fb-all3" onclick="setFilter('all3',this)">🌐 جميع المنصات</button>
-    <button class="filter-btn" id="fb-male" onclick="setFilter('male',this)">👨 الذكور</button>
-    <button class="filter-btn" id="fb-female" onclick="setFilter('female',this)">👩 الإناث</button>
+    <button class="filter-btn" id="fb-all3" onclick="setFilter('all3',this)" style="display:none;">🌐 جميع المنصات</button>
+    <button class="filter-btn" id="fb-male" onclick="setFilter('male',this)" style="display:none;">👨 الذكور</button>
+    <button class="filter-btn" id="fb-female" onclick="setFilter('female',this)" style="display:none;">👩 الإناث</button>
     <!-- Nationality dropdown -->
     <div style="position:relative;display:inline-block;">
       <button class="filter-btn" id="fb-nat" onclick="toggleNatMenu(event)" style="display:flex;align-items:center;gap:4px;">
@@ -431,7 +431,7 @@ body{font-family:'Tajawal',sans-serif;direction:rtl;background:#0d1117;color:#e6
     </div>
   </div>
   <button class="filter-btn" onclick="openApptPanel()" style="white-space:nowrap;border-color:#0891b2;color:#22d3ee;">📅 مواعيد</button>
-  <button class="filter-btn" id="fb-deleted" onclick="setFilter('deleted',this)" style="white-space:nowrap;border-color:#6b2020;color:#f87171;flex-shrink:0;">✕ المحذوفين <span id="deletedBadge" style="display:none;background:#dc2626;color:#fff;border-radius:10px;padding:1px 6px;font-size:10px;margin-right:2px;">0</span></button>
+  <button class="filter-btn" id="fb-deleted" onclick="setFilter('deleted',this)" style="display:none;white-space:nowrap;border-color:#6b2020;color:#f87171;flex-shrink:0;">✕ المحذوفين <span id="deletedBadge" style="display:none;background:#dc2626;color:#fff;border-radius:10px;padding:1px 6px;font-size:10px;margin-right:2px;">0</span></button>
   <button id="visitedBtn" style="display:none;padding:7px 14px;border-radius:9px;border:1px solid #059669;font-size:13px;cursor:pointer;font-family:Tajawal,sans-serif;white-space:nowrap;font-weight:700;background:#0d1f14;color:#34d399;transition:.15s;" onclick="setFilter('visited',this)">🏁 اكتملت الزيارة</button>
   <button id="cancelledBtn" style="display:none;padding:7px 14px;border-radius:9px;border:1px solid #dc2626;font-size:13px;cursor:pointer;font-family:Tajawal,sans-serif;white-space:nowrap;font-weight:700;background:#1a0808;color:#f87171;transition:.15s;" onclick="setFilter('cancelled',this)">❌ ألغيت الزيارة</button>
   <button id="reportBtn" style="display:none;padding:7px 14px;border-radius:9px;border:1px solid #1a6fa8;font-size:13px;cursor:pointer;font-family:Tajawal,sans-serif;white-space:nowrap;font-weight:700;background:#1e3a5f;color:#60a5fa;transition:.15s;" onclick="openReportFromBtn()">📋 كشف</button>
