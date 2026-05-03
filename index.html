@@ -2861,7 +2861,14 @@ function doLogin() {
     document.getElementById('loginScreen').style.display = 'none';
     updateWelcome();
     logActivity('login', `تسجيل دخول: ${user}`);
-    init(); // Start the app
+    // Remove ?guest=1 from URL if present
+    if(window.location.search.indexOf('guest=1') !== -1) {
+      window.history.replaceState({}, '', window.location.pathname);
+      // Remove guest CSS
+      var gs = document.getElementById('guestStyle');
+      if(gs) gs.textContent = '';
+    }
+    init();
   } else {
     document.getElementById('loginError').style.display = 'block';
     document.getElementById('loginPass').value = '';
@@ -2890,27 +2897,16 @@ function checkAuth() {
 document.cookie = 'cure_auth=;path=/;max-age=0;expires=Thu, 01 Jan 1970 00:00:00 GMT';
 localStorage.removeItem('cure_auth_v2');
 
-// Clear auth on back/forward navigation on ALL devices
+// Clear auth on back navigation (all devices)
 window.addEventListener('pageshow', function(e) {
   if(e.persisted) {
     sessionStorage.removeItem('cure_auth');
     window.location.reload();
   }
 });
-
-// Also handle popstate (back button) on all browsers
-window.addEventListener('popstate', function() {
-  sessionStorage.removeItem('cure_auth');
-  window.location.reload();
-});
 if(new URLSearchParams(window.location.search).get('guest') === '1') {
-  // Only apply CSS - don't auto-login, user must press Guest Login button
-  const style = document.createElement('style');
-  style.textContent = `
-    .fab, .page-footer, .toolbar, #grid { display: none !important; }
-    .stat { cursor: default !important; pointer-events: none !important; }
-  `;
-  document.head.appendChild(style);
+  // Auto-login as guest from URL
+  sessionStorage.setItem('cure_auth', 'guest');
 }
 
 function setAuth(user) {
