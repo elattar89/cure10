@@ -461,7 +461,7 @@ body{font-family:'Tajawal',sans-serif;direction:rtl;background:#0d1117;color:#e6
 </div>
 
 <!-- FAB -->
-<button class="fab" onclick="openModal()" title="إضافة مؤثر جديد">
+<button class="fab" onclick="openModal()" title="إضافة مؤثر جديد" id="fabBtn">
   <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
 </button>
 
@@ -2842,6 +2842,8 @@ async function init() {
     document.querySelector('.toolbar').style.display = 'none';
     document.getElementById('grid').style.display = 'none';
     document.querySelector('.page-footer').style.display = 'none';
+    const fab = document.getElementById('fabBtn');
+    if(fab) fab.style.display = 'none';
     // Make header stats non-clickable
     document.querySelectorAll('.stat').forEach(s => s.style.cursor = 'default');
     document.querySelectorAll('.stat').forEach(s => s.setAttribute('onclick',''));
