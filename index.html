@@ -282,12 +282,23 @@ body{font-family:'Tajawal',sans-serif;direction:rtl;background:#0d1117;color:#e6
 /* Guest mode - hidden by default, shown via JS */
 </style>
 <script>
-// Apply guest CSS immediately if guest URL
 if(window.location.search.indexOf('guest=1') !== -1) {
   document.getElementById('guestStyle').textContent = `
-    #fabBtn, .page-footer, .toolbar, #grid, #apptPanelOverlay { display: none !important; }
+    #fabBtn, .fab, .page-footer, .toolbar, #grid { display: none !important; }
     .stat { cursor: default !important; pointer-events: none !important; }
   `;
+  // Show guest buttons as soon as DOM is ready
+  document.addEventListener('DOMContentLoaded', function() {
+    const header = document.querySelector('.header');
+    if(header && !document.getElementById('guestBtns')) {
+      header.insertAdjacentHTML('beforeend', `
+        <div id="guestBtns" style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:1rem;">
+          <button onclick="openStatusReport('approved')" style="padding:12px 24px;border-radius:10px;border:1px solid #16a34a;background:#0d1f14;color:#4ade80;font-size:15px;font-weight:700;cursor:pointer;font-family:Tajawal,sans-serif;">📋 كشف المقبولين</button>
+          <button onclick="openGuestAppts()" style="padding:12px 24px;border-radius:10px;border:1px solid #0891b2;background:#0e2433;color:#22d3ee;font-size:15px;font-weight:700;cursor:pointer;font-family:Tajawal,sans-serif;">📅 مواعيد الزيارات</button>
+        </div>
+      `);
+    }
+  });
 }
 </script>
 <body>
@@ -790,25 +801,22 @@ async function saveToStorage() {
   showSaveIndicator();
 }
 async function loadFromStorage() {
-  // Try localStorage first (instant)
+  // Try localStorage first (instant - works everywhere)
   let localLoaded = false;
   try {
     const ls = localStorage.getItem(LS_KEY);
     if (ls) {
       const parsed = JSON.parse(ls);
-      if (Array.isArray(parsed) && parsed.length > 0) {
-        influencers = parsed;
-        localLoaded = true;
-      }
+      if (Array.isArray(parsed) && parsed.length > 0) { influencers = parsed; localLoaded = true; }
     }
     const lsd = localStorage.getItem(LS_DELETED_KEY);
-    if (lsd) {
-      const parsedd = JSON.parse(lsd);
-      if (Array.isArray(parsedd)) deletedInfluencers = parsedd;
-    }
+    if (lsd) { const p = JSON.parse(lsd); if(Array.isArray(p)) deletedInfluencers = p; }
   } catch(e) {}
 
-  // Try Firebase with multiple methods
+  // For guest on mobile, use localStorage immediately if available
+  if(window.location.search.indexOf('guest=1') !== -1 && localLoaded) return true;
+
+  // Try Firebase
   const loaded = await tryLoadFirebase();
   return loaded || localLoaded;
 }
@@ -3066,6 +3074,11 @@ async function init() {
       `);
     }
     await saveToStorage();
+    // Poll Firebase every 30s for live updates
+    setInterval(async () => {
+      const loaded = await tryLoadFirebase();
+      if(loaded) { runMigrations(); influencers.forEach(item=>{if(item.phone)item.phone=normalizePhone(item.phone);}); updateStats(); }
+    }, 30000);
     return;
   }
   await saveToStorage();
@@ -3073,6 +3086,13 @@ async function init() {
   if(removed > 0) showToast('🧹 تم حذف '+removed+' تكرار تلقائياً', '#ca8a04');
   // Check missed visits after short delay
   setTimeout(checkMissedVisits, 800);
+  // Poll Firebase every 30s to sync with other devices
+  setInterval(async () => {
+    try {
+      const loaded = await tryLoadFirebase();
+      if(loaded) { updateStats(); }
+    } catch(e) {}
+  }, 30000);
   } catch(err) {
     console.error('Init error:', err);
     document.getElementById('loadingOverlay').style.display = 'none';
