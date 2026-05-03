@@ -2278,6 +2278,7 @@ function selectDay(d){
 
 function openApptPanel(){
   const list=document.getElementById('apptList');
+  list.innerHTML = ''; // clear first to prevent duplicates
   const withDates=influencers.filter(i=>i.visitDate).sort((a,b)=>a.visitDate.localeCompare(b.visitDate));
   if(!withDates.length){list.innerHTML='<div class="appt-empty">لا توجد مواعيد مسجلة</div>';document.getElementById('apptPanelOverlay').classList.add('open');return;}
   const today=new Date(); today.setHours(0,0,0,0);
