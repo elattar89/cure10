@@ -127,6 +127,12 @@ body{font-family:'Tajawal',sans-serif;direction:rtl;background:#0d1117;color:#e6
 .dp-day.empty{cursor:default;}
 .dp-close-btn{width:100%;margin-top:.5rem;padding:7px;border-radius:8px;background:#1a6fa8;border:none;color:#fff;font-family:'Tajawal',sans-serif;cursor:pointer;font-size:13px;}
 .dp-clear-btn{width:100%;margin-top:4px;padding:6px;border-radius:8px;background:#21262d;border:1px solid #30363d;color:#8b949e;font-family:'Tajawal',sans-serif;cursor:pointer;font-size:12px;}
+.report-modal::-webkit-scrollbar{width:6px;}
+.report-modal::-webkit-scrollbar-track{background:#f1f5f9;}
+.report-modal::-webkit-scrollbar-thumb{background:#cbd5e1;border-radius:3px;}
+.report-table tr td { background: inherit !important; }
+.report-table::-webkit-scrollbar{height:4px;}
+.report-table-wrap::-webkit-scrollbar-thumb{background:#cbd5e1;border-radius:3px;}
 .dup-match-reason{background:#2d1f0e;border:1px solid #d97706;border-radius:8px;padding:.5rem .8rem;font-size:12px;color:#fbbf24;margin-bottom:.7rem;}
 /* Field comparison table */
 .dup-field-row{display:grid;grid-template-columns:80px 1fr 1fr 36px;gap:6px;align-items:center;padding:5px 4px;border-radius:8px;margin-bottom:3px;}
@@ -189,8 +195,8 @@ body{font-family:'Tajawal',sans-serif;direction:rtl;background:#0d1117;color:#e6
 }
 .report-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.8);z-index:2000;padding:1rem;overflow:hidden;}
 .report-overlay.open{display:flex;align-items:flex-start;justify-content:center;}
-.report-modal{background:#fff;color:#111;border-radius:16px;padding:1.2rem;width:100%;max-width:1100px;margin:auto;font-family:'Tajawal',sans-serif;max-height:95vh;overflow-y:auto;-webkit-overflow-scrolling:touch;}
-.report-table-wrap{width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch;border-radius:8px;}
+.report-modal{background:#fff;color:#111;border-radius:16px;padding:1.2rem;width:100%;max-width:1100px;margin:auto;font-family:'Tajawal',sans-serif;max-height:95vh;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;}
+.report-table-wrap{width:100%;overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;border-radius:8px;}
 .report-header{text-align:center;border-bottom:2px solid #0a3d62;padding-bottom:1rem;margin-bottom:1.5rem;}
 .report-header h2{font-size:22px;font-weight:900;color:#0a3d62;margin-bottom:4px;}
 .report-header p{font-size:13px;color:#555;}
@@ -246,6 +252,34 @@ body{font-family:'Tajawal',sans-serif;direction:rtl;background:#0d1117;color:#e6
 </head>
 <body>
 
+<!-- Login Screen -->
+<div id="loginScreen" style="position:fixed;inset:0;z-index:99999;background:linear-gradient(135deg,#0a3d62 0%,#1a6fa8 60%,#22a6d6 100%);display:flex;align-items:center;justify-content:center;font-family:Tajawal,sans-serif;direction:rtl;">
+  <div style="background:rgba(0,0,0,0.35);border:1px solid rgba(255,255,255,0.15);border-radius:20px;padding:2.5rem 2rem;width:100%;max-width:360px;box-shadow:0 20px 60px rgba(0,0,0,0.5);">
+    <div style="text-align:center;margin-bottom:2rem;">
+      <div style="width:64px;height:64px;border-radius:50%;background:rgba(255,255,255,0.15);border:2px solid rgba(255,255,255,0.3);display:flex;align-items:center;justify-content:center;margin:0 auto 1rem;">
+        <svg viewBox="0 0 40 40" fill="none" width="32" height="32"><circle cx="20" cy="20" r="18" stroke="white" stroke-width="2"/><rect x="16" y="8" width="8" height="24" rx="3" fill="white"/><rect x="8" y="16" width="24" height="8" rx="3" fill="white"/></svg>
+      </div>
+      <div style="color:#fff;font-size:20px;font-weight:900;">المؤثرين — كيور الطبي</div>
+      <div style="color:rgba(255,255,255,0.6);font-size:13px;margin-top:4px;">يرجى تسجيل الدخول للمتابعة</div>
+    </div>
+    <div style="margin-bottom:1rem;">
+      <label style="color:rgba(255,255,255,0.8);font-size:13px;display:block;margin-bottom:6px;">اسم المستخدم</label>
+      <input id="loginUser" type="text" placeholder="اسم المستخدم" autocomplete="username"
+        style="width:100%;padding:12px 14px;border-radius:10px;border:1px solid rgba(255,255,255,0.2);background:rgba(255,255,255,0.1);color:#fff;font-size:14px;font-family:Tajawal,sans-serif;outline:none;box-sizing:border-box;"
+        onkeydown="if(event.key==='Enter')document.getElementById('loginPass').focus()">
+    </div>
+    <div style="margin-bottom:1.5rem;">
+      <label style="color:rgba(255,255,255,0.8);font-size:13px;display:block;margin-bottom:6px;">كلمة المرور</label>
+      <input id="loginPass" type="password" placeholder="كلمة المرور" autocomplete="current-password"
+        style="width:100%;padding:12px 14px;border-radius:10px;border:1px solid rgba(255,255,255,0.2);background:rgba(255,255,255,0.1);color:#fff;font-size:14px;font-family:Tajawal,sans-serif;outline:none;box-sizing:border-box;"
+        onkeydown="if(event.key==='Enter')doLogin()">
+    </div>
+    <div id="loginError" style="display:none;color:#f87171;font-size:13px;text-align:center;margin-bottom:1rem;background:rgba(220,38,38,0.15);padding:8px;border-radius:8px;">❌ اسم المستخدم أو كلمة المرور غلط</div>
+    <button onclick="doLogin()" style="width:100%;padding:13px;border-radius:12px;border:none;background:#fff;color:#0a3d62;font-size:15px;font-weight:900;cursor:pointer;font-family:Tajawal,sans-serif;transition:.2s;">دخول ←</button>
+    <button onclick="guestLogin()" style="width:100%;padding:10px;border-radius:12px;border:1px solid rgba(255,255,255,0.3);background:transparent;color:rgba(255,255,255,0.7);font-size:13px;font-weight:500;cursor:pointer;font-family:Tajawal,sans-serif;margin-top:10px;transition:.2s;">👤 Guest Login</button>
+  </div>
+</div>
+
 <div id="loadingOverlay">
   <div style="width:56px;height:56px;border-radius:50%;background:rgba(255,255,255,0.15);border:2px solid rgba(255,255,255,0.3);display:flex;align-items:center;justify-content:center;">
     <svg viewBox="0 0 40 40" fill="none" width="30" height="30"><circle cx="20" cy="20" r="18" stroke="white" stroke-width="2"/><rect x="16" y="8" width="8" height="24" rx="3" fill="white"/><rect x="8" y="16" width="24" height="8" rx="3" fill="white"/></svg>
@@ -257,9 +291,11 @@ body{font-family:'Tajawal',sans-serif;direction:rtl;background:#0d1117;color:#e6
 <div id="saveIndicator">✅ تم الحفظ</div>
 
 <div class="header">
+  <button onclick="logout()" style="position:absolute;top:12px;left:12px;padding:6px 14px;border-radius:8px;border:1px solid rgba(255,255,255,0.3);background:rgba(0,0,0,0.2);color:rgba(255,255,255,0.8);font-size:12px;cursor:pointer;font-family:Tajawal,sans-serif;z-index:10;">🚪 خروج</button>
   <div class="header-logo">
     <svg viewBox="0 0 40 40" fill="none" width="30" height="30"><circle cx="20" cy="20" r="18" stroke="white" stroke-width="2"/><rect x="16" y="8" width="8" height="24" rx="3" fill="white"/><rect x="8" y="16" width="24" height="8" rx="3" fill="white"/></svg>
   </div>
+  <div id="welcomeMsg" style="font-size:12px;color:rgba(255,255,255,0.7);margin-bottom:4px;"></div>
   <h1>المؤثرين — مركز كيور الطبي</h1>
   <p>قاعدة بيانات المؤثرين للحملة الإعلانية</p>
   <div class="stats-bar">
@@ -1028,7 +1064,22 @@ function renderGrid() {
   }
 
   // ── Normal view ───────────────────────────────────────────────
-  influencers.forEach((item,idx)=>{
+  // Sort: done → cancelled → has date (by date) → approved no date → others
+  const sorted = [...influencers].map((item,idx)=>({item,idx})).sort((a,b)=>{
+    const order = i => {
+      if(i.status==='approved'&&i.visitStatus==='done') return 0;
+      if(i.status==='approved'&&i.visitStatus==='cancelled') return 1;
+      if(i.status==='approved'&&i.visitDate) return 2;
+      if(i.status==='approved') return 3;
+      return 4;
+    };
+    const oa=order(a.item), ob=order(b.item);
+    if(oa!==ob) return oa-ob;
+    // Sort by date within same group
+    if(oa===2&&a.item.visitDate&&b.item.visitDate) return a.item.visitDate.localeCompare(b.item.visitDate);
+    return 0;
+  });
+  sorted.forEach(({item,idx})=>{
     const name=getDisplayName(item,idx);
     const searchStr=(name+item.ig+item.tt+item.phone+item.snap+(item.nationality||'')).toLowerCase();
     const matchSearch=!q||searchStr.includes(q);
@@ -1944,7 +1995,7 @@ function openApptPanel(){
     const isPast=apptDate<today;
     const timeStr=item.visitDate.includes('T')?item.visitDate.split('T')[1]:'';
     const timeLabel=timeStr?` · ${timeStr.replace('AM','ص').replace('PM','م')}`:'';
-    return `<div class="appt-item ${item.status||'pending'}" style="${isPast?'opacity:.55;background:rgba(0,0,0,.2);':''}cursor:pointer;" onclick="showApptCard(${idx})">
+    return `<div class="appt-item ${item.status||'pending'}" style="${isPast?'opacity:.55;background:rgba(0,0,0,.2);':''}${!isGuest()?'cursor:pointer;':''}" ${!isGuest()?`onclick="showApptCard(${idx})"`:''}>
       <div class="appt-date-badge" style="border-color:${isPast?'#484f58':color};${isPast?'background:#21262d;':''}">
         <div class="appt-date-day" style="${isPast?'color:#6e7681;':''}">${parseInt(d)}</div>
         <div class="appt-date-month" style="${isPast?'color:#484f58;':''}">${MONTHS_AR[parseInt(m)-1]}</div>
@@ -2088,7 +2139,22 @@ td{padding:9px 12px;border-bottom:1px solid #e5e7eb;font-size:12px;font-family:'
 // ─── Status Reports (approved / rejected) ────────────────────────
 function openStatusReport(type) {
   const isApproved=type==='approved';
-  const list=influencers.filter(i=>i.status===type);
+  let list=influencers.filter(i=>i.status===type);
+  // Sort approved: done → cancelled → has date → no date
+  if(isApproved) {
+    list = list.sort((a,b)=>{
+      const order = i => {
+        if(i.visitStatus==='done') return 0;
+        if(i.visitStatus==='cancelled') return 1;
+        if(i.visitDate) return 2;
+        return 3;
+      };
+      const oa=order(a), ob=order(b);
+      if(oa!==ob) return oa-ob;
+      if(oa===2&&a.visitDate&&b.visitDate) return a.visitDate.localeCompare(b.visitDate);
+      return 0;
+    });
+  }
   if(!list.length){showToast(isApproved?'⚠️ لا يوجد مقبولين!':'⚠️ لا يوجد مرفوضين!','#d97706');return;}
   const today=new Date().toLocaleDateString('ar-KW',{year:'numeric',month:'long',day:'numeric'});
   const title=isApproved?'✅ كشف المؤثرين المقبولين':'❌ كشف المؤثرين المرفوضين';
@@ -2393,7 +2459,264 @@ function removeDuplicates() {
   return toRemove.length;
 }
 
+// ── Login ─────────────────────────────────────────────────────────
+const USERS = {
+  'didiyakout': 'Didi@2211',
+  'elattar89':  'Rio@1005'
+};
+function doLogin() {
+  const user = document.getElementById('loginUser').value.trim().toLowerCase();
+  const pass = document.getElementById('loginPass').value;
+  if(USERS[user] && USERS[user] === pass) {
+    sessionStorage.setItem('cure_auth', user);
+    document.getElementById('loginScreen').style.display = 'none';
+    updateWelcome();
+    init(); // Start the app
+  } else {
+    document.getElementById('loginError').style.display = 'block';
+    document.getElementById('loginPass').value = '';
+    document.getElementById('loginPass').focus();
+  }
+}
+function guestLogin() {
+  sessionStorage.setItem('cure_auth', 'guest');
+  document.getElementById('loginScreen').style.display = 'none';
+  updateWelcome();
+  init();
+}
+window.guestLogin = guestLogin;
+function logout() {
+  sessionStorage.removeItem('cure_auth');
+  location.reload();
+}
+window.logout = logout;
+function checkAuth() {
+  if(!sessionStorage.getItem('cure_auth')) {
+    document.getElementById('loginScreen').style.display = 'flex';
+    return false;
+  }
+  document.getElementById('loginScreen').style.display = 'none';
+  return true;
+}
+function isGuest() {
+  return sessionStorage.getItem('cure_auth') === 'guest';
+}
+function updateWelcome() {
+  const user = sessionStorage.getItem('cure_auth') || '';
+  const el = document.getElementById('welcomeMsg');
+  if(el && user) el.textContent = user === 'guest' ? '👤 Guest' : '👋 مرحباً ' + user;
+}
+function openGuestReport() {
+  const list = influencers.filter(i => i.status === 'approved').sort((a,b)=>{
+    const order = i => {
+      if(i.visitStatus==='done') return 0;
+      if(i.visitStatus==='cancelled') return 1;
+      if(i.visitDate) return 2;
+      return 3;
+    };
+    const oa=order(a), ob=order(b);
+    if(oa!==ob) return oa-ob;
+    if(oa===2&&a.visitDate&&b.visitDate) return a.visitDate.localeCompare(b.visitDate);
+    return 0;
+  });
+  const today = new Date().toLocaleDateString('ar-KW', {year:'numeric', month:'long', day:'numeric'});
+  const rows = list.map((item, i) => {
+    const name = item.name || '—';
+    const gLabel = item.gender==='m'?'<span style="color:#1a6fa8;font-weight:700;">👨 ذكر</span>':item.gender==='f'?'<span style="color:#a21caf;font-weight:700;">👩 أنثى</span>':'—';
+    const natCell = item.nationality?`<span style="background:#e6f7f1;color:#0a7a55;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:700;">🌍 ${item.nationality}</span>`:'—';
+    const dateStr = item.visitDate ? formatDateAr(item.visitDate) : '—';
+    const realIdx = influencers.indexOf(item);
+    const svcChecks = SERVICES.map(s => {
+      const checked = item.services && item.services.includes(s);
+      return `<label style="display:flex;align-items:center;gap:4px;cursor:pointer;font-size:11px;margin-bottom:2px;white-space:nowrap;">
+        <input type="checkbox" ${checked?'checked':''} onchange="guestToggleService(${realIdx},'${s}',this)" style="accent-color:#7c3aed;width:13px;height:13px;">
+        ${s}
+      </label>`;
+    }).join('');
+    const isDone = item.visitStatus === 'done';
+    const isCancelled = item.visitStatus === 'cancelled';
+    const rowBg = isDone ? '#bbf7d0' : isCancelled ? '#fef08a' : i%2===1?'#f8fafc':'#fff';
+    const rowStyle = isDone ? `background:${rowBg};border-right:4px solid #16a34a;` : isCancelled ? `background:${rowBg};border-right:4px solid #ca8a04;` : `background:${rowBg};`;
+    return `<tr style="${rowStyle}">
+      <td style="text-align:center;font-weight:900;color:#0a3d62;width:30px;padding:8px 6px;">${i+1}</td>
+      <td style="font-weight:700;font-size:13px;">${name}${isDone?'<br><span style="font-size:10px;color:#16a34a;font-weight:700;">✅ تمت الزيارة</span>':isCancelled?'<br><span style="font-size:10px;color:#ca8a04;font-weight:700;">⚠️ ألغيت الزيارة</span>':''}</td>
+      <td>${gLabel}</td>
+      <td>${natCell}</td>
+      <td style="direction:ltr;font-size:12px;color:#0369a1;font-weight:600;">${item.phone||'—'}</td>
+      <td style="font-size:11px;color:#555;direction:ltr;">${item.civil||'—'}</td>
+      <td style="white-space:nowrap;color:#0a3d62;font-weight:600;">${dateStr}</td>
+      <td style="min-width:110px;">${svcChecks}</td>
+      <td style="min-width:120px;border-left:1px solid #e5e7eb;">
+        <div style="height:40px;border-bottom:1.5px solid #374151;margin:8px 6px 0;position:relative;">
+          <span style="position:absolute;bottom:-16px;right:0;font-size:9px;color:#9ca3af;">التوقيع</span>
+        </div>
+      </td>
+    </tr>`;
+  }).join('');
+  const html = `<div class="report-overlay open" id="reportOverlay">
+    <div class="report-modal" style="max-width:1000px;">
+      <div class="report-actions">
+        <button class="report-btn-close" onclick="closeReport()">✕ إغلاق</button>
+        <button class="report-btn-print" style="background:#0a3d62" onclick="window.print()">🖨️ طباعة / PDF</button>
+        <button class="report-btn-share" onclick="shareGuestReport()">📤 مشاركة</button>
+      </div>
+      <div class="report-header">
+        <h2 style="color:#0a3d62">✅ كشف المؤثرين المقبولين</h2>
+        <p>مركز كيور الطبي — الحملة الإعلانية | ${today}</p>
+        <p style="font-weight:700;color:#16a34a;margin-top:4px;">الإجمالي: ${list.length} مؤثر</p>
+      </div>
+      <div class="report-table-wrap" style="overflow-x:auto;">
+        <table class="report-table" style="min-width:700px;"><thead><tr>
+          <th style="background:#0a3d62;width:30px;text-align:center;">#</th>
+          <th style="background:#0a3d62;">الاسم</th>
+          <th style="background:#0a3d62;">الجنس</th>
+          <th style="background:#0a3d62;">الجنسية</th>
+          <th style="background:#0a3d62;">الهاتف</th>
+          <th style="background:#0a3d62;">الرقم المدني</th>
+          <th style="background:#0a3d62;">موعد الزيارة</th>
+          <th style="background:#0a3d62;">الخدمة</th>
+          <th style="background:#0a3d62;min-width:120px;">توقيع المؤثر</th>
+        </tr></thead><tbody>${rows}</tbody></table>
+      </div>
+      <div class="report-footer-note">هذا الكشف سري ومخصص للاستخدام الداخلي — مركز كيور الطبي © 2026</div>
+    </div>
+  </div>`;
+  const div = document.createElement('div'); div.id = 'reportContainer'; div.innerHTML = html;
+  document.body.appendChild(div);
+}
+function openGuestAppts() {
+  // Create or show guest appointments modal
+  let overlay = document.getElementById('guestApptOverlay');
+  if(!overlay) {
+    document.body.insertAdjacentHTML('beforeend', `
+      <div id="guestApptOverlay" style="position:fixed;inset:0;z-index:3000;background:rgba(0,0,0,0.8);display:flex;align-items:flex-start;justify-content:center;padding:1rem;overflow-y:auto;">
+        <div style="width:100%;max-width:500px;margin:auto;">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;">
+            <div style="font-size:18px;font-weight:900;color:#e6edf3;">📅 مواعيد الزيارات</div>
+            <button onclick="document.getElementById('guestApptOverlay').style.display='none'" style="background:#21262d;border:1px solid #30363d;color:#e6edf3;width:32px;height:32px;border-radius:50%;cursor:pointer;font-size:16px;">✕</button>
+          </div>
+          <div id="guestApptList" style="display:flex;flex-direction:column;gap:10px;"></div>
+        </div>
+      </div>
+    `);
+    overlay = document.getElementById('guestApptOverlay');
+  } else {
+    overlay.style.display = 'flex';
+  }
+  renderGuestView();
+}
+window.openGuestAppts = openGuestAppts;
+function guestUpdateTime(idx, part, val) {
+  const item = influencers[idx];
+  if(!item || !item.visitDate) return;
+  const dateOnly = item.visitDate.split('T')[0];
+  const timeParts = item.visitDate.includes('T') ? item.visitDate.split('T')[1] : '09:00AM';
+  let hh = timeParts.replace('AM','').replace('PM','').split(':')[0] || '09';
+  let mm = timeParts.replace('AM','').replace('PM','').split(':')[1] || '00';
+  let ap = timeParts.includes('PM') ? 'PM' : 'AM';
+  if(part==='hour') hh = val;
+  if(part==='min') mm = val;
+  if(part==='ampm') ap = val;
+  item.visitDate = dateOnly + 'T' + hh + ':' + mm + ap;
+  saveFile();
+  showToast('⏰ تم حفظ الوقت', '#1a6fa8');
+}
+function guestSetVisitStatus(idx, status) {
+  const item = influencers[idx];
+  if(!item) return;
+  item.visitStatus = item.visitStatus === status ? '' : status;
+  saveFile();
+  renderGuestView();
+  showToast(status==='done'?'✅ تم تسجيل الزيارة':'⚠️ تم تسجيل الإلغاء', status==='done'?'#16a34a':'#ca8a04');
+}
+window.guestUpdateTime = guestUpdateTime;
+window.guestSetVisitStatus = guestSetVisitStatus;
+function guestToggleService(idx, svc, cb) {
+  const item = influencers[idx];
+  if(!item) return;
+  if(!item.services) item.services = [];
+  if(cb.checked) {
+    if(!item.services.includes(svc)) item.services.push(svc);
+  } else {
+    const i = item.services.indexOf(svc);
+    if(i !== -1) item.services.splice(i, 1);
+  }
+  saveFile();
+  showToast('✅ تم حفظ الخدمة', '#7c3aed');
+}
+window.guestToggleService = guestToggleService;
+window.openGuestReport = openGuestReport;
+function shareGuestReport() { shareStatusReport('approved'); }
+window.shareGuestReport = shareGuestReport;
+function renderGuestView() {
+  const list = document.getElementById('guestApptList');
+  if(!list) return;
+  const today = new Date(); today.setHours(0,0,0,0);
+  const withDates = influencers
+    .filter(i => i.visitDate && i.status === 'approved')
+    .sort((a,b) => a.visitDate.localeCompare(b.visitDate));
+  if(!withDates.length) {
+    list.innerHTML = '<div style="text-align:center;color:#484f58;padding:2rem;">لا توجد مواعيد مسجلة</div>';
+    return;
+  }
+  list.innerHTML = withDates.map(item => {
+    const idx = influencers.indexOf(item);
+    const dateOnly = item.visitDate.split('T')[0];
+    const [y,m,d] = dateOnly.split('-');
+    const apptDate = new Date(parseInt(y), parseInt(m)-1, parseInt(d));
+    const isPast = apptDate < today;
+    const isToday = apptDate.getTime() === today.getTime();
+    const timeStr = item.visitDate.includes('T') ? item.visitDate.split('T')[1].replace('AM','ص').replace('PM','م') : '';
+    const vs = item.visitStatus || '';
+    const borderColor = vs==='done'?'#16a34a':vs==='cancelled'?'#ca8a04':isToday?'#f59e0b':isPast?'#30363d':'#1a6fa8';
+    const name = item.name || item.ig || '—';
+    // Time part
+    const timeParts = item.visitDate.includes('T') ? item.visitDate.split('T')[1] : '';
+    const hh = timeParts ? timeParts.replace('AM','').replace('PM','').split(':')[0] : '09';
+    const mm = timeParts ? timeParts.replace('AM','').replace('PM','').split(':')[1] : '00';
+    const ap = timeParts ? (timeParts.includes('PM')?'PM':'AM') : 'AM';
+    return `<div style="background:#161b22;border:2px solid ${borderColor};border-radius:12px;padding:1rem;gap:10px;${vs==='done'?'background:rgba(22,163,74,0.1);':vs==='cancelled'?'background:rgba(202,138,4,0.1);':''}">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:.7rem;">
+        <div style="background:${vs==='done'?'#16a34a':vs==='cancelled'?'#ca8a04':isToday?'#f59e0b':isPast?'#21262d':'#1a6fa8'};border-radius:10px;padding:8px 14px;text-align:center;flex-shrink:0;min-width:52px;">
+          <div style="font-size:20px;font-weight:900;color:#fff;line-height:1;">${parseInt(d)}</div>
+          <div style="font-size:10px;color:rgba(255,255,255,0.8);">${MONTHS_AR[parseInt(m)-1]}</div>
+        </div>
+        <div style="flex:1;">
+          <div style="font-size:15px;font-weight:700;color:#e6edf3;">${name}</div>
+          ${item.services&&item.services.length?`<div style="font-size:12px;color:#c084fc;">💉 ${item.services.join(' · ')}</div>`:''}
+          <div style="font-size:12px;margin-top:2px;">${vs==='done'?'<span style="color:#4ade80;">✅ تمت الزيارة</span>':vs==='cancelled'?'<span style="color:#fbbf24;">⚠️ ألغيت الزيارة</span>':isToday?'<span style="color:#f59e0b;">⭐ اليوم</span>':''}</div>
+        </div>
+      </div>
+      <!-- Time picker -->
+      <div style="display:flex;align-items:center;gap:6px;margin-bottom:.7rem;flex-wrap:wrap;">
+        <span style="font-size:12px;color:#8b949e;">⏰ الساعة:</span>
+        <select onchange="guestUpdateTime(${idx},'hour',this.value)" style="background:#21262d;color:#e6edf3;border:1px solid #1a6fa8;border-radius:7px;padding:4px 8px;font-size:13px;font-family:Tajawal,sans-serif;cursor:pointer;">
+          ${[1,2,3,4,5,6,7,8,9,10,11,12].map(h=>`<option value="${String(h).padStart(2,'0')}" ${hh===String(h).padStart(2,'0')||hh===String(h)?'selected':''}>${h}</option>`).join('')}
+        </select>
+        <span style="color:#e6edf3;font-size:16px;font-weight:700;">:</span>
+        <select onchange="guestUpdateTime(${idx},'min',this.value)" style="background:#21262d;color:#e6edf3;border:1px solid #1a6fa8;border-radius:7px;padding:4px 8px;font-size:13px;font-family:Tajawal,sans-serif;cursor:pointer;">
+          <option value="00" ${mm==='00'?'selected':''}>00</option>
+          <option value="15" ${mm==='15'?'selected':''}>15</option>
+          <option value="30" ${mm==='30'?'selected':''}>30</option>
+          <option value="45" ${mm==='45'?'selected':''}>45</option>
+        </select>
+        <select onchange="guestUpdateTime(${idx},'ampm',this.value)" style="background:#21262d;color:#e6edf3;border:1px solid #1a6fa8;border-radius:7px;padding:4px 8px;font-size:13px;font-family:Tajawal,sans-serif;cursor:pointer;">
+          <option value="AM" ${ap==='AM'?'selected':''}>صباحاً</option>
+          <option value="PM" ${ap==='PM'?'selected':''}>مساءً</option>
+        </select>
+      </div>
+      <!-- Visit status buttons -->
+      <div style="display:flex;gap:8px;">
+        <button onclick="guestSetVisitStatus(${idx},'done')" style="flex:1;padding:8px;border-radius:8px;border:1px solid #16a34a;background:${vs==='done'?'#16a34a':'#0d1f14'};color:${vs==='done'?'#fff':'#4ade80'};font-size:13px;font-weight:700;cursor:pointer;font-family:Tajawal,sans-serif;">✅ تمت الزيارة</button>
+        <button onclick="guestSetVisitStatus(${idx},'cancelled')" style="flex:1;padding:8px;border-radius:8px;border:1px solid #ca8a04;background:${vs==='cancelled'?'#ca8a04':'#2d1f0a'};color:${vs==='cancelled'?'#fff':'#fbbf24'};font-size:13px;font-weight:700;cursor:pointer;font-family:Tajawal,sans-serif;">⚠️ ألغيت الزيارة</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
 async function init() {
+  if(!checkAuth()) return;
+  updateWelcome();
   initNationalitySelects();
   const loaded = await loadFromStorage();
   if(!loaded) { influencers = JSON.parse(JSON.stringify(DEFAULT_INFLUENCERS)); }
@@ -2402,6 +2725,25 @@ async function init() {
   const removed = removeDuplicates();
   await saveToStorage();
   document.getElementById('loadingOverlay').style.display = 'none';
+  if(isGuest()) {
+    // Guest: show header stats (read-only) + appointments + report
+    document.querySelector('.toolbar').style.display = 'none';
+    document.getElementById('grid').style.display = 'none';
+    document.querySelector('.page-footer').style.display = 'none';
+    // Make header stats non-clickable
+    document.querySelectorAll('.stat').forEach(s => s.style.cursor = 'default');
+    document.querySelectorAll('.stat').forEach(s => s.setAttribute('onclick',''));
+    updateStats();
+    // Add guest controls
+    document.querySelector('.header').insertAdjacentHTML('beforeend', `
+      <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:1rem;">
+        <button onclick="openGuestReport()" style="padding:10px 20px;border-radius:10px;border:1px solid #16a34a;background:#0d1f14;color:#4ade80;font-size:14px;font-weight:700;cursor:pointer;font-family:Tajawal,sans-serif;">📋 كشف المقبولين</button>
+        <button onclick="openGuestAppts()" style="padding:10px 20px;border-radius:10px;border:1px solid #0891b2;background:#0e2433;color:#22d3ee;font-size:14px;font-weight:700;cursor:pointer;font-family:Tajawal,sans-serif;">📅 مواعيد الزيارات</button>
+      </div>
+    `);
+    renderGrid(); // needed for report data
+    return;
+  }
   renderGrid();
   if(removed > 0) showToast('🧹 تم حذف '+removed+' تكرار تلقائياً', '#ca8a04');
   // Check missed visits after short delay
