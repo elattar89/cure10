@@ -384,6 +384,7 @@ body{font-family:'Tajawal',sans-serif;direction:rtl;background:#0d1117;color:#e6
     <button class="add-bottom-btn" onclick="openBulkModal()" style="background:linear-gradient(135deg,#4c1d95,#7c3aed);">⚡ إضافة جماعية</button>
     <button class="add-bottom-btn" onclick="openFormImport()" style="background:linear-gradient(135deg,#0e7490,#0891b2);">📋 إضافة من فورم</button>
     <button class="save-bottom-btn" id="manualSaveBtn" onclick="manualSave()">💾 حفظ يدوي</button>
+    <button class="add-bottom-btn" onclick="openActivityLog()" style="background:linear-gradient(135deg,#1e3a5f,#1a6fa8);">📋 سجل النشاط</button>
   </div>
   <div>مركز كيور الطبي © 2026 — جميع الحقوق محفوظة</div>
 </div>
@@ -393,6 +394,20 @@ body{font-family:'Tajawal',sans-serif;direction:rtl;background:#0d1117;color:#e6
   <div style="max-width:480px;width:100%;position:relative;max-height:90vh;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;" onclick="event.stopPropagation()">
     <button onclick="closeApptCard()" style="position:absolute;top:-14px;left:-14px;z-index:10;width:34px;height:34px;border-radius:50%;border:2px solid #fff;background:#dc2626;color:#fff;font-size:18px;cursor:pointer;font-weight:900;line-height:1;box-shadow:0 2px 8px rgba(0,0,0,.5);">✕</button>
     <div id="apptCardContent"></div>
+  </div>
+</div>
+
+<!-- Activity Log Modal -->
+<div class="modal-overlay hidden" id="activityLogOverlay" onclick="if(event.target===this)closeActivityLog()">
+  <div class="modal" style="max-width:600px;max-height:85vh;overflow-y:auto;">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;">
+      <h3 style="margin:0;">📋 سجل النشاط</h3>
+      <button onclick="clearActivityLog()" style="padding:5px 12px;border-radius:8px;border:1px solid #dc2626;background:#1a0808;color:#f87171;font-size:12px;cursor:pointer;font-family:Tajawal,sans-serif;">🗑 مسح السجل</button>
+    </div>
+    <div id="activityLogList" style="display:flex;flex-direction:column;gap:6px;"></div>
+    <div class="modal-actions" style="margin-top:1rem;">
+      <button class="modal-cancel" onclick="closeActivityLog()">إغلاق</button>
+    </div>
   </div>
 </div>
 
@@ -659,7 +674,7 @@ body{font-family:'Tajawal',sans-serif;direction:rtl;background:#0d1117;color:#e6
 </div>
 
 <script>
-// ─── Nationalities list ───────────────────────────────────────────
+// --- Nationalities list -------------------------------------------
 const NATIONALITIES = [
   'كويتي','بدون','سعودي','إماراتي','بحريني','قطري','عماني',
   'مصري','أردني','لبناني','سوري','عراقي','يمني','فلسطيني','سوداني','ليبي','تونسي','مغربي','جزائري',
@@ -679,7 +694,7 @@ function initNationalitySelects() {
   document.getElementById('eNationality').innerHTML = buildNationalityOptions('');
 }
 
-// ─── Default data ─────────────────────────────────────────────────
+// --- Default data -------------------------------------------------
 const DEFAULT_INFLUENCERS = [{"name":"","phone":"98910277","ig":"@its.ibtesam_88","ig_url":"https://www.instagram.com/its.ibtesam_88","tt":"","tt_url":"","snap":"","status":"pending","gender":"f"},{"name":"","phone":"٥٥٣٩٩٤١١","ig":"@anod_anezi85","ig_url":"https://www.instagram.com/anod_anezi85","tt":"","tt_url":"","snap":"","status":"pending","gender":"f"},{"name":"","phone":"92293492","ig":"@ntx072","ig_url":"https://www.instagram.com/ntx072","tt":"","tt_url":"","snap":"","status":"pending","gender":"f"},{"name":"","phone":"55025286","ig":"@dalaly3_","ig_url":"https://www.instagram.com/dalaly3_","tt":"@dallally32x","tt_url":"https://www.tiktok.com/@dallally32x","snap":"https://snapchat.com/t/O6x1T02S","status":"pending","gender":"f"},{"name":"","phone":"60484170","ig":"@2al8__","ig_url":"https://www.instagram.com/2al8__","tt":"@da_8ll","tt_url":"https://www.tiktok.com/@da_8ll","snap":"https://snapchat.com/t/A5FQkbkp","status":"pending","gender":"f"},{"name":"","phone":"66916393","ig":"@f_kwt32","ig_url":"https://www.instagram.com/f_kwt32","tt":"@f_kwt32","tt_url":"https://www.tiktok.com/@f_kwt32","snap":"","status":"pending","gender":"f"},{"name":"بلوقر صبا💚","phone":"99384112","ig":"@sebaa0412","ig_url":"https://www.instagram.com/sebaa0412","tt":"@sebaa0412","tt_url":"https://www.tiktok.com/@sebaa0412","snap":"","status":"pending","gender":"f"},{"name":"","phone":"66508700","ig":"@by_ghaderi","ig_url":"https://www.instagram.com/by_ghaderi","tt":"@by.ghaderi","tt_url":"https://www.tiktok.com/@by.ghaderi","snap":"https://snapchat.com/t/AgDMGXQd","status":"pending","gender":"f"},{"name":"(منى أبوصخر )🍓","phone":"","ig":"@mona_lize32","ig_url":"https://www.instagram.com/mona_lize32","tt":"@m.y.absakhar32","tt_url":"https://www.tiktok.com/@m.y.absakhar32","snap":"https://snapchat.com/t/OwbREHEW","status":"pending","gender":"f"},{"name":"","phone":"90005463","ig":"@al7allaw","ig_url":"https://www.instagram.com/al7allaw","tt":"@al7alaw","tt_url":"https://www.tiktok.com/@al7alaw","snap":"","status":"pending","gender":"f"},{"name":"","phone":"٦٠٠١٤٤٩٠","ig":"@meroalden","ig_url":"https://www.instagram.com/meroalden","tt":"@mero1zenalden","tt_url":"https://www.tiktok.com/@mero1zenalden","snap":"","status":"pending","gender":"f"},{"name":"ادمن جروب حور","phone":"","ig":"@modacode.kw","ig_url":"https://www.instagram.com/modacode.kw","tt":"@modacode.kw","tt_url":"https://www.tiktok.com/@modacode.kw","snap":"","status":"pending","gender":"f"},{"name":"","phone":"٩٦٩٧٩٨٢٢","ig":"@blogger__almohra","ig_url":"https://www.instagram.com/blogger__almohra","tt":"@blogger__almohraa","tt_url":"https://www.tiktok.com/@blogger__almohraa","snap":"https://snapchat.com/t/zChYlb15","status":"pending","gender":"f"},{"name":"","phone":"56623249","ig":"@ehen230","ig_url":"https://www.instagram.com/ehen230","tt":"@af__323","tt_url":"https://www.tiktok.com/@af__323","snap":"","status":"pending","gender":"f"},{"name":"","phone":"50884480","ig":"@pj2lk","ig_url":"https://www.instagram.com/pj2lk","tt":"@da_8ll","tt_url":"https://www.tiktok.com/@da_8ll","snap":"https://snapchat.com/t/or78WWGz","status":"pending","gender":"f"},{"name":"","phone":"","ig":"@blogger_7oor","ig_url":"https://www.instagram.com/blogger_7oor","tt":"@blogger_992","tt_url":"","snap":"https://snapchat.com/t/jh5jJwsz","status":"pending","gender":"f"},{"name":"","phone":"55293877","ig":"@bloger.sahab","ig_url":"https://www.instagram.com/bloger.sahab","tt":"@blogersahab","tt_url":"https://www.tiktok.com/@blogersahab","snap":"https://www.snapchat.com/add/bb.bloger","status":"pending","gender":"f"},{"name":"","phone":"51319593","ig":"@coachshouq","ig_url":"https://www.instagram.com/coachshouq","tt":"@coach_shouq","tt_url":"https://www.tiktok.com/@coach_shouq","snap":"https://snapchat.com/t/iscVDCmf","status":"pending","gender":"f"},{"name":"منار العنزي","phone":"51633843","ig":"@t2rif","ig_url":"https://www.instagram.com/t2rif","tt":"","tt_url":"","snap":"","status":"pending","gender":"f"},{"name":"","phone":"50428382","ig":"@abu_saud_24","ig_url":"https://www.instagram.com/abu_saud_24","tt":"","tt_url":"","snap":"","status":"pending","gender":"f"},{"name":"","phone":"98754337","ig":"@muna3x_","ig_url":"https://www.instagram.com/muna3x_","tt":"@byyma","tt_url":"https://www.tiktok.com/@byyma","snap":"","status":"pending","gender":"f"},{"name":"","phone":"96906346","ig":"@sheikha.daily","ig_url":"https://www.instagram.com/sheikha.daily","tt":"","tt_url":"","snap":"","status":"pending","gender":"f"},{"name":"","phone":"97459600","ig":"@2lhrj","ig_url":"https://www.instagram.com/2lhrj","tt":"@2lhrj","tt_url":"https://www.tiktok.com/@2lhrj","snap":"https://snapchat.com/t/BWTYGHAy","status":"pending","gender":"f"},{"name":"","phone":"55012377","ig":"@blogger_gala","ig_url":"https://www.instagram.com/blogger_gala","tt":"@1_1.ok","tt_url":"https://www.tiktok.com/@1_1.ok","snap":"https://snapchat.com/t/tUz6CrOf","status":"pending","gender":"f"},{"name":"","phone":"98754480","ig":"@byfarahx_","ig_url":"https://www.instagram.com/byfarahx_","tt":"","tt_url":"","snap":"","status":"pending","gender":"f"},{"name":"","phone":"41060464","ig":"@san3h_ff","ig_url":"","tt":"@san3h_ff","tt_url":"https://www.tiktok.com/@san3h_ff","snap":"https://snapchat.com/t/SzBjHONQ","status":"pending","gender":"f"},{"name":"","phone":"99098120","ig":"@dodiwhite94","ig_url":"https://www.instagram.com/dodiwhite94","tt":"@dodiwhite94","tt_url":"https://www.tiktok.com/@dodiwhite94","snap":"","status":"pending","gender":"f"},{"name":"","phone":"65075055","ig":"@atoo_8p","ig_url":"https://www.instagram.com/atoo_8p","tt":"@atoosa_blogr","tt_url":"https://www.tiktok.com/@atoosa_blogr","snap":"","status":"pending","gender":"f"},{"name":"","phone":"60442189","ig":"@v2i.ei","ig_url":"https://www.instagram.com/v2i.ei","tt":"@hamss432","tt_url":"https://www.tiktok.com/@hamss432","snap":"","status":"pending","gender":"f"},{"name":"النوري العنزي","phone":"61669266","ig":"@alnor.980","ig_url":"https://www.instagram.com/alnor.980","tt":"","tt_url":"","snap":"","status":"pending","gender":"f"},{"name":"المؤثرة وصانعة المحتوى","phone":"94988486","ig":"@albeerg__55","ig_url":"https://www.instagram.com/albeerg__55","tt":"@albeerg__55","tt_url":"https://www.tiktok.com/@albeerg__55","snap":"","status":"pending","gender":"f"},{"name":"شهد الهاجري","phone":"66407081","ig":"@mazda.alsafi","ig_url":"https://www.instagram.com/mazda.alsafi","tt":"","tt_url":"","snap":"","status":"pending","gender":"f"},{"name":"","phone":"55825567","ig":"@layali__lebanon","ig_url":"https://www.instagram.com/layali__lebanon","tt":"","tt_url":"","snap":"https://www.snapchat.com/add/layali_lebanon","status":"pending","gender":"f"},{"name":"","phone":"97557374","ig":"@dark_choclate_1983","ig_url":"","tt":"@dark_choclate_1983","tt_url":"https://www.tiktok.com/@dark_choclate_1983","snap":"https://snapchat.com/t/GonUS1LC","status":"pending","gender":"f"},{"name":"","phone":"65537997","ig":"@mrmalshmri","ig_url":"https://www.instagram.com/mrmalshmri","tt":"@rosedd03","tt_url":"https://www.tiktok.com/@rosedd03","snap":"","status":"pending","gender":"f"},{"name":"","phone":"50836960","ig":"@al2_amira","ig_url":"","tt":"@al2_amira","tt_url":"https://www.tiktok.com/@al2_amira","snap":"","status":"pending","gender":"f"},{"name":"مريم الغانم","phone":"50668133","ig":"@maryam__alghanim","ig_url":"https://www.instagram.com/maryam__alghanim","tt":"","tt_url":"","snap":"","status":"pending","gender":"f"},{"name":"","phone":"51724877","ig":"@mes._99","ig_url":"https://www.instagram.com/mes._99","tt":"@mes._9","tt_url":"https://www.tiktok.com/@mes._9","snap":"","status":"pending","gender":"f"},{"name":"بلوقر سموّ","phone":"","ig":"@bloggeer_suum","ig_url":"https://www.instagram.com/bloggeer_suum","tt":"","tt_url":"","snap":"","status":"pending","gender":"f"},{"name":"","phone":"51477644","ig":"@kwt_k22","ig_url":"https://www.instagram.com/kwt_k22","tt":"@kwt_k22","tt_url":"","snap":"","status":"pending","gender":"f"},{"name":"","phone":"55949103","ig":"@mis_foofaa","ig_url":"https://www.instagram.com/mis_foofaa","tt":"@foofaa25","tt_url":"https://www.tiktok.com/@foofaa25","snap":"","status":"pending","gender":"f"},{"name":"","phone":"51253025","ig":"@walyan.8","ig_url":"https://www.instagram.com/walyan.8","tt":"@walyan.8","tt_url":"https://www.tiktok.com/@walyan.8","snap":"","status":"pending","gender":"f"},{"name":"","phone":"55445159","ig":"@blogeer_sin","ig_url":"https://www.instagram.com/blogeer_sin","tt":"@siner__341","tt_url":"https://www.tiktok.com/@siner__341","snap":"","status":"pending","gender":"f"},{"name":"","phone":"98925609","ig":"@alzain__blogger","ig_url":"https://www.instagram.com/alzain__blogger","tt":"@zayoon1996","tt_url":"https://www.tiktok.com/@zayoon1996","snap":"","status":"pending","gender":"f"},{"name":"","phone":"97602151","ig":"@lahfa_778","ig_url":"https://www.instagram.com/lahfa_778","tt":"@lahfa_778","tt_url":"","snap":"","status":"pending","gender":"f"},{"name":"","phone":"60470166","ig":"@sh_alenzikw","ig_url":"https://www.instagram.com/sh_alenzikw","tt":"@q8_wet","tt_url":"https://www.tiktok.com/@q8_wet","snap":"","status":"pending","gender":"f"},{"name":"بلوقر المهرا","phone":"٩٨٥٢٤٥٠١","ig":"@blogger_almahra","ig_url":"https://www.instagram.com/blogger_almahra","tt":"","tt_url":"","snap":"","status":"pending","gender":"f"},{"name":"","phone":"50625003","ig":"@lifewithabrar93","ig_url":"https://www.instagram.com/lifewithabrar93","tt":"@lifewithabrar93","tt_url":"https://www.tiktok.com/@lifewithabrar93","snap":"https://snapchat.com/t/jIQXzJuR","status":"pending","gender":"f"},{"name":"","phone":"50199085","ig":"@zuhour_86","ig_url":"https://www.instagram.com/zuhour_86","tt":"@zuhour_11","tt_url":"https://www.tiktok.com/@zuhour_11","snap":"https://snapchat.com/t/U8w6b5xZ","status":"pending","gender":"f"},{"name":"","phone":"90932112","ig":"@zainabquttainah","ig_url":"https://www.instagram.com/zainabquttainah","tt":"@zainabquttainah","tt_url":"https://www.tiktok.com/@zainabquttainah","snap":"https://snapchat.com/t/hlJlFt36","status":"pending","gender":"f"},{"name":"بلوقر رموز","phone":"51073936","ig":"@roomooz_455","ig_url":"https://www.instagram.com/roomooz_455","tt":"","tt_url":"","snap":"","status":"pending","gender":"f"},{"name":"","phone":"98513511","ig":"@blogeer.kw","ig_url":"https://www.instagram.com/blogeer.kw","tt":"@malak_s93","tt_url":"https://www.tiktok.com/@malak_s93","snap":"","status":"pending","gender":"f"},{"name":"","phone":"51133388","ig":"@soso.kw75","ig_url":"","tt":"@soso.kw75","tt_url":"https://www.tiktok.com/@soso.kw75","snap":"https://snapchat.com/t/y8hEZ0Lc","status":"pending","gender":"f"},{"name":"بلوقر ضـــي","phone":"51736520","ig":"@dhi__blogger","ig_url":"https://www.instagram.com/dhi__blogger","tt":"@dhi__blogger","tt_url":"https://www.tiktok.com/@dhi__blogger","snap":"","status":"pending","gender":"f"},{"name":"","phone":"٦٦١١٤١٩٠","ig":"@bloggeralzan","ig_url":"https://www.instagram.com/bloggeralzan","tt":"","tt_url":"","snap":"","status":"pending","gender":"f"},{"name":"","phone":"94782811","ig":"@marim_v2","ig_url":"https://www.instagram.com/marim_v2","tt":"","tt_url":"","snap":"https://www.snapchat.com/add/kloodaa7","status":"pending","gender":"f"},{"name":"","phone":"55101008","ig":"@hanaayq8","ig_url":"https://www.instagram.com/hanaayq8","tt":"@hanaayq80","tt_url":"","snap":"https://www.snapchat.com/add/scabaq8","status":"pending","gender":"f"},{"name":"الزين بلوقر 20k","phone":"94048727","ig":"@alzenkw125","ig_url":"https://www.instagram.com/alzenkw125","tt":"@alzenkw125","tt_url":"https://www.tiktok.com/@alzenkw125","snap":"","status":"pending","gender":"f"},{"name":"المصورة سحابة","phone":"98955624","ig":"@sahab_961","ig_url":"","tt":"@sahab_961","tt_url":"https://www.tiktok.com/@sahab_961","snap":"https://www.snapchat.com/add/ma96a26","status":"pending","gender":"f"},{"name":"","phone":"٩٩٦١٢٩٧٣","ig":"@onemillion.1mm","ig_url":"https://www.instagram.com/onemillion.1mm","tt":"@onemillion.1mm","tt_url":"https://www.tiktok.com/@onemillion.1mm","snap":"https://snapchat.com/t/ZjUktmVf","status":"pending","gender":"f"},{"name":"","phone":"60009095","ig":"","ig_url":"","tt":"","tt_url":"","snap":"","status":"pending","gender":"f"},{"name":"","phone":"66886560","ig":"@w_ll777","ig_url":"https://www.instagram.com/w_ll777","tt":"","tt_url":"","snap":"","status":"pending","gender":"f"},{"name":"","phone":"٥٠٠١٢١٥١","ig":"@meemeeee1991","ig_url":"https://www.instagram.com/meemeeee1991","tt":"@meemeee1991","tt_url":"https://www.tiktok.com/@meemeee1991","snap":"https://snapchat.com/t/9rMDjefj","status":"pending","gender":"f"},{"name":"الاعلاميه منى ياسين","phone":"96716114","ig":"@monayasine","ig_url":"https://www.instagram.com/monayasine","tt":"@monayasine237","tt_url":"https://www.tiktok.com/@monayasine237","snap":"https://snapchat.com/t/EknwdpJh","status":"pending","gender":"f"},{"name":"","phone":"69936292","ig":"@bo97j","ig_url":"https://www.instagram.com/bo97j","tt":"@xko0_","tt_url":"https://www.tiktok.com/@xko0_","snap":"","status":"pending","gender":"f"},{"name":"","phone":"67784200","ig":"@33ajii","ig_url":"https://www.instagram.com/33ajii","tt":"@e8lj","tt_url":"","snap":"https://snapchat.com/t/gyrVYqzZ","status":"pending","gender":"f"},{"name":"","phone":"50689814","ig":"@bdra6m","ig_url":"https://www.instagram.com/bdra6m","tt":"@mesk_67","tt_url":"","snap":"","status":"pending","gender":"f"},{"name":"","phone":"99868989","ig":"@by.anb8","ig_url":"https://www.instagram.com/by.anb8","tt":"@anaba.line","tt_url":"https://www.tiktok.com/@anaba.line","snap":"https://snapchat.com/t/WXd4TDpg","status":"pending","gender":"f"},{"name":"","phone":"98076144","ig":"@kwt_wv","ig_url":"https://www.instagram.com/kwt_wv","tt":"@blokr_ward","tt_url":"https://www.tiktok.com/@blokr_ward","snap":"","status":"pending","gender":"f"},{"name":"","phone":"50121354","ig":"@fibiluqar.kw","ig_url":"https://www.instagram.com/fibiluqar.kw","tt":"@blokr_ward","tt_url":"https://www.tiktok.com/@blokr_ward","snap":"","status":"pending","gender":"f"},{"name":"","phone":"66556017","ig":"@blogger_meme_","ig_url":"https://www.instagram.com/blogger_meme_","tt":"@blogger_meme","tt_url":"https://www.tiktok.com/@blogger_meme","snap":"","status":"pending","gender":"f"},{"name":"عنود العنزي","phone":"99127291","ig":"@anood.live","ig_url":"https://www.instagram.com/anood.live","tt":"","tt_url":"","snap":"https://www.snapchat.com/add/anood.live","status":"pending","gender":"f"},{"name":"في الاعلانات ✨","phone":"94023927","ig":"@kw_70978","ig_url":"https://www.instagram.com/kw_70978","tt":"@kw_70978","tt_url":"","snap":"https://snapchat.com/t/REhNsgmQ","status":"pending","gender":"f"},{"name":"","phone":"94714962","ig":"@azalea.bloger","ig_url":"https://www.instagram.com/azalea.bloger","tt":"@azalea.bloger","tt_url":"https://www.tiktok.com/@azalea.bloger","snap":"https://snapchat.com/t/Kc1ohMqt","status":"pending","gender":"f"},{"name":"جيسي يوسف","phone":"90962052","ig":"@makeup_by_jessy","ig_url":"https://www.instagram.com/makeup_by_jessy","tt":"@jessyyoussef4","tt_url":"https://www.tiktok.com/@jessyyoussef4","snap":"","status":"pending","gender":"f"},{"name":"zooz alqallaf - مصوره & بلوقر","phone":"67614499","ig":"@zooz.alqalaf","ig_url":"https://www.instagram.com/zooz.alqalaf","tt":"@zooz.alqalaf","tt_url":"https://www.tiktok.com/@zooz.alqalaf","snap":"https://t.snapchat.com/XC1UvbC9","status":"pending","gender":"f"},{"name":"معاج بلوقر - فويس اوفر","phone":"90027571","ig":"@lorinn_90","ig_url":"https://www.instagram.com/lorinn_90","tt":"@lorinn_903","tt_url":"https://www.tiktok.com/@lorinn_903","snap":"","status":"pending","gender":"f"},{"name":"ميكرو بلوقر جوانا 🌸","phone":"50644219","ig":"@jowana.511","ig_url":"https://www.instagram.com/jowana.511","tt":"@jowana305","tt_url":"https://www.tiktok.com/@jowana305","snap":"https://www.snapchat.com/add/jowana1","status":"pending","gender":"f"},{"name":"Esraa","phone":"66924955","ig":"@reporter_esraahelmy","ig_url":"https://www.instagram.com/reporter_esraahelmy","tt":"@reporter_esraahelmy","tt_url":"https://www.tiktok.com/@reporter_esraahelmy","snap":"https://snapchat.com/t/gHp2CPs7","status":"pending","gender":"f"},{"name":"العنود - صانعة محتوى","phone":"67063365","ig":"@anoodalkhateeb__official","ig_url":"https://www.instagram.com/anoodalkhateeb__official","tt":"@anoodalkhateeb","tt_url":"https://www.tiktok.com/@anoodalkhateeb","snap":"https://snapchat.com/t/yLX2beM4","status":"pending","gender":"f"},{"name":"مهندسة اميرة محمد - بلوجر","phone":"51350055","ig":"@eng_amira_2020","ig_url":"https://www.instagram.com/eng_amira_2020","tt":"@amira_mohamed_abdalah","tt_url":"https://www.tiktok.com/@amira_mohamed_abdalah","snap":"https://snapchat.com/t/H5ydPDFL","status":"pending","gender":"f"},{"name":"سوسو - صانعة محتوى","phone":"","ig":"@siham_7ala","ig_url":"https://www.instagram.com/siham_7ala","tt":"@sihamsadek00","tt_url":"https://www.tiktok.com/@sihamsadek00","snap":"https://snapchat.com/t/ZwdSOgHM","status":"pending","gender":"f"},{"name":"alrab3h_live","phone":"","ig":"","ig_url":"https://reach.link/alrab3h_live","tt":"","tt_url":"","snap":"","status":"pending","gender":"f"},{"name":"بلوقر برستيج الكويت - أوفر فويس","phone":"","ig":"@t.as7o","ig_url":"https://www.instagram.com/t.as7o","tt":"@t.as7o","tt_url":"https://www.tiktok.com/@t.as7o","snap":"","status":"pending","gender":"f"},{"name":"دار ناديه - مصممه وبلوقر","phone":"67010886","ig":"@dar_nadia_","ig_url":"https://www.instagram.com/dar_nadia_","tt":"@dar_nadia","tt_url":"https://www.tiktok.com/@dar_nadia","snap":"","status":"pending","gender":"f"},{"name":"افرح الظفيري","phone":"","ig":"@blogger.farah","ig_url":"https://www.instagram.com/blogger.farah","tt":"","tt_url":"","snap":"","status":"pending","gender":"f"},{"name":"Kuwait Blog Q8","phone":"97641727","ig":"@kuwaitblogq8","ig_url":"https://www.instagram.com/kuwaitblogq8","tt":"@kuwaitblogq8","tt_url":"https://www.tiktok.com/@kuwaitblogq8","snap":"https://www.snapchat.com/add/kuwait_food","status":"pending","gender":"f"},{"name":"بشبش بلوقر","phone":"96707889","ig":"","ig_url":"https://linktr.ee/Bshbsh_bloogr87","tt":"","tt_url":"","snap":"","status":"pending","gender":"f"},{"name":"فجر - بلوقر","phone":"","ig":"@bloggerfjr7","ig_url":"https://www.instagram.com/bloggerfjr7","tt":"","tt_url":"","snap":"","status":"pending","gender":"f"},{"name":"بلوقر أولغا ستايل","phone":"60441419","ig":"@olga_diaries","ig_url":"https://www.instagram.com/olga_diaries","tt":"@olga_diaries_kw","tt_url":"https://www.tiktok.com/@olga_diaries_kw","snap":"https://snapchat.com/t/WVGZb1tf","status":"pending","gender":"f"},{"name":"بلوقر الترف","phone":"","ig":"@tlt1","ig_url":"https://www.instagram.com/tlt1","tt":"","tt_url":"","snap":"","status":"pending","gender":"f"},{"name":"mommyletsdoit","phone":"56513554","ig":"@mommyletsdoit","ig_url":"https://www.instagram.com/mommyletsdoit","tt":"","tt_url":"","snap":"","status":"pending","gender":"f"},{"name":"فرح - بلوقر يومي","phone":"","ig":"@farah.dailyblogs","ig_url":"https://www.instagram.com/farah.dailyblogs","tt":"","tt_url":"","snap":"","status":"pending","gender":"f"},{"name":"","phone":"","ig":"@al_yasmiina","ig_url":"https://www.instagram.com/al_yasmiina","tt":"","tt_url":"","snap":"","status":"pending","gender":"f"},{"name":"","phone":"","ig":"@l.im83","ig_url":"https://www.instagram.com/l.im83","tt":"","tt_url":"","snap":"","status":"pending","gender":"f"}];
 
 let influencers = [];
@@ -864,7 +879,7 @@ function findDuplicate(newItem) {
   }
   return null;
 }
-// ─── Phone Popup ────────────────────────────────────────────────
+// --- Phone Popup ------------------------------------------------
 function normalizePhoneForLinks(p) {
   const digits = (p||'').replace(/[٠-٩]/g, d => '٠١٢٣٤٥٦٧٨٩'.indexOf(d).toString())
                          .replace(/\D/g,'');
@@ -968,7 +983,7 @@ function setFilterFromStat(f) {
   setTimeout(()=>{ document.getElementById('grid').scrollIntoView({behavior:'smooth',block:'start'}); },100);
 }
 
-// ── Nationality groups ────────────────────────────────────────────
+// -- Nationality groups --------------------------------------------
 const NAT_GROUPS = {
   kuwait:  ['كويتي','كويتية','بدون'],
   gulf:    ['سعودي','سعودية','إماراتي','إماراتية','بحريني','بحرينية','قطري','قطرية','عماني','عمانية','عراقي','عراقية','يمني','يمنية'],
@@ -1024,7 +1039,7 @@ function renderGrid() {
   const grid=document.getElementById('grid');
   let html='', visible=0;
 
-  // ── Deleted view ──────────────────────────────────────────────
+  // -- Deleted view ----------------------------------------------
   if(currentFilter==='deleted'){
     if(deletedInfluencers.length===0){
       grid.innerHTML='<div style="text-align:center;padding:3rem;color:#484f58;font-size:14px;">🗑 قائمة المحذوفين فارغة</div>';
@@ -1063,7 +1078,7 @@ function renderGrid() {
     updateStats(); return;
   }
 
-  // ── Normal view ───────────────────────────────────────────────
+  // -- Normal view -----------------------------------------------
   // Sort: pending → cancelled → approved → rejected
   const sorted = [...influencers].map((item,idx)=>({item,idx})).sort((a,b)=>{
     const order = i => {
@@ -1170,11 +1185,15 @@ function refreshApptCardIfOpen(idx) {
   if(document.getElementById('apptCardOverlay').style.display==='flex') showApptCard(idx);
 }
 function setStatus(idx,status){
+  const item=influencers[idx];
+  const name=getDisplayName(item,idx);
   influencers[idx].status=status; renderGrid(); saveFile();
+  logActivity(status==='approved'?'approve':status==='rejected'?'reject':'restore',
+    `${status==='approved'?'قبول':status==='rejected'?'رفض':'إعادة'}: ${name}`);
   refreshApptCardIfOpen(idx);
 }
 
-// ── Missed visits check ───────────────────────────────────────────
+// -- Missed visits check -------------------------------------------
 function checkMissedVisits() {
   const today = new Date(); today.setHours(0,0,0,0);
   const missed = influencers.filter(item => {
@@ -1272,7 +1291,7 @@ window.setMissedRating = setMissedRating;
 window.confirmMissedDone = confirmMissedDone;
 window.closeMissedVisits = closeMissedVisits;
 
-// ── Notes ─────────────────────────────────────────────────────────
+// -- Notes ---------------------------------------------------------
 let _notesIdx = null;
 function openNotes(idx) {
   _notesIdx = idx;
@@ -1300,7 +1319,7 @@ function setVisitRating(idx, rating) {
 }
 window.setVisitRating = setVisitRating;
 
-// ── Delete with confirmation modal ────────────────────────────────
+// -- Delete with confirmation modal --------------------------------
 function deleteInfluencer(idx) {
   _pendingDeleteIdx = idx;
   const item = influencers[idx];
@@ -1315,8 +1334,9 @@ function cancelDelete() {
 function confirmDelete() {
   if(_pendingDeleteIdx === null) return;
   const item = influencers[_pendingDeleteIdx];
+  logActivity('delete', `حذف: ${item.name||item.ig||'مؤثر'}`);
   item.deletedAt = new Date().toISOString();
-  deletedInfluencers.unshift(item); // newest first
+  deletedInfluencers.unshift(item);
   influencers.splice(_pendingDeleteIdx, 1);
   _pendingDeleteIdx = null;
   document.getElementById('deleteConfirmOverlay').classList.add('hidden');
@@ -1442,7 +1462,9 @@ function saveEditInfluencer() {
   item.tt_url=ttRaw.startsWith('http')?ttRaw:(ttRaw?'https://www.tiktok.com/'+item.tt:'');
   item.snap=document.getElementById('eSnap').value.trim();
   const savedIdx=_editIdx;
-  closeEditModal(); renderGrid(); saveFile(); showToast('✅ تم حفظ التعديلات','#1a6fa8');
+  closeEditModal(); renderGrid(); saveFile();
+  logActivity('edit', `تعديل بيانات: ${item.name||item.ig||'مؤثر'}`);
+  showToast('✅ تم حفظ التعديلات','#1a6fa8');
   // Refresh appt card if open
   if(document.getElementById('apptCardOverlay').style.display==='flex') showApptCard(savedIdx);
 }
@@ -1622,6 +1644,7 @@ https://v0-modern-contact-form-2g.vercel.app/
 إرسال هذه الرسالة لا تعني الموافقة النهائية.
 شكراً ونتشرف بوجودكم`;
   window.open(`https://wa.me/${fullPhone}?text=${encodeURIComponent(msg)}`, '_blank');
+  logActivity('send_wa', `إرسال واتساب: ${item.name||item.ig||item.phone}`);
   // Auto-check the sent checkbox
   item.waSent = true;
   saveFile();
@@ -1645,7 +1668,7 @@ function toggleWaSent(idx, cb) {
 window.toggleWaSent = toggleWaSent;
 window.sendWhatsApp = sendWhatsApp;
 
-// ── Form Import ───────────────────────────────────────────────────
+// -- Form Import ---------------------------------------------------
 let _formImportItem = null;
 
 function openFormImport() {
@@ -1748,7 +1771,7 @@ function confirmFormImport() {
   showToast('✅ تم إضافة المؤثر من الفورم', '#059669');
 }
 
-// ── Convert Arabic digits to Western in all number inputs ─────────
+// -- Convert Arabic digits to Western in all number inputs ---------
 function convertArabicDigits(str) {
   return (str||'').replace(/[٠-٩]/g, d => '٠١٢٣٤٥٦٧٨٩'.indexOf(d).toString());
 }
@@ -1820,7 +1843,7 @@ function closeServicePopup(){
   _svcTargetIdx = null;
 }
 
-// ── Dialect popup ─────────────────────────────────────────────────
+// -- Dialect popup -------------------------------------------------
 let _dlctTargetIdx = null;
 function openDialectPopup(idx, e) {
   e.stopPropagation();
@@ -2072,7 +2095,7 @@ function closeApptCard() {
 window.showApptCard = showApptCard;
 window.closeApptCard = closeApptCard;
 
-// ─── Report SVG icons ─────────────────────────────────────────────
+// --- Report SVG icons ---------------------------------------------
 const igSVG_rpt='<svg width="13" height="13" viewBox="0 0 24 24" fill="#c13584" style="flex-shrink:0;vertical-align:middle;"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>';
 const ttSVG_rpt='<svg width="13" height="13" viewBox="0 0 24 24" style="flex-shrink:0;vertical-align:middle;"><path fill="#69C9D0" d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-2.88 2.5 2.89 2.89 0 0 1-2.89-2.89 2.89 2.89 0 0 1 2.89-2.89c.28 0 .54.04.79.1V9.01a6.34 6.34 0 0 0-.79-.05 6.34 6.34 0 0 0-6.34 6.34 6.34 6.34 0 0 0 6.34 6.34 6.34 6.34 0 0 0 6.33-6.34V8.69a8.18 8.18 0 0 0 4.78 1.52V6.76a4.86 4.86 0 0 1-3-.07z"/></svg>';
 const scSVG_rpt='<svg width="13" height="13" viewBox="0 0 24 24" fill="#FFFC00" style="flex-shrink:0;vertical-align:middle;background:#333;border-radius:3px;padding:1px;"><path d="M12.166.011C9.033.011 6.099 1.871 4.91 4.66c-.53 1.236-.425 3.566-.362 4.994-.33.15-.727.24-1.17.133-.315-.075-.627.154-.68.475-.081.497.286.898.75 1.012.63.154 1.236.124 1.784-.047.083-.024.163-.054.241-.086.41 1.24 1.14 2.41 2.177 3.299-.754.378-2.15.89-3.914 1.01-.282.018-.52.208-.573.488-.245 1.304 2.36 2.014 3.69 2.338.244.059.41.28.4.53-.02.457.02.76.107.97.068.163.237.255.408.215.332-.079.654-.232.997-.232.388 0 .639.104 1.012.316.762.437 1.627.943 3.219.943 1.57 0 2.44-.498 3.193-.934.372-.213.63-.325 1.012-.325.338 0 .657.152.987.23.172.041.342-.052.41-.214.086-.21.127-.513.107-.97-.01-.25.156-.47.4-.53 1.33-.323 3.934-1.033 3.69-2.337-.054-.28-.291-.47-.573-.488-1.765-.12-3.16-.632-3.914-1.01 1.036-.889 1.767-2.059 2.177-3.299.078.032.158.062.241.086.548.171 1.154.201 1.784.047.464-.114.831-.515.75-1.012-.053-.321-.365-.55-.68-.475-.443.107-.84.017-1.17-.133.063-1.428.168-3.758-.362-4.994C17.9 1.871 14.966.011 12.166.011z"/></svg>';
@@ -2094,8 +2117,11 @@ function closeReportIfBg(e){if(e.target.id==='reportOverlay')closeReport();}
 
 function setVisitStatus(realIdx,status){
   const item=influencers[realIdx];if(!item)return;
+  const name=getDisplayName(item,realIdx);
   item.visitStatus=(item.visitStatus===status)?'':status;
   saveFile(); updateStats();
+  logActivity(status==='done'?'done':'cancelled',
+    `${status==='done'?'تمت الزيارة':'ألغيت الزيارة'}: ${name}`);
   // Update report row if open
   const row=document.getElementById('rrow_'+realIdx);
   if(row){
@@ -2112,7 +2138,7 @@ function setVisitStatus(realIdx,status){
   }
 }
 
-// ─── buildReportHTML helper for shareable version ─────────────────
+// --- buildReportHTML helper for shareable version -----------------
 function buildReportHTMLShell(thBg, accentColor, title, emoji, today, count, tableHeadersHTML, rowsHTML, isApproved) {
   return `<!DOCTYPE html><html lang="ar" dir="rtl"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>${emoji} ${title} — مركز كيور الطبي</title>
@@ -2137,7 +2163,7 @@ td{padding:9px 12px;border-bottom:1px solid #e5e7eb;font-size:12px;font-family:'
 </div></body></html>`;
 }
 
-// ─── Status Reports (approved / rejected) ────────────────────────
+// --- Status Reports (approved / rejected) ------------------------
 function openStatusReport(type) {
   const isApproved=type==='approved';
   let list=influencers.filter(i=>i.status===type);
@@ -2156,6 +2182,7 @@ function openStatusReport(type) {
       return 0;
     });
   }
+  logActivity('report', `فتح كشف: ${type==='approved'?'المقبولين':'المرفوضين'} — Admin`);
   if(!list.length){showToast(isApproved?'⚠️ لا يوجد مقبولين!':'⚠️ لا يوجد مرفوضين!','#d97706');return;}
   const today=new Date().toLocaleDateString('ar-KW',{year:'numeric',month:'long',day:'numeric'});
   const title=isApproved?'✅ كشف المؤثرين المقبولين':'❌ كشف المؤثرين المرفوضين';
@@ -2233,7 +2260,7 @@ function openStatusReport(type) {
   const div=document.createElement('div');div.id='reportContainer';div.innerHTML=html;document.body.appendChild(div);
 }
 
-// ─── Gender Reports (male / female) ──────────────────────────────
+// --- Gender Reports (male / female) ------------------------------
 function openGenderReport(gender) {
   const isMale=gender==='m';
   const list=influencers.filter(i=>i.gender===gender);
@@ -2280,8 +2307,9 @@ function openGenderReport(gender) {
   const div=document.createElement('div');div.id='reportContainer';div.innerHTML=html;document.body.appendChild(div);
 }
 
-// ─── Share functions ──────────────────────────────────────────────
+// --- Share functions ----------------------------------------------
 async function shareStatusReport(type) {
+  logActivity('report', `مشاركة كشف: ${type==='approved'?'المقبولين':'المرفوضين'} — ${sessionStorage.getItem('cure_auth')||''}`);
   const isApproved=type==='approved';
   const list=influencers.filter(i=>i.status===type);
   if(!list.length)return;
@@ -2341,7 +2369,7 @@ async function downloadOrShare(html,fileName){
   }catch(e){if(e.name!=='AbortError')showToast('تعذّرت المشاركة','#dc2626');}
 }
 
-// ─── One-time migrations (run once per version, then never again) ──
+// --- One-time migrations (run once per version, then never again) --
 const MIGRATIONS = {
   // v1: initial batch + updates
   'v1': function() {
@@ -2435,7 +2463,7 @@ function runMigrations() {
   return ran;
 }
 
-// ── Remove duplicates on every load ──────────────────────────────
+// -- Remove duplicates on every load ------------------------------
 function removeDuplicates() {
   const seenPhones = {}, seenIgs = {}, seenTts = {}, seenSnaps = {}, seenCivils = {};
   const toRemove = [];
@@ -2462,9 +2490,72 @@ function removeDuplicates() {
   return toRemove.length;
 }
 
-// ── Login ─────────────────────────────────────────────────────────
+// -- Log all print events ------------------------------------------
+const _origPrint = window.print.bind(window);
+window.print = function() {
+  logActivity('report', `طباعة/PDF كشف — ${sessionStorage.getItem('cure_auth')||'غير معروف'}`);
+  _origPrint();
+};
+const LOG_KEY = 'cure_activity_log';
+const LOG_ICONS = {
+  'login':'🔑','logout':'🚪','add':'➕','edit':'✏️','delete':'🗑',
+  'approve':'✅','reject':'❌','restore':'↺','done':'🏁',
+  'cancelled':'⚠️','rating':'⭐','notes':'📝','service':'💉',
+  'date':'📅','report':'📋','send_wa':'📲','bulk':'⚡','form':'📋',
+};
+function logActivity(action, details='') {
+  const user = sessionStorage.getItem('cure_auth') || 'غير معروف';
+  const now = new Date();
+  const time = now.toLocaleString('ar-KW', {day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
+  const entry = { user, action, details, time, ts: now.getTime() };
+  const logs = getActivityLogs();
+  logs.unshift(entry);
+  // Keep max 200 entries
+  if(logs.length > 200) logs.splice(200);
+  localStorage.setItem(LOG_KEY, JSON.stringify(logs));
+  // Also save to Firebase
+  fetch(`${DB_URL}/cure_activity_log.json`, {
+    method:'POST',
+    body: JSON.stringify(entry)
+  }).catch(()=>{});
+}
+function getActivityLogs() {
+  try { return JSON.parse(localStorage.getItem(LOG_KEY) || '[]'); } catch{ return []; }
+}
+function openActivityLog() {
+  const logs = getActivityLogs();
+  const list = document.getElementById('activityLogList');
+  if(!logs.length) {
+    list.innerHTML = '<div style="text-align:center;color:#484f58;padding:1rem;">لا يوجد نشاط مسجل بعد</div>';
+  } else {
+    list.innerHTML = logs.map(e => `
+      <div style="display:flex;align-items:flex-start;gap:10px;padding:8px 10px;background:#21262d;border-radius:8px;border-right:3px solid #1a6fa8;">
+        <span style="font-size:18px;flex-shrink:0;">${LOG_ICONS[e.action]||'📌'}</span>
+        <div style="flex:1;">
+          <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;">
+            <span style="font-weight:700;color:#e6edf3;font-size:13px;">${e.details||e.action}</span>
+            <span style="font-size:10px;color:#484f58;white-space:nowrap;">${e.time}</span>
+          </div>
+          <div style="font-size:11px;color:#8b949e;margin-top:2px;">👤 ${e.user}</div>
+        </div>
+      </div>
+    `).join('');
+  }
+  document.getElementById('activityLogOverlay').classList.remove('hidden');
+}
+function closeActivityLog() {
+  document.getElementById('activityLogOverlay').classList.add('hidden');
+}
+function clearActivityLog() {
+  if(!confirm('هل تريد مسح سجل النشاط كاملاً؟')) return;
+  localStorage.removeItem(LOG_KEY);
+  openActivityLog();
+}
+window.openActivityLog = openActivityLog;
+window.closeActivityLog = closeActivityLog;
+window.clearActivityLog = clearActivityLog;
 const USERS = {
-  'didi':      'Didi@1005',
+  'didi':      'Didi@2211',
   'elattar89': 'Rio@1005'
 };
 function doLogin() {
@@ -2474,6 +2565,7 @@ function doLogin() {
     sessionStorage.setItem('cure_auth', user);
     document.getElementById('loginScreen').style.display = 'none';
     updateWelcome();
+    logActivity('login', `تسجيل دخول: ${user}`);
     init(); // Start the app
   } else {
     document.getElementById('loginError').style.display = 'block';
@@ -2485,10 +2577,12 @@ function guestLogin() {
   sessionStorage.setItem('cure_auth', 'guest');
   document.getElementById('loginScreen').style.display = 'none';
   updateWelcome();
+  logActivity('login', 'تسجيل دخول: Guest');
   init();
 }
 window.guestLogin = guestLogin;
 function logout() {
+  logActivity('logout', `تسجيل خروج: ${sessionStorage.getItem('cure_auth')||''}`);
   sessionStorage.removeItem('cure_auth');
   location.reload();
 }
@@ -2510,6 +2604,7 @@ function updateWelcome() {
   if(el && user) el.textContent = user === 'guest' ? '👤 Guest' : '👋 مرحباً ' + user;
 }
 function openGuestReport() {
+  logActivity('report', 'فتح كشف المقبولين — Guest');
   const list = influencers.filter(i => i.status === 'approved').sort((a,b)=>{
     const order = i => {
       if(i.visitStatus==='done') return 0;
@@ -2628,6 +2723,8 @@ function guestSetVisitStatus(idx, status) {
   if(!item) return;
   item.visitStatus = item.visitStatus === status ? '' : status;
   saveFile();
+  logActivity(status==='done'?'done':'cancelled',
+    `Guest — ${status==='done'?'تمت الزيارة':'ألغيت الزيارة'}: ${item.name||item.ig||''}`);
   renderGuestView();
   showToast(status==='done'?'✅ تم تسجيل الزيارة':'⚠️ تم تسجيل الإلغاء', status==='done'?'#16a34a':'#ca8a04');
 }
@@ -2766,7 +2863,7 @@ async function init() {
 }
 init();
 
-// ─── Globals ──────────────────────────────────────────────────────
+// --- Globals ------------------------------------------------------
 window.deleteInfluencer=deleteInfluencer; window.cancelDelete=cancelDelete; window.confirmDelete=confirmDelete;
 window.restoreInfluencer=restoreInfluencer; window.permanentDelete=permanentDelete;
 window.cancelPermDelete=cancelPermDelete; window.executePermDelete=executePermDelete; window.executePermanentDelete=executePermanentDelete;
