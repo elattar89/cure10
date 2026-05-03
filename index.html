@@ -1474,26 +1474,129 @@ function saveEditInfluencer() {
 
 function openBulkModal(){ document.getElementById('bulkModalOverlay').classList.remove('hidden'); }
 function closeBulkModal(){ document.getElementById('bulkModalOverlay').classList.add('hidden'); document.getElementById('bulkTextarea').value=''; }
-function parseBulkLine(line) {
-  line=line.trim(); if(!line) return null;
-  const item={name:'',phone:'',ig:'',ig_url:'',tt:'',tt_url:'',snap:'',status:'pending',gender:'',nationality:'',visitDate:''};
-  const parts=line.split(/[\s,،]+/);
-  parts.forEach(p=>{
-    p=p.trim(); if(!p) return;
-    if(p.includes('instagram.com/')){const h='@'+p.split('instagram.com/').pop().replace(/\//,'').split('?')[0];item.ig=h;item.ig_url=p;}
-    else if(p.includes('tiktok.com/@')){const h='@'+p.split('tiktok.com/@').pop().split('?')[0];item.tt=h;item.tt_url=p;}
-    else if(p.includes('snapchat.com')||p.includes('snap.com')){item.snap=p;}
-    else if(p.startsWith('@')){if(!item.ig)item.ig=p;else if(!item.tt)item.tt=p;}
-    else if(/^\d{6,}$/.test(p.replace(/\D/g,''))){item.phone=p;}
-    else if(p.length>2&&/[\u0600-\u06FF]/.test(p)){item.name=(item.name?item.name+' ':'')+p;}
-  });
-  if(!item.ig&&!item.phone&&!item.name) return null;
-  return item;
+function parseBulkText(fullText) {
+  // Normalize line endings
+  const text = fullText.replace(/\r\n/g,'\n').replace(/\r/g,'\n');
+  const lines = text.split('\n');
+
+  // Helper to extract from URL
+  function extractIg(url) {
+    if(!url) return '';
+    const m = url.match(/instagram\.com\/([^?&/\s]+)/);
+    return m ? '@'+m[1] : '';
+  }
+  function extractTt(url) {
+    const m = url.match(/tiktok\.com\/@([^?&/\s]+)/);
+    return m ? '@'+m[1] : '';
+  }
+  function extractSnap(url) {
+    if(url.includes('snapchat.com/add/')) return url.split('snapchat.com/add/')[1].split('?')[0];
+    return url; // keep full snap link
+  }
+
+  // Split into blocks by empty lines or message boundaries
+  // Each block = one influencer
+  const blocks = [];
+  let current = [];
+  for(let i=0; i<lines.length; i++) {
+    const l = lines[i].trim();
+    // Skip WhatsApp timestamps like "[1:19 pm, 03/05/2026]"
+    if(/^\[?\d{1,2}:\d{2}\s*(am|pm).*\]?$/i.test(l)) continue;
+    if(l === '') {
+      if(current.length) { blocks.push(current); current=[]; }
+    } else {
+      current.push(l);
+    }
+  }
+  if(current.length) blocks.push(current);
+
+  const items = [];
+  for(const block of blocks) {
+    const item = {name:'',phone:'',ig:'',ig_url:'',tt:'',tt_url:'',snap:'',status:'pending',gender:'',nationality:'',addedAt:Date.now()};
+
+    for(const line of block) {
+      const l = line.trim();
+
+      // Instagram
+      if(l.includes('instagram.com/')) {
+        item.ig_url = l.replace(/^[^h]*(https?:\/\/)/, '$1').split(/\s/)[0];
+        const h = extractIg(item.ig_url);
+        if(h && h !== '@explore') item.ig = h;
+        continue;
+      }
+      // Also handle "Instagram: @handle"
+      if(/instagram/i.test(l) && l.includes('@')) {
+        const m = l.match(/@([\w.]+)/);
+        if(m && !item.ig) { item.ig = '@'+m[1]; item.ig_url = 'https://www.instagram.com/'+m[1]; }
+        continue;
+      }
+
+      // TikTok
+      if(l.includes('tiktok.com/')) {
+        item.tt_url = l.replace(/^[^h]*(https?:\/\/)/, '$1').replace(/^www\./,'https://www.').split(/\s/)[0];
+        if(!item.tt_url.startsWith('http')) item.tt_url = 'https://'+item.tt_url;
+        item.tt = extractTt(item.tt_url);
+        continue;
+      }
+
+      // Snapchat
+      if(l.includes('snapchat.com/') || /^سناب/i.test(l)) {
+        const urlMatch = l.match(/https?:\/\/[^\s]+/);
+        if(urlMatch) item.snap = urlMatch[0];
+        else if(l.includes('snapchat.com/add/')) item.snap = l;
+        // handle: just a username after snapchat label on next lines
+        continue;
+      }
+      // Plain snap handle (no http)
+      if(/^snap/i.test(l) && !l.includes('http')) {
+        const h = l.replace(/^snap\w*[:\s]*/i,'').trim();
+        if(h && h.length > 2 && !h.includes(' ')) item.snap = h;
+        continue;
+      }
+
+      // Phone number
+      const phoneClean = l.replace(/[^\d]/g,'');
+      if(phoneClean.length >= 7 && phoneClean.length <= 12 && /^\d/.test(l.replace(/[\s\-+]/g,''))) {
+        if(!item.phone) item.phone = normalizePhone(l);
+        continue;
+      }
+      // Phone with 📞 or "رقم" label
+      if(/📞|رقم|تلفون|تواصل|جوال|phone|number/i.test(l)) {
+        const nums = l.replace(/[^\d]/g,'');
+        if(nums.length >= 7) { item.phone = normalizePhone(nums); continue; }
+      }
+
+      // @handle
+      if(l.startsWith('@') && !l.includes(' ')) {
+        if(!item.ig) { item.ig = l; item.ig_url = 'https://www.instagram.com/'+l.replace('@',''); }
+        else if(!item.tt) { item.tt = l; item.tt_url = 'https://www.tiktok.com/'+l; }
+        continue;
+      }
+
+      // Name: Arabic text lines without URLs
+      if(!l.includes('http') && /[\u0600-\u06FF]/.test(l) && l.length > 1) {
+        // Skip label lines
+        if(/انستغرام|انستجرام|تيك\s*توك|سناب|رقم|تلفون|واتس|ايميل|📸|💎|📲|📱/i.test(l)) continue;
+        if(!item.name || item.name.length < l.length) item.name = l.replace(/[🩷✨🎀💫⭐🌟]/g,'').trim();
+        continue;
+      }
+      // English name
+      if(/^[A-Za-z\s]{3,}$/.test(l) && !l.includes('http') && !l.includes('@')) {
+        if(!item.name) item.name = l.trim();
+        continue;
+      }
+    }
+
+    if(item.ig || item.phone || item.tt) items.push(item);
+  }
+  return items;
 }
+
 function confirmBulkAdd() {
-  const lines=document.getElementById('bulkTextarea').value.split('\n');
-  const parsed=lines.map(parseBulkLine).filter(Boolean);
-  if(parsed.length===0) return;
+  const rawText = document.getElementById('bulkTextarea').value;
+  if(!rawText.trim()) return;
+  const parsed = parseBulkText(rawText);
+  if(parsed.length===0) { showToast('⚠️ لم يتم استخراج أي بيانات', '#d97706'); return; }
   _bulkClean=[];_bulkPending=[];
   parsed.forEach(item=>{const dup=findDuplicate(item);if(dup)_bulkPending.push({item,dup});else _bulkClean.push(item);});
   if(_bulkPending.length===0){_bulkClean.forEach(i=>{if(!i.addedAt)i.addedAt=Date.now();});influencers.push(..._bulkClean);closeBulkModal();renderGrid();saveFile();showToast('✅ تم إضافة '+_bulkClean.length+' مؤثر بنجاح!','#059669');return;}
