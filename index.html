@@ -281,6 +281,16 @@ body{font-family:'Tajawal',sans-serif;direction:rtl;background:#0d1117;color:#e6
 <style id="guestStyle"></style>
 <script>
 (function(){
+  // Clear cache if requested
+  if(window.location.search.indexOf('clearCache=1') !== -1) {
+    try {
+      localStorage.removeItem('cure_influencers_v18');
+      localStorage.removeItem('cure_deleted_v18');
+      localStorage.removeItem('cure_migrations');
+    } catch(e){}
+    window.location.href = window.location.pathname;
+    return;
+  }
   var isGuest = window.location.search.indexOf('guest=1') !== -1;
   if(isGuest) {
     var s = document.getElementById('guestStyle');
