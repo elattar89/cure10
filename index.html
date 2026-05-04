@@ -803,27 +803,34 @@ async function saveToStorage() {
   showSaveIndicator();
 }
 async function loadFromStorage() {
-  // For guest: always load from Firebase (never trust stale localStorage)
+  // Always load from Firebase first (most up-to-date)
+  // Use localStorage only as fallback if Firebase is unreachable
   if(window.location.search.indexOf('guest=1') !== -1) {
+    // Guest: Firebase only, never localStorage
     const loaded = await tryLoadFirebase();
     return loaded;
   }
 
-  // Admin: Try localStorage first (instant)
-  let localLoaded = false;
+  // Admin: Try Firebase first
+  const firebaseLoaded = await tryLoadFirebase();
+  if(firebaseLoaded) return true;
+
+  // Firebase failed — fall back to localStorage
   try {
     const ls = localStorage.getItem(LS_KEY);
     if (ls) {
       const parsed = JSON.parse(ls);
-      if (Array.isArray(parsed) && parsed.length > 0) { influencers = parsed; localLoaded = true; }
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        influencers = parsed;
+        showToast('⚠️ تم التحميل من الجهاز — Firebase غير متاح', '#d97706');
+        return true;
+      }
     }
     const lsd = localStorage.getItem(LS_DELETED_KEY);
     if (lsd) { const p = JSON.parse(lsd); if(Array.isArray(p)) deletedInfluencers = p; }
   } catch(e) {}
 
-  // Try Firebase
-  const loaded = await tryLoadFirebase();
-  return loaded || localLoaded;
+  return false;
 }
 
 async function tryLoadFirebase() {
@@ -3218,13 +3225,9 @@ function openGuestReport() {
     const natCell = item.nationality?`<span style="background:#e6f7f1;color:#0a7a55;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:700;">🌍 ${item.nationality}</span>`:'—';
     const dateStr = item.visitDate ? formatDateAr(item.visitDate) : '—';
     const realIdx = influencers.indexOf(item);
-    const svcChecks = SERVICES.map(s => {
-      const checked = item.services && item.services.includes(s);
-      return `<label style="display:flex;align-items:center;gap:4px;cursor:pointer;font-size:11px;margin-bottom:2px;white-space:nowrap;">
-        <input type="checkbox" ${checked?'checked':''} onchange="guestToggleService(${realIdx},'${s}',this)" style="accent-color:#7c3aed;width:13px;height:13px;">
-        ${s}
-      </label>`;
-    }).join('');
+    const svcChecks = item.services && item.services.length
+      ? item.services.map(s => `<span style="display:inline-block;background:#f3e8ff;color:#7c3aed;border:1px solid #c084fc;border-radius:5px;padding:2px 7px;font-size:11px;margin:1px;">${s}</span>`).join(' ')
+      : '—';
     const isDone = item.visitStatus === 'done';
     const isCancelled = item.visitStatus === 'cancelled';
     const rowBg = isDone ? '#bbf7d0' : isCancelled ? '#fef08a' : i%2===1?'#f8fafc':'#fff';
@@ -3352,44 +3355,19 @@ function openGuestAppts() {
 }
 window.openGuestAppts = openGuestAppts;
 function guestUpdateTime(idx, part, val) {
-  const item = influencers[idx];
-  if(!item || !item.visitDate) return;
-  const dateOnly = item.visitDate.split('T')[0];
-  const timeParts = item.visitDate.includes('T') ? item.visitDate.split('T')[1] : '09:00AM';
-  let hh = timeParts.replace('AM','').replace('PM','').split(':')[0] || '09';
-  let mm = timeParts.replace('AM','').replace('PM','').split(':')[1] || '00';
-  let ap = timeParts.includes('PM') ? 'PM' : 'AM';
-  if(part==='hour') hh = val;
-  if(part==='min') mm = val;
-  if(part==='ampm') ap = val;
-  item.visitDate = dateOnly + 'T' + hh + ':' + mm + ap;
-  saveFile();
-  showToast('⏰ تم حفظ الوقت', '#1a6fa8');
+  // Guest is view only - no modifications allowed
+  showToast('🔒 عرض فقط — التعديل للأدمن', '#6e7681');
 }
 function guestSetVisitStatus(idx, status) {
-  const item = influencers[idx];
-  if(!item) return;
-  item.visitStatus = item.visitStatus === status ? '' : status;
-  saveFile();
-  logActivity(status==='done'?'done':'cancelled',
-    `Guest — ${status==='done'?'تمت الزيارة':'ألغيت الزيارة'}: ${item.name||item.ig||''}`);
-  renderGuestView();
-  showToast(status==='done'?'✅ تم تسجيل الزيارة':'⚠️ تم تسجيل الإلغاء', status==='done'?'#16a34a':'#ca8a04');
+  // Guest is view only - no modifications allowed
+  showToast('🔒 عرض فقط — التعديل للأدمن', '#6e7681');
 }
 window.guestUpdateTime = guestUpdateTime;
 window.guestSetVisitStatus = guestSetVisitStatus;
 function guestToggleService(idx, svc, cb) {
-  const item = influencers[idx];
-  if(!item) return;
-  if(!item.services) item.services = [];
-  if(cb.checked) {
-    if(!item.services.includes(svc)) item.services.push(svc);
-  } else {
-    const i = item.services.indexOf(svc);
-    if(i !== -1) item.services.splice(i, 1);
-  }
-  saveFile();
-  showToast('✅ تم حفظ الخدمة', '#7c3aed');
+  // Guest is view only - revert checkbox
+  cb.checked = !cb.checked;
+  showToast('🔒 عرض فقط — التعديل للأدمن', '#6e7681');
 }
 window.guestToggleService = guestToggleService;
 window.openGuestReport = openGuestReport;
@@ -3434,55 +3412,20 @@ function renderGuestView() {
     const hh = timeParts ? timeParts.replace('AM','').replace('PM','').split(':')[0] : '09';
     const mm = timeParts ? timeParts.replace('AM','').replace('PM','').split(':')[1] : '00';
     const ap = timeParts ? (timeParts.includes('PM')?'PM':'AM') : 'AM';
-    return `<div style="background:#161b22;border:2px solid ${borderColor};border-radius:12px;padding:1rem;gap:10px;${cardBg}">
-      <div style="display:flex;align-items:center;gap:12px;margin-bottom:.7rem;">
+    return `<div style="background:#161b22;border:2px solid ${borderColor};border-radius:12px;padding:1rem;${cardBg}">
+      <div style="display:flex;align-items:center;gap:12px;">
         <div style="background:${dateBadgeBg};border-radius:10px;padding:8px 14px;text-align:center;flex-shrink:0;min-width:52px;">
           <div style="font-size:20px;font-weight:900;color:#fff;line-height:1;">${parseInt(d)}</div>
           <div style="font-size:10px;color:rgba(255,255,255,0.8);">${MONTHS_AR[parseInt(m)-1]}</div>
         </div>
         <div style="flex:1;">
           <div style="font-size:15px;font-weight:700;color:#e6edf3;">${name}</div>
-          ${item.services&&item.services.length?`<div style="font-size:12px;color:#c084fc;">💉 ${item.services.join(' · ')}</div>`:''}
-          <div style="font-size:12px;margin-top:2px;">${vs==='done'?'<span style="color:#4ade80;">✅ تمت الزيارة</span>':vs==='cancelled'?'<span style="color:#fbbf24;">⚠️ ألغيت الزيارة</span>':isToday?'<span style="color:#f59e0b;">⭐ اليوم</span>':''}</div>
+          ${timeStr?`<div style="font-size:12px;color:#8b949e;margin-top:2px;">⏰ ${timeStr}</div>`:''}
+          ${item.services&&item.services.length?`<div style="font-size:12px;color:#c084fc;margin-top:2px;">💉 ${item.services.join(' · ')}</div>`:''}
+          <div style="font-size:12px;margin-top:4px;">${vs==='done'?'<span style="color:#4ade80;font-weight:700;">✅ تمت الزيارة</span>':vs==='cancelled'?'<span style="color:#fbbf24;font-weight:700;">⚠️ ألغيت الزيارة</span>':isToday?'<span style="color:#f59e0b;font-weight:700;">⭐ اليوم</span>':isPast?'<span style="color:#484f58;">انتهى الموعد</span>':'<span style="color:#60a5fa;">🗓 قادم</span>'}</div>
           ${vs==='done'&&item.contentStatus==='published'?'<div style="margin-top:4px;display:inline-block;background:rgba(202,138,4,0.2);border:1px solid #ca8a04;color:#fbbf24;font-size:11px;font-weight:700;padding:2px 10px;border-radius:20px;">🌟 تم النشر</div>':''}
           ${vs==='done'&&item.contentStatus==='unpublished'?'<div style="margin-top:4px;display:inline-block;background:rgba(124,58,237,0.2);border:1px solid #7c3aed;color:#c084fc;font-size:11px;font-weight:700;padding:2px 10px;border-radius:20px;">🟣 لم يتم النشر</div>':''}
         </div>
-      </div>
-      <!-- Services -->
-      <div style="margin-bottom:.7rem;">
-        <div style="font-size:11px;color:#8b949e;margin-bottom:5px;">💉 الخدمة:</div>
-        <div style="display:flex;flex-wrap:wrap;gap:6px;">
-          ${SERVICES.map(s => {
-            const checked = item.services && item.services.includes(s);
-            return `<label style="display:flex;align-items:center;gap:4px;cursor:pointer;background:${checked?'#1a0a2e':'#21262d'};border:1px solid ${checked?'#7c3aed':'#30363d'};border-radius:8px;padding:5px 10px;font-size:12px;color:${checked?'#c084fc':'#8b949e'};">
-              <input type="checkbox" ${checked?'checked':''} onchange="guestToggleService(${idx},'${s}',this)" style="accent-color:#7c3aed;width:13px;height:13px;">
-              ${s}
-            </label>`;
-          }).join('')}
-        </div>
-      </div>
-      <!-- Time picker -->
-      <div style="display:flex;align-items:center;gap:6px;margin-bottom:.7rem;flex-wrap:wrap;">
-        <span style="font-size:12px;color:#8b949e;">⏰ الساعة:</span>
-        <select onchange="guestUpdateTime(${idx},'hour',this.value)" style="background:#21262d;color:#e6edf3;border:1px solid #1a6fa8;border-radius:7px;padding:4px 8px;font-size:13px;font-family:Tajawal,sans-serif;cursor:pointer;">
-          ${[1,2,3,4,5,6,7,8,9,10,11,12].map(h=>`<option value="${String(h).padStart(2,'0')}" ${hh===String(h).padStart(2,'0')||hh===String(h)?'selected':''}>${h}</option>`).join('')}
-        </select>
-        <span style="color:#e6edf3;font-size:16px;font-weight:700;">:</span>
-        <select onchange="guestUpdateTime(${idx},'min',this.value)" style="background:#21262d;color:#e6edf3;border:1px solid #1a6fa8;border-radius:7px;padding:4px 8px;font-size:13px;font-family:Tajawal,sans-serif;cursor:pointer;">
-          <option value="00" ${mm==='00'?'selected':''}>00</option>
-          <option value="15" ${mm==='15'?'selected':''}>15</option>
-          <option value="30" ${mm==='30'?'selected':''}>30</option>
-          <option value="45" ${mm==='45'?'selected':''}>45</option>
-        </select>
-        <select onchange="guestUpdateTime(${idx},'ampm',this.value)" style="background:#21262d;color:#e6edf3;border:1px solid #1a6fa8;border-radius:7px;padding:4px 8px;font-size:13px;font-family:Tajawal,sans-serif;cursor:pointer;">
-          <option value="AM" ${ap==='AM'?'selected':''}>صباحاً</option>
-          <option value="PM" ${ap==='PM'?'selected':''}>مساءً</option>
-        </select>
-      </div>
-      <!-- Visit status buttons -->
-      <div style="display:flex;gap:8px;">
-        <button onclick="guestSetVisitStatus(${idx},'done')" style="flex:1;padding:8px;border-radius:8px;border:1px solid #16a34a;background:${vs==='done'?'#16a34a':'#0d1f14'};color:${vs==='done'?'#fff':'#4ade80'};font-size:13px;font-weight:700;cursor:pointer;font-family:Tajawal,sans-serif;">✅ تمت الزيارة</button>
-        <button onclick="guestSetVisitStatus(${idx},'cancelled')" style="flex:1;padding:8px;border-radius:8px;border:1px solid #ca8a04;background:${vs==='cancelled'?'#ca8a04':'#2d1f0a'};color:${vs==='cancelled'?'#fff':'#fbbf24'};font-size:13px;font-weight:700;cursor:pointer;font-family:Tajawal,sans-serif;">⚠️ ألغيت الزيارة</button>
       </div>
     </div>`;
   }).join('');
