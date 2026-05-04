@@ -258,18 +258,19 @@ body{font-family:'Tajawal',sans-serif;direction:rtl;background:#0d1117;color:#e6
   .report-table td{padding:6px 5px!important;font-size:10px!important;border:1px solid #ccc!important;-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important;}
   /* Column widths for landscape A4 (~277mm printable) */
   .report-table th:nth-child(1), .report-table td:nth-child(1){ width:25px!important; }
-  .report-table th:nth-child(2), .report-table td:nth-child(2){ width:90px!important; }
-  .report-table th:nth-child(3), .report-table td:nth-child(3){ width:35px!important; }
-  .report-table th:nth-child(4), .report-table td:nth-child(4){ width:55px!important; }
-  .report-table th:nth-child(5), .report-table td:nth-child(5){ width:70px!important; }
-  .report-table th:nth-child(6), .report-table td:nth-child(6){ width:70px!important; }
-  .report-table th:nth-child(7), .report-table td:nth-child(7){ width:85px!important; }
-  .report-table th:nth-child(8), .report-table td:nth-child(8){ width:70px!important; }
-  .report-table th:nth-child(9), .report-table td:nth-child(9){ width:55px!important; }
-  .report-table th:nth-child(10),.report-table td:nth-child(10){ width:65px!important; }
-  .report-table th:nth-child(11),.report-table td:nth-child(11){ width:110px!important;}
+  .report-table th:nth-child(2), .report-table td:nth-child(2){ width:85px!important; }
+  .report-table th:nth-child(3), .report-table td:nth-child(3){ width:30px!important; }
+  .report-table th:nth-child(4), .report-table td:nth-child(4){ width:50px!important; }
+  .report-table th:nth-child(5), .report-table td:nth-child(5){ width:65px!important; }
+  .report-table th:nth-child(6), .report-table td:nth-child(6){ width:65px!important; }
+  .report-table th:nth-child(7), .report-table td:nth-child(7){ width:80px!important; }
+  .report-table th:nth-child(8), .report-table td:nth-child(8){ width:65px!important; }
+  .report-table th:nth-child(9), .report-table td:nth-child(9){ width:50px!important; }
+  .report-table th:nth-child(10),.report-table td:nth-child(10){ width:60px!important; }
+  .report-table th:nth-child(11),.report-table td:nth-child(11){ width:60px!important; }
+  .report-table th:nth-child(12),.report-table td:nth-child(12){ width:100px!important;}
   /* Signature column print */
-  .report-table td:nth-child(11) { overflow:visible!important; }
+  .report-table td:nth-child(12) { overflow:visible!important; }
   .sig-print-img { width:100px!important; height:45px!important; object-fit:contain!important; display:block!important; -webkit-print-color-adjust:exact!important; print-color-adjust:exact!important; }
   .sig-print-line { height:40px!important; border-bottom:1.5px solid #374151!important; margin:10px 4px 0!important; display:block!important; }
   /* Reduce font for social links */
@@ -1026,8 +1027,8 @@ function updateStats() {
   if(statCan) statCan.textContent=cancelled;
 }
 
-const REPORT_FILTERS = ['approved','rejected','male','female'];
-const REPORT_LABELS = {approved:'📋 كشف المقبولين',rejected:'📋 كشف المرفوضين',male:'📋 كشف الذكور',female:'📋 كشف الإناث'};
+const REPORT_FILTERS = ['approved','rejected','male','female','visited'];
+const REPORT_LABELS = {approved:'📋 كشف المقبولين',rejected:'📋 كشف المرفوضين',male:'📋 كشف الذكور',female:'📋 كشف الإناث',visited:'📋 كشف المقبولين'};
 function updateReportBtn(f) {
   const btn=document.getElementById('reportBtn'); if(!btn) return;
   const vBtn=document.getElementById('visitedBtn');
@@ -1037,7 +1038,7 @@ function updateReportBtn(f) {
   if(cBtn) cBtn.style.display=showSub?'block':'none';
   if(REPORT_FILTERS.includes(f)){
     btn.style.display='block'; btn.textContent=REPORT_LABELS[f];
-    const colors={approved:'#1e5c2d',rejected:'#5c1e1e',male:'#1e3a5f',female:'#4a044e'};
+    const colors={approved:'#1e5c2d',rejected:'#5c1e1e',male:'#1e3a5f',female:'#4a044e',visited:'#1e5c2d'};
     btn.style.background=colors[f]||'#1e3a5f';
   } else btn.style.display='none';
 }
@@ -1228,8 +1229,13 @@ function renderGrid() {
     const dateLabel=hasDate?'📅 '+formatDateAr(item.visitDate):'📅 تحديد موعد الزيارة';
     const dlctLabel=item.dialects&&item.dialects.length?'🗣️ يتحدث : '+item.dialects.join(' · '):'🗣️ اللهجة';
     const hasDlct=item.dialects&&item.dialects.length>0;
-    html+=`<div class="card ${item.status||'pending'}" data-idx="${idx}" style="${item.visitStatus==='cancelled'?'border-color:#ca8a04;background:rgba(202,138,4,0.08);':''}">
+    const isPublished = item.visitStatus==='done' && item.contentStatus==='published';
+    const isUnpublished = item.visitStatus==='done' && item.contentStatus==='unpublished';
+    const cardBorderStyle = item.visitStatus==='cancelled'?'border-color:#ca8a04;background:rgba(202,138,4,0.08);':isPublished?'border-color:#ca8a04;background:rgba(202,138,4,0.07);':isUnpublished?'border-color:#7c3aed;background:rgba(124,58,237,0.07);':'';
+    html+=`<div class="card ${item.status||'pending'}" data-idx="${idx}" style="${cardBorderStyle}">
       ${item.visitStatus==='cancelled'?`<div style="background:#ca8a04;color:#000;font-size:11px;font-weight:700;padding:3px 10px;border-radius:6px;margin-bottom:.5rem;display:inline-block;">⚠️ تم إلغاء الموعد</div>`:''}
+      ${isPublished?`<div style="background:rgba(202,138,4,0.15);border:1px solid #ca8a04;color:#fbbf24;font-size:11px;font-weight:700;padding:3px 10px;border-radius:6px;margin-bottom:.5rem;display:inline-block;">🌟 تم نشر المحتوى</div>`:''}
+      ${isUnpublished?`<div style="background:rgba(124,58,237,0.15);border:1px solid #7c3aed;color:#c084fc;font-size:11px;font-weight:700;padding:3px 10px;border-radius:6px;margin-bottom:.5rem;display:inline-block;">🟣 لم يتم نشر المحتوى</div>`:''}
       <div class="card-top">
         <div class="avatar" style="background:${color}">${initial}</div>
         <div class="card-info">
@@ -1245,6 +1251,10 @@ function renderGrid() {
         <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex-shrink:0;">
           <span class="status-badge ${item.status||'pending'}">${item.status==='approved'?'✅ مقبول':item.status==='rejected'?'❌ مرفوض':'⏳ قيد المراجعة'}</span>
           <span onclick="openEditModal(${idx})" style="font-size:11px;color:#e6edf3;cursor:pointer;white-space:nowrap;padding:3px 8px;border-radius:6px;border:1px solid #30363d;background:#21262d;">✏️ تعديل</span>
+          ${item.visitStatus==='done'?`<div style="display:flex;gap:4px;margin-top:4px;">
+            <button onclick="setContentStatus(${idx},'published')" style="flex:1;padding:3px 6px;border-radius:6px;border:1px solid ${item.contentStatus==='published'?'#ca8a04':'#30363d'};background:${item.contentStatus==='published'?'rgba(202,138,4,0.2)':'#21262d'};color:${item.contentStatus==='published'?'#fbbf24':'#6e7681'};font-size:10px;font-weight:700;cursor:pointer;font-family:Tajawal,sans-serif;white-space:nowrap;">🌟 تم النشر</button>
+            <button onclick="setContentStatus(${idx},'unpublished')" style="flex:1;padding:3px 6px;border-radius:6px;border:1px solid ${item.contentStatus==='unpublished'?'#7c3aed':'#30363d'};background:${item.contentStatus==='unpublished'?'rgba(124,58,237,0.2)':'#21262d'};color:${item.contentStatus==='unpublished'?'#c084fc':'#6e7681'};font-size:10px;font-weight:700;cursor:pointer;font-family:Tajawal,sans-serif;white-space:nowrap;">🟣 لم يتم</button>
+          </div>`:''}
         </div>
       </div>
       ${socials?`<div class="social-links">${socials}</div>`:''}
@@ -2538,14 +2548,20 @@ function openApptPanel(){
     const timeStr=item.visitDate.includes('T')?item.visitDate.split('T')[1]:'';
     const timeLabel=timeStr?` · ${timeStr.replace('AM','ص').replace('PM','م')}`:'';
     const isDone = item.visitStatus === 'done';
-    return `<div class="appt-item ${item.status||'pending'}" style="${isDone?'background:rgba(0,0,0,.25);border-color:#30363d;':isPast&&!isDone?'opacity:.55;background:rgba(0,0,0,.2);':''}${!isGuest()?'cursor:pointer;':''}" ${!isGuest()?`onclick="showApptCard(${idx})"`:''}>
-      <div class="appt-date-badge" style="border-color:${isDone?'#484f58':isPast?'#484f58':color};${isDone||isPast?'background:#21262d;':''}">
-        <div class="appt-date-day" style="${isDone?'color:#6e7681;':isPast?'color:#6e7681;':''}">${parseInt(d)}</div>
-        <div class="appt-date-month" style="${isDone?'color:#484f58;':isPast?'color:#484f58;':''}">${MONTHS_AR[parseInt(m)-1]}</div>
+    const apptPublished = isDone && item.contentStatus==='published';
+    const apptUnpublished = isDone && item.contentStatus==='unpublished';
+    const apptBorder = apptPublished?'border-color:#ca8a04;':apptUnpublished?'border-color:#7c3aed;':isDone?'border-color:#30363d;':isPast&&!isDone?'':'';
+    const apptBg = apptPublished?'background:rgba(202,138,4,0.08);':apptUnpublished?'background:rgba(124,58,237,0.08);':isDone?'background:rgba(0,0,0,.25);':isPast&&!isDone?'opacity:.55;background:rgba(0,0,0,.2);':'';
+    const contentLabel = apptPublished?' · <span style="color:#fbbf24;font-size:10px;font-weight:700;">🌟 تم النشر</span>':apptUnpublished?' · <span style="color:#c084fc;font-size:10px;font-weight:700;">🟣 لم يتم النشر</span>':'';
+    const doneLabel = isDone?` · <span style="color:${apptPublished?'#fbbf24':apptUnpublished?'#c084fc':'#4ade80'};font-size:10px;font-weight:700;">✅ تمت</span>`:'';
+    return `<div class="appt-item ${item.status||'pending'}" style="${apptBg}${apptBorder}${!isGuest()?'cursor:pointer;':''}" ${!isGuest()?`onclick="showApptCard(${idx})"`:''}>
+      <div class="appt-date-badge" style="border-color:${apptPublished?'#ca8a04':apptUnpublished?'#7c3aed':isDone?'#484f58':isPast?'#484f58':color};${isDone||isPast?'background:#21262d;':''}">
+        <div class="appt-date-day" style="${apptPublished?'color:#fbbf24;':apptUnpublished?'color:#c084fc;':isDone?'color:#6e7681;':isPast?'color:#6e7681;':''}">${parseInt(d)}</div>
+        <div class="appt-date-month" style="${apptPublished?'color:#ca8a04;':apptUnpublished?'color:#7c3aed;':isDone?'color:#484f58;':isPast?'color:#484f58;':''}">${MONTHS_AR[parseInt(m)-1]}</div>
       </div>
       <div class="appt-info">
-        <div class="appt-name" style="${isDone?'color:#8b949e;':isPast?'color:#6e7681;':''}">${name}</div>
-        <div class="appt-sub">${item.phone||item.ig||''}${timeLabel}${isDone?' · <span style="color:#4ade80;font-size:10px;font-weight:700;">✅ تمت</span>':item.visitStatus==='cancelled'?' · <span style="color:#f87171;font-size:10px;">❌ ألغيت</span>':isPast?' · <span style="color:#f87171;font-size:10px;">انتهى</span>':''}</div>
+        <div class="appt-name" style="${apptPublished?'color:#fbbf24;':apptUnpublished?'color:#c084fc;':isDone?'color:#8b949e;':isPast?'color:#6e7681;':''}">${name}</div>
+        <div class="appt-sub">${item.phone||item.ig||''}${timeLabel}${isDone?doneLabel+contentLabel:item.visitStatus==='cancelled'?' · <span style="color:#f87171;font-size:10px;">❌ ألغيت</span>':isPast?' · <span style="color:#f87171;font-size:10px;">انتهى</span>':''}</div>
       </div>
       <span class="appt-status-tag ${item.status||'pending'}">${item.status==='approved'?'✅':item.status==='rejected'?'❌':'⏳'}</span>
     </div>`;
@@ -2628,11 +2644,17 @@ function buildSocialsHtml(item) {
 }
 
 function openReportFromBtn(){
-  if(currentFilter==='approved'||currentFilter==='rejected')openStatusReport(currentFilter);
+  if(currentFilter==='approved'||currentFilter==='rejected'||currentFilter==='visited'||currentFilter==='cancelled')openStatusReport('approved');
   else if(currentFilter==='male'||currentFilter==='female')openGenderReport(currentFilter==='male'?'m':'f');
 }
 function closeReport(){const c=document.getElementById('reportContainer');if(c)c.remove();}
 function closeReportIfBg(e){if(e.target.id==='reportOverlay')closeReport();}
+
+function setContentStatus(idx, status) {
+  influencers[idx].contentStatus = status;
+  saveFile(); renderGrid();
+  showToast(status==='published'?'🌟 تم تسجيل نشر المحتوى':'🟣 تم تسجيل عدم نشر المحتوى', status==='published'?'#ca8a04':'#7c3aed');
+}
 
 function setVisitStatus(realIdx,status){
   const item=influencers[realIdx];if(!item)return;
@@ -2719,8 +2741,9 @@ function openStatusReport(type) {
       const doneA=vs==='done'?'background:#15803d;color:#fff;':'background:#f0fdf4;color:#15803d;';
       const cancA=vs==='cancelled'?'background:#ca8a04;color:#fff;':'background:#fefce8;color:#ca8a04;';
       const svcLabel=(item.services&&item.services.length)?item.services.map(s=>`<span style="display:inline-block;background:#f3e8ff;color:#7c3aed;border:1px solid #c084fc;border-radius:5px;padding:2px 7px;font-size:11px;margin:1px;">${s}</span>`).join(' '):'—';
-      const rowBg=vs==='done'?'#bbf7d0':vs==='cancelled'?'#fef08a':(i%2===1?'#f8fafc':'#fff');
-      const rowBorder=vs==='done'?'border-right:4px solid #16a34a;':vs==='cancelled'?'border-right:4px solid #ca8a04;':'';
+      const cs=item.contentStatus||'';
+      const rowBg=cs==='published'?'#fef9c3':cs==='unpublished'?'#f3e8ff':vs==='done'?'#bbf7d0':vs==='cancelled'?'#fef08a':(i%2===1?'#f8fafc':'#fff');
+      const rowBorder=cs==='published'?'border-right:4px solid #ca8a04;':cs==='unpublished'?'border-right:4px solid #7c3aed;':vs==='done'?'border-right:4px solid #16a34a;':vs==='cancelled'?'border-right:4px solid #ca8a04;':'';
       const vsLabel=vs==='done'?'<br><span style="font-size:10px;color:#16a34a;font-weight:700;">✅ تمت الزيارة</span>':vs==='cancelled'?'<br><span style="font-size:10px;color:#ca8a04;font-weight:700;">⚠️ ألغيت الزيارة</span>':'';
       return `<tr id="rrow_${realIdx}" style="background:${rowBg};${rowBorder}">
         <td style="text-align:center;font-weight:900;color:${thBg};width:30px;padding:8px 6px;">${i+1}</td>
@@ -2735,6 +2758,10 @@ function openStatusReport(type) {
         <td style="min-width:100px;"><div style="display:flex;gap:4px;flex-direction:column;">
           <button onclick="setVisitStatus(${realIdx},'done')" style="padding:5px 8px;border-radius:6px;border:1px solid #15803d;font-size:11px;font-weight:700;cursor:pointer;font-family:Tajawal,sans-serif;white-space:nowrap;${doneA}">✅ تمت</button>
           <button onclick="setVisitStatus(${realIdx},'cancelled')" style="padding:5px 8px;border-radius:6px;border:1px solid #ca8a04;font-size:11px;font-weight:700;cursor:pointer;font-family:Tajawal,sans-serif;white-space:nowrap;${cancA}">⚠️ ألغيت</button>
+        </div></td>
+        <td style="min-width:110px;" id="pubCell_${realIdx}"><div style="display:flex;gap:4px;flex-direction:column;">
+          <button onclick="setContentStatus(${realIdx},'published');var r=this.closest('tr');r.style.background='#fef9c3';r.style.borderRight='4px solid #ca8a04';this.closest('td').querySelector('[data-unpub]').style.background='#fefce8';this.closest('td').querySelector('[data-unpub]').style.color='#ca8a04';this.style.background='#ca8a04';this.style.color='#fff';" data-pub style="padding:5px 8px;border-radius:6px;border:1px solid #ca8a04;font-size:11px;font-weight:700;cursor:pointer;font-family:Tajawal,sans-serif;white-space:nowrap;background:${item.contentStatus==='published'?'#ca8a04':'#fefce8'};color:${item.contentStatus==='published'?'#fff':'#ca8a04'};">🌟 تم النشر</button>
+          <button onclick="setContentStatus(${realIdx},'unpublished');var r=this.closest('tr');r.style.background='#f3e8ff';r.style.borderRight='4px solid #7c3aed';this.closest('td').querySelector('[data-pub]').style.background='#fefce8';this.closest('td').querySelector('[data-pub]').style.color='#ca8a04';this.style.background='#7c3aed';this.style.color='#fff';" data-unpub style="padding:5px 8px;border-radius:6px;border:1px solid #7c3aed;font-size:11px;font-weight:700;cursor:pointer;font-family:Tajawal,sans-serif;white-space:nowrap;background:${item.contentStatus==='unpublished'?'#7c3aed':'#f3e8ff'};color:${item.contentStatus==='unpublished'?'#fff':'#7c3aed'};">🟣 لم يتم</button>
         </div></td>
         <td style="min-width:150px;border-left:1px solid #e5e7eb;padding:4px;">
           ${item.signature
@@ -2766,7 +2793,7 @@ function openStatusReport(type) {
       </tr>`;
     }
   }).join('');
-  const extraH=isApproved?`<th style="background:${thBg};min-width:90px;">موعد الزيارة</th><th style="background:${thBg};min-width:80px;">الخدمة</th><th style="background:${thBg};min-width:100px;">حالة الزيارة</th><th style="background:${thBg};min-width:150px;">توقيع المؤثر</th>`:'';
+  const extraH=isApproved?`<th style="background:${thBg};min-width:90px;">موعد الزيارة</th><th style="background:${thBg};min-width:80px;">الخدمة</th><th style="background:${thBg};min-width:100px;">حالة الزيارة</th><th style="background:${thBg};min-width:110px;">حالة النشر</th><th style="background:${thBg};min-width:150px;">توقيع المؤثر</th>`:'';
   const html=`<div class="report-overlay open" id="reportOverlay" onclick="if(event.target===this)closeReport()">
     <div class="report-modal" style="max-width:100%;width:100%;margin:0;border-radius:0;min-height:100vh;">
       <div class="report-actions" style="position:sticky;top:0;background:#fff;z-index:10;padding:.5rem 0;border-bottom:1px solid #e5e7eb;">
@@ -2859,12 +2886,13 @@ async function shareStatusReport(type) {
       const dateStr=item.visitDate?formatDateAr(item.visitDate):'—';
       const svcLabel=(item.services&&item.services.length)?item.services.join(' · '):'—';
       const vsLabel=item.visitStatus==='done'?'✅ تمت':item.visitStatus==='cancelled'?'❌ ألغيت':'—';
-      return `<tr style="background:${rb}"><td style="text-align:center;font-weight:900;width:36px;">${i+1}</td><td style="font-weight:700;">${item.name||'—'}</td><td>${gLabel}</td><td>${natCell}</td><td style="direction:ltr;">${phoneCell}</td><td style="font-size:11px;direction:ltr;">${item.civil||'—'}</td><td>${buildSocialsHtml(item)}</td><td style="white-space:nowrap;">${dateStr}</td><td>${svcLabel}</td><td>${vsLabel}</td><td style="min-width:100px;"></td></tr>`;
+      const pubLabel=item.contentStatus==='published'?'🌟 تم النشر':item.contentStatus==='unpublished'?'🟣 لم يتم':'—';
+      return `<tr style="background:${rb}"><td style="text-align:center;font-weight:900;width:36px;">${i+1}</td><td style="font-weight:700;">${item.name||'—'}</td><td>${gLabel}</td><td>${natCell}</td><td style="direction:ltr;">${phoneCell}</td><td style="font-size:11px;direction:ltr;">${item.civil||'—'}</td><td>${buildSocialsHtml(item)}</td><td style="white-space:nowrap;">${dateStr}</td><td>${svcLabel}</td><td>${vsLabel}</td><td>${pubLabel}</td><td style="min-width:100px;"></td></tr>`;
     } else {
       return `<tr style="background:${rb}"><td style="text-align:center;font-weight:900;width:36px;">${i+1}</td><td style="font-weight:700;">${item.name||'—'}</td><td>${gLabel}</td><td>${natCell}</td><td style="direction:ltr;">${phoneCell}</td><td style="font-size:11px;direction:ltr;">${item.civil||'—'}</td><td>${buildSocialsHtml(item)}</td></tr>`;
     }
   }).join('');
-  const extraH=isApproved?`<th style="background:${thBg};">موعد الزيارة</th><th style="background:${thBg};">الخدمة</th><th style="background:${thBg};">حالة الزيارة</th><th style="background:${thBg};">توقيع المؤثر</th>`:'';
+  const extraH=isApproved?`<th style="background:${thBg};">موعد الزيارة</th><th style="background:${thBg};">الخدمة</th><th style="background:${thBg};">حالة الزيارة</th><th style="background:${thBg};">حالة النشر</th><th style="background:${thBg};">توقيع المؤثر</th>`:'';
   const headersHTML=`<th style="background:${thBg};width:36px;text-align:center;">#</th><th style="background:${thBg};">الاسم</th><th style="background:${thBg};">الجنس</th><th style="background:${thBg};">الجنسية</th><th style="background:${thBg};">الهاتف</th><th style="background:${thBg};">الرقم المدني</th><th style="background:${thBg};">الصفحات</th>${extraH}`;
   const html=buildReportHTMLShell(thBg,accentColor,title,emoji,today,list.length,headersHTML,rows,isApproved);
   const fileName=isApproved?'كشف المقبولين - مركز كيور الطبي.html':'كشف المرفوضين - مركز كيور الطبي.html';
@@ -3315,16 +3343,18 @@ function renderGuestView() {
     const isToday = apptDate.getTime() === today.getTime();
     const timeStr = item.visitDate.includes('T') ? item.visitDate.split('T')[1].replace('AM','ص').replace('PM','م') : '';
     const vs = item.visitStatus || '';
-    const borderColor = vs==='done'?'#16a34a':vs==='cancelled'?'#ca8a04':isToday?'#f59e0b':isPast?'#30363d':'#1a6fa8';
+    const borderColor = vs==='done'&&item.contentStatus==='published'?'#ca8a04':vs==='done'&&item.contentStatus==='unpublished'?'#7c3aed':vs==='done'?'#16a34a':vs==='cancelled'?'#ca8a04':isToday?'#f59e0b':isPast?'#30363d':'#1a6fa8';
+    const cardBg = vs==='done'&&item.contentStatus==='published'?'background:rgba(202,138,4,0.1);':vs==='done'&&item.contentStatus==='unpublished'?'background:rgba(124,58,237,0.1);':vs==='done'?'background:rgba(22,163,74,0.1);':vs==='cancelled'?'background:rgba(202,138,4,0.1);':'';
+    const dateBadgeBg = vs==='done'&&item.contentStatus==='published'?'#ca8a04':vs==='done'&&item.contentStatus==='unpublished'?'#7c3aed':vs==='done'?'#16a34a':vs==='cancelled'?'#ca8a04':isToday?'#f59e0b':isPast?'#21262d':'#1a6fa8';
     const name = item.name || item.ig || '—';
     // Time part
     const timeParts = item.visitDate.includes('T') ? item.visitDate.split('T')[1] : '';
     const hh = timeParts ? timeParts.replace('AM','').replace('PM','').split(':')[0] : '09';
     const mm = timeParts ? timeParts.replace('AM','').replace('PM','').split(':')[1] : '00';
     const ap = timeParts ? (timeParts.includes('PM')?'PM':'AM') : 'AM';
-    return `<div style="background:#161b22;border:2px solid ${borderColor};border-radius:12px;padding:1rem;gap:10px;${vs==='done'?'background:rgba(22,163,74,0.1);':vs==='cancelled'?'background:rgba(202,138,4,0.1);':''}">
+    return `<div style="background:#161b22;border:2px solid ${borderColor};border-radius:12px;padding:1rem;gap:10px;${cardBg}">
       <div style="display:flex;align-items:center;gap:12px;margin-bottom:.7rem;">
-        <div style="background:${vs==='done'?'#16a34a':vs==='cancelled'?'#ca8a04':isToday?'#f59e0b':isPast?'#21262d':'#1a6fa8'};border-radius:10px;padding:8px 14px;text-align:center;flex-shrink:0;min-width:52px;">
+        <div style="background:${dateBadgeBg};border-radius:10px;padding:8px 14px;text-align:center;flex-shrink:0;min-width:52px;">
           <div style="font-size:20px;font-weight:900;color:#fff;line-height:1;">${parseInt(d)}</div>
           <div style="font-size:10px;color:rgba(255,255,255,0.8);">${MONTHS_AR[parseInt(m)-1]}</div>
         </div>
@@ -3332,6 +3362,8 @@ function renderGuestView() {
           <div style="font-size:15px;font-weight:700;color:#e6edf3;">${name}</div>
           ${item.services&&item.services.length?`<div style="font-size:12px;color:#c084fc;">💉 ${item.services.join(' · ')}</div>`:''}
           <div style="font-size:12px;margin-top:2px;">${vs==='done'?'<span style="color:#4ade80;">✅ تمت الزيارة</span>':vs==='cancelled'?'<span style="color:#fbbf24;">⚠️ ألغيت الزيارة</span>':isToday?'<span style="color:#f59e0b;">⭐ اليوم</span>':''}</div>
+          ${vs==='done'&&item.contentStatus==='published'?'<div style="margin-top:4px;display:inline-block;background:rgba(202,138,4,0.2);border:1px solid #ca8a04;color:#fbbf24;font-size:11px;font-weight:700;padding:2px 10px;border-radius:20px;">🌟 تم النشر</div>':''}
+          ${vs==='done'&&item.contentStatus==='unpublished'?'<div style="margin-top:4px;display:inline-block;background:rgba(124,58,237,0.2);border:1px solid #7c3aed;color:#c084fc;font-size:11px;font-weight:700;padding:2px 10px;border-radius:20px;">🟣 لم يتم النشر</div>':''}
         </div>
       </div>
       <!-- Services -->
@@ -3452,6 +3484,7 @@ window.openReportFromBtn=openReportFromBtn;
 window.closeReport=closeReport; window.closeReportIfBg=closeReportIfBg;
 window.openStatusReport=openStatusReport; window.openGenderReport=openGenderReport;
 window.setVisitStatus=setVisitStatus;
+window.setContentStatus=setContentStatus;
 window.shareStatusReport=shareStatusReport; window.shareGenderReport=shareGenderReport;
 </script>
 </body>
