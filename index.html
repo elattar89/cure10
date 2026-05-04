@@ -442,6 +442,7 @@ body{font-family:'Tajawal',sans-serif;direction:rtl;background:#0d1117;color:#e6
     <button class="add-bottom-btn" onclick="openFormImport()" style="background:linear-gradient(135deg,#0e7490,#0891b2);">📋 إضافة من فورم</button>
     <button class="save-bottom-btn" id="manualSaveBtn" onclick="manualSave()">💾 حفظ يدوي</button>
     <button class="add-bottom-btn" onclick="openActivityLog()" style="background:linear-gradient(135deg,#1e3a5f,#1a6fa8);">📋 سجل النشاط</button>
+    <button class="add-bottom-btn" onclick="openRecovery()" style="background:linear-gradient(135deg,#7f1d1d,#dc2626);">🆘 استرداد طارئ</button>
   </div>
   <div>مركز كيور الطبي © 2026 — جميع الحقوق محفوظة</div>
 </div>
@@ -802,7 +803,13 @@ async function saveToStorage() {
   showSaveIndicator();
 }
 async function loadFromStorage() {
-  // Try localStorage first (instant - works everywhere)
+  // For guest: always load from Firebase (never trust stale localStorage)
+  if(window.location.search.indexOf('guest=1') !== -1) {
+    const loaded = await tryLoadFirebase();
+    return loaded;
+  }
+
+  // Admin: Try localStorage first (instant)
   let localLoaded = false;
   try {
     const ls = localStorage.getItem(LS_KEY);
@@ -813,9 +820,6 @@ async function loadFromStorage() {
     const lsd = localStorage.getItem(LS_DELETED_KEY);
     if (lsd) { const p = JSON.parse(lsd); if(Array.isArray(p)) deletedInfluencers = p; }
   } catch(e) {}
-
-  // For guest on mobile, use localStorage immediately if available
-  if(window.location.search.indexOf('guest=1') !== -1 && localLoaded) return true;
 
   // Try Firebase
   const loaded = await tryLoadFirebase();
@@ -2313,6 +2317,84 @@ function manualSave(){
   if(removed > 0) { renderGrid(); showToast(`🧹 تم حذف ${removed} تكرار`, '#ca8a04'); }
   setTimeout(()=>{btn.textContent='💾 حفظ يدوي';btn.classList.remove('saving');},2500);
 }
+
+function openRecovery() {
+  // Scan all localStorage keys for any influencer data
+  const keys = [];
+  try {
+    for(let i=0;i<localStorage.length;i++){
+      const k=localStorage.key(i);
+      if(k&&(k.includes('cure')||k.includes('influenc'))) keys.push(k);
+    }
+  } catch(e){}
+
+  let html = `<div style="position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,.85);display:flex;align-items:center;justify-content:center;padding:1rem;" id="recoveryOverlay">
+  <div style="background:#161b22;border:2px solid #dc2626;border-radius:16px;padding:1.5rem;width:100%;max-width:500px;max-height:85vh;overflow-y:auto;font-family:Tajawal,sans-serif;">
+    <h3 style="color:#f87171;margin-bottom:1rem;font-size:16px;">🆘 استرداد طارئ للبيانات</h3>
+    <p style="font-size:12px;color:#8b949e;margin-bottom:1rem;">النسخ المحفوظة في هذا الجهاز:</p>`;
+
+  if(!keys.length) {
+    html += `<div style="color:#484f58;font-size:13px;text-align:center;padding:1rem;">لا توجد نسخ محفوظة في هذا الجهاز</div>`;
+  } else {
+    keys.forEach(k => {
+      try {
+        const raw = localStorage.getItem(k);
+        let count = '?';
+        try {
+          const p = JSON.parse(raw);
+          if(Array.isArray(p)) count = p.length + ' شخص';
+          else if(p && p.data) { const arr=JSON.parse(p.data); count=(Array.isArray(arr)?arr.length:'?')+' شخص'; }
+        } catch(e2){}
+        html += `<div style="background:#21262d;border-radius:8px;padding:.8rem;margin-bottom:.5rem;display:flex;justify-content:space-between;align-items:center;gap:8px;">
+          <div>
+            <div style="font-size:12px;color:#e6edf3;font-weight:700;">${k}</div>
+            <div style="font-size:11px;color:#4ade80;">${count}</div>
+          </div>
+          <button onclick="recoverFromKey('${k}')" style="padding:6px 14px;border-radius:8px;border:1px solid #16a34a;background:#0d1f14;color:#4ade80;font-size:12px;font-weight:700;cursor:pointer;font-family:Tajawal,sans-serif;">↩ استرجاع</button>
+        </div>`;
+      } catch(e){}
+    });
+  }
+
+  html += `<div style="margin-top:1rem;display:flex;gap:8px;">
+    <button onclick="document.getElementById('recoveryOverlay').remove()" style="flex:1;padding:10px;border-radius:9px;border:1px solid #30363d;background:#21262d;color:#8b949e;font-size:13px;cursor:pointer;font-family:Tajawal,sans-serif;">إغلاق</button>
+    <button onclick="recoverFromFirebase()" style="flex:2;padding:10px;border-radius:9px;border:none;background:#1a6fa8;color:#fff;font-size:13px;font-weight:700;cursor:pointer;font-family:Tajawal,sans-serif;">☁️ إعادة تحميل من Firebase</button>
+  </div></div></div>`;
+
+  const div=document.createElement('div');div.innerHTML=html;document.body.appendChild(div.firstElementChild);
+}
+
+async function recoverFromKey(key) {
+  if(!confirm('سيتم استبدال البيانات الحالية بهذه النسخة. متأكد؟')) return;
+  try {
+    const raw = localStorage.getItem(key);
+    let arr = null;
+    try {
+      const p = JSON.parse(raw);
+      if(Array.isArray(p)) arr = p;
+      else if(p && p.data) arr = JSON.parse(p.data);
+    } catch(e){}
+    if(!arr || !Array.isArray(arr)) { showToast('❌ تعذر قراءة النسخة', '#dc2626'); return; }
+    influencers = arr;
+    await saveToStorage();
+    renderGrid(); updateStats();
+    document.getElementById('recoveryOverlay').remove();
+    showToast(`✅ تم استرجاع ${arr.length} شخص من النسخة المحفوظة`, '#16a34a');
+  } catch(e) { showToast('❌ خطأ في الاسترجاع: '+e.message, '#dc2626'); }
+}
+
+async function recoverFromFirebase() {
+  showToast('⏳ جاري التحميل من Firebase...', '#1a6fa8');
+  const loaded = await tryLoadFirebase();
+  if(loaded) {
+    renderGrid(); updateStats();
+    document.getElementById('recoveryOverlay').remove();
+    showToast(`✅ تم التحميل — ${influencers.length} شخص`, '#16a34a');
+  } else {
+    showToast('❌ تعذر الاتصال بـ Firebase', '#dc2626');
+  }
+}
+window.openRecovery=openRecovery; window.recoverFromKey=recoverFromKey; window.recoverFromFirebase=recoverFromFirebase;
 window.openFormImport=openFormImport; window.closeFormImport=closeFormImport;
 window.parseFormImport=parseFormImport; window.confirmFormImport=confirmFormImport;
 
@@ -3418,7 +3500,7 @@ async function init() {
   const loaded = await loadFromStorage();
   if(!loaded) { showToast('⚠️ تعذر تحميل البيانات — تحقق من الاتصال', '#dc2626'); }
   influencers.forEach(item => { if(item.phone) item.phone = normalizePhone(item.phone); });
-  const removed = removeDuplicates();
+  const removed = isGuest() ? 0 : removeDuplicates();
   document.getElementById('loadingOverlay').style.display = 'none';
   if(isGuest()) {
     document.querySelector('.toolbar').style.display = 'none';
@@ -3427,11 +3509,11 @@ async function init() {
     const fab = document.getElementById('fabBtn'); if(fab) fab.style.display = 'none';
     document.querySelectorAll('.stat').forEach(s => { s.style.cursor='default'; s.setAttribute('onclick',''); });
     updateStats();
-    await saveToStorage();
+    // Guest NEVER saves to Firebase - read only
     // Poll Firebase every 30s for live updates
     setInterval(function() {
       tryLoadFirebase().then(function(loaded) {
-        if(loaded) { removeDuplicates(); influencers.forEach(function(item){if(item.phone)item.phone=normalizePhone(item.phone);}); updateStats(); }
+        if(loaded) { updateStats(); }
       }).catch(function(){});
     }, 30000);
     return;
