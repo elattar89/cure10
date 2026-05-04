@@ -2151,12 +2151,41 @@ function parseFormImport() {
   _formImportItems = [];
 
   function parseEmailBlock(blockText) {
+    // Normalize: remove lines that are purely English email headers/footers
+    const cleanedText = blockText
+      .replace(/^[^\u0600-\u06FF\n]*(?:Hello|A new form has been submitted|Details below|on your website)[^\n]*/gim,'')
+      .replace(/\r/g,'');
     function extract(...labels) {
-      const ls = blockText.split('\n');
+      const ls = cleanedText.split('\n');
       for(const label of labels) {
+        const labelClean = label.replace(/[:\s]/g,'');
         for(let i=0;i<ls.length;i++) {
-          if(ls[i].trim().replace(/[:\s]/g,'').includes(label.replace(/[:\s]/g,''))) {
+          const lineClean = ls[i].trim().replace(/[:\s]/g,'');
+          // Exact label match (line IS the label)
+          if(lineClean === labelClean || lineClean.endsWith(labelClean) || lineClean.startsWith(labelClean)) {
+            for(let j=i+1;j<ls.length;j++) { const v=ls[j].trim(); if(v && !v.match(/^[\u0600-\u06FF\s]{1,20}$/) || (v && j===i+1)) { const vv=ls[j].trim(); if(vv) return vv; } }
+          }
+          // Fallback: line contains label
+          if(lineClean.includes(labelClean)) {
             for(let j=i+1;j<ls.length;j++) { const v=ls[j].trim(); if(v) return v; }
+          }
+        }
+      }
+      return '';
+    }
+    // Simpler, more robust extract: find label line then take next non-empty line
+    function extractField(...labels) {
+      const ls = blockText.replace(/\r/g,'').split('\n');
+      for(const label of labels) {
+        const labelClean = label.trim().replace(/\s+/g,' ');
+        for(let i=0;i<ls.length;i++) {
+          const lineClean = ls[i].trim();
+          // Line equals label exactly, or line contains only the label text
+          if(lineClean === labelClean || lineClean.replace(/[:]/g,'').trim() === labelClean) {
+            for(let j=i+1;j<ls.length;j++) {
+              const v=ls[j].trim();
+              if(v) return v;
+            }
           }
         }
       }
@@ -2166,14 +2195,14 @@ function parseFormImport() {
       const m = blockText.match(new RegExp('https?://(?:www\\.)?'+domain+'[^\\s]+','i'));
       return m?m[0]:'';
     }
-    const name      = extract('الاسم الثلاثي','الاسم');
-    const gender_raw= extract('الجنس');
-    const civil     = extract('الرقم المدني','الرقم المدنى');
-    const phone_raw = extract('رقم التلفون','رقم الهاتف','رقم التواصل','رقم الجوال');
-    const nat_raw   = extract('الجنسية');
-    const ig_raw    = extract('انستاجرام','انستغرام','Instagram')||extractUrl('instagram.com');
-    const tt_raw    = extract('تيك توك','TikTok','تيك يوك')||extractUrl('tiktok.com');
-    const snap_raw  = extract('سناب شات','Snapchat','سناب')||extractUrl('snapchat.com');
+    const name      = extractField('الاسم الثلاثي','الاسم');
+    const gender_raw= extractField('الجنس');
+    const civil     = extractField('الرقم المدني','الرقم المدنى');
+    const phone_raw = extractField('رقم التلفون','رقم الهاتف','رقم التواصل','رقم الجوال');
+    const nat_raw   = extractField('الجنسية');
+    const ig_raw    = extractField('انستاجرام','انستغرام','Instagram')||extractUrl('instagram.com');
+    const tt_raw    = extractField('تيك توك','TikTok','تيك يوك')||extractUrl('tiktok.com');
+    const snap_raw  = extractField('سناب شات','Snapchat','سناب')||extractUrl('snapchat.com');
     if(!name && !phone_raw && !ig_raw) return null;
     const gender= gender_raw.includes('أنثى')||gender_raw.includes('انثى')||/female/i.test(gender_raw)?'f':gender_raw.includes('ذكر')||/male/i.test(gender_raw)?'m':'';
     const phone = normalizePhone(phone_raw);
@@ -2185,11 +2214,19 @@ function parseFormImport() {
   }
 
   // Split into blocks by the email header marker or by "الاسم الثلاثي" / "الاسم" boundary
-  const EMAIL_HEADER = /Hello,|A new form has been submitted/i;
+  // Pre-process: if entire email is on one line (some mail clients), split it first
+  const EMAIL_HEADER = /Hello[\,.]?\s*\n?|A new form has been submitted/i;
   let emailBlocks = [];
   if(EMAIL_HEADER.test(text)) {
-    // Split on the email header
+    // Split on the email header - each submission starts with Hello or "A new form"
     emailBlocks = text.split(EMAIL_HEADER).filter(b=>b.trim());
+    // Further split each block if it contains multiple "الاسم الثلاثي" occurrences
+    const finalBlocks = [];
+    for(const block of emailBlocks) {
+      const subBlocks = block.split(/(?=(?:الاسم الثلاثي|الاسم)\s*\n)/);
+      finalBlocks.push(...subBlocks.filter(b=>b.trim()));
+    }
+    if(finalBlocks.length > emailBlocks.length) emailBlocks = finalBlocks;
   } else {
     // Split on repeated label pattern: if we see "الاسم" appearing more than once, split there
     emailBlocks = text.split(/(?=(?:الاسم الثلاثي|الاسم)\s*\n)/);
