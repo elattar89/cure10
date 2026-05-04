@@ -438,7 +438,6 @@ body{font-family:'Tajawal',sans-serif;direction:rtl;background:#0d1117;color:#e6
 <div class="page-footer">
   <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-bottom:.8rem;">
     <button class="add-bottom-btn" onclick="openModal()">➕ إضافة مؤثر جديد</button>
-    <button class="add-bottom-btn" onclick="openBulkModal()" style="background:linear-gradient(135deg,#4c1d95,#7c3aed);">⚡ إضافة جماعية</button>
     <button class="add-bottom-btn" onclick="openFormImport()" style="background:linear-gradient(135deg,#0e7490,#0891b2);">📋 إضافة من فورم</button>
     <button class="save-bottom-btn" id="manualSaveBtn" onclick="manualSave()">💾 حفظ يدوي</button>
     <button class="add-bottom-btn" onclick="openActivityLog()" style="background:linear-gradient(135deg,#1e3a5f,#1a6fa8);">📋 سجل النشاط</button>
@@ -599,8 +598,8 @@ body{font-family:'Tajawal',sans-serif;direction:rtl;background:#0d1117;color:#e6
 <div class="modal-overlay hidden" id="bulkModalOverlay" onclick="if(event.target===this)closeBulkModal()">
   <div class="modal">
     <h3>⚡ إضافة جماعية للمؤثرين</h3>
-    <div class="bulk-hint">الصق قائمة المؤثرين — كل مؤثر في سطر منفصل.<br>مقبول: رقم موبايل، @username انستاجرام، رابط انستاجرام، رابط تيك توك، رابط سناب، أو مزيج منها.</div>
-    <textarea class="bulk-textarea" id="bulkTextarea" placeholder="مثال:&#10;@blogger_name&#10;96512345678&#10;https://instagram.com/user&#10;https://www.tiktok.com/@user"></textarea>
+    <div class="bulk-hint">الصق قائمة المؤثرين — كل مؤثر في سطر منفصل.<br>مقبول: رقم موبايل، @username انستاجرام، رابط انستاجرام، رابط تيك توك، رابط سناب، أو مزيج منها.<br>✅ يدعم أيضاً لصق صف من Google Sheets مباشرة (فورم البالغين) — يستخرج الاسم والجنس والمدني والهاتف والجنسية والسوشيال تلقائياً.</div>
+    <textarea class="bulk-textarea" id="bulkTextarea" placeholder="مثال:&#10;@blogger_name&#10;96512345678&#10;https://instagram.com/user&#10;&#10;أو صف من Google Sheets (فورم البالغين):&#10;أحمد العطار	ذكر	289112001921	66873730	مصر	instgram.com/elattarreels	tiktok.com/elattarreels"></textarea>
     <div class="modal-actions">
       <button class="modal-cancel" onclick="closeBulkModal()">إلغاء</button>
       <button class="modal-save" onclick="confirmBulkAdd()">إضافة الكل ✓</button>
@@ -1645,10 +1644,63 @@ function saveEditInfluencer() {
 
 function openBulkModal(){ document.getElementById('bulkModalOverlay').classList.remove('hidden'); }
 function closeBulkModal(){ document.getElementById('bulkModalOverlay').classList.add('hidden'); document.getElementById('bulkTextarea').value=''; }
+function parseSheetRow(line) {
+  // Parse row from Google Sheet: fullname | gender | civil | phone | nationality | instagram | tiktok | snapchat | agree_publish | agree_reuse | agree_before_after | timestamp
+  let tokens = line.includes('\t') ? line.split('\t').map(s=>s.trim()) : null;
+  if(!tokens) {
+    // Space-tokenize: name words then ذكر/أنثى marker, civil digits, phone digits, nationality, urls, agrees, timestamp
+    const words = line.trim().split(/\s+/);
+    let i=0, t=[];
+    let name=[];
+    while(i<words.length && !/^(ذكر|أنثى|انثى|male|female)$/i.test(words[i])) { name.push(words[i]); i++; }
+    t.push(name.join(' '));
+    t.push(words[i]||''); i++;
+    if(i<words.length && /^\d{10,13}$/.test(words[i])) { t.push(words[i]); i++; } else t.push('');
+    if(i<words.length && /^\d{7,12}$/.test(words[i])) { t.push(words[i]); i++; } else t.push('');
+    let nat=[];
+    while(i<words.length && !/https?:\/\/|instagram|tiktok|snapchat/i.test(words[i]) && !/^\d+$/.test(words[i]) && !/^موافق/i.test(words[i])) { nat.push(words[i]); i++; }
+    t.push(nat.join(' '));
+    if(i<words.length && /instagram/i.test(words[i])) { t.push(words[i]); i++; } else t.push('');
+    if(i<words.length && /tiktok/i.test(words[i])) { t.push(words[i]); i++; } else t.push('');
+    if(i<words.length && /snapchat/i.test(words[i])) { t.push(words[i]); i++; } else t.push('');
+    for(let a=0;a<3;a++) { t.push(words[i]||''); if(i<words.length)i++; }
+    t.push(words.slice(i).join(' '));
+    tokens = t;
+  }
+  if(tokens.length < 4) return null;
+  const fullname=tokens[0]||'', genderRaw=tokens[1]||'', civil=tokens[2]||'', phone=tokens[3]||'';
+  const nationality=tokens[4]||'', igRaw=tokens[5]||'', ttRaw=tokens[6]||'', snapRaw=tokens[7]||'';
+  const timestamp=tokens[11]||tokens[10]||'';
+  if(!fullname && !phone && !igRaw) return null;
+  function extractIg(url) { const m=url.match(/instagram\.com\/([^?&\/\s]+)/); return m?'@'+m[1]:''; }
+  function extractTt(url) { const m=url.match(/tiktok\.com\/@?([^?&\/\s]+)/); return m?'@'+m[1]:''; }
+  const gender=/أنثى|انثى|female/i.test(genderRaw)?'f':/ذكر|male/i.test(genderRaw)?'m':'';
+  const ig_url=igRaw.includes('instagram.com')?(igRaw.startsWith('http')?igRaw:'https://'+igRaw):'';
+  const ig=ig_url?(extractIg(ig_url)||''):(igRaw.startsWith('@')?igRaw:'');
+  const tt_url=ttRaw.includes('tiktok.com')?(ttRaw.startsWith('http')?ttRaw:'https://'+ttRaw):'';
+  const tt=tt_url?(extractTt(tt_url)||''):(ttRaw.startsWith('@')?ttRaw:'');
+  const snap=snapRaw||'';
+  const ts=timestamp?new Date(timestamp).getTime()||Date.now():Date.now();
+  return {name:fullname,phone:normalizePhone(phone),civil,nationality,gender,ig,ig_url,tt,tt_url,snap,status:'pending',addedAt:ts};
+}
+
 function parseBulkText(fullText) {
   // Normalize line endings
   const text = fullText.replace(/\r\n/g,'\n').replace(/\r/g,'\n');
   const lines = text.split('\n');
+
+  // Check if this looks like a Google Sheet row (has tabs OR has a 12-digit civil number)
+  const sheetItems = [];
+  for(const line of lines) {
+    const l = line.trim();
+    if(!l) continue;
+    if(l.includes('\t') || /\b\d{12}\b/.test(l)) {
+      const item = parseSheetRow(l);
+      if(item && (item.name || item.phone || item.ig)) sheetItems.push(item);
+    }
+  }
+  if(sheetItems.length > 0) return sheetItems;
+
 
   // Helper to extract from URL
   function extractIg(url) {
@@ -1774,39 +1826,87 @@ function confirmBulkAdd() {
   closeBulkModal();_bulkDecisions={};renderBulkDupModal();document.getElementById('dupBulkOverlay').classList.remove('hidden');
 }
 function renderBulkDupModal() {
+  const FIELDS = [
+    {key:'name',      label:'الاسم'},
+    {key:'phone',     label:'الموبايل'},
+    {key:'civil',     label:'م. مدني'},
+    {key:'nationality',label:'الجنسية'},
+    {key:'ig',        label:'انستاجرام'},
+    {key:'tt',        label:'تيك توك'},
+    {key:'snap',      label:'سناب'},
+  ];
   const list=document.getElementById('dupBulkList');
   list.innerHTML=_bulkPending.map((entry,i)=>{
-    const label=entry.item.name||entry.item.ig||entry.item.phone||'مؤثر '+(i+1);
-    return `<div class="dup-item" id="dupBulkItem_${i}">
-      <div class="dup-item-title"><span>⚠️ ${label}</span><span style="font-size:10px;color:#6e7681;">رقم ${entry.dup.idx+1} في القائمة</span></div>
-      <div class="dup-match-reason">⚠️ تطابق في: ${entry.dup.reasons.join(' · ')}</div>
-      <div class="dup-item-actions">
-        <button class="dup-btn-skip" onclick="setBulkDecision(${i},'skip',this)">⏭ تخطي</button>
-        <button class="dup-btn-update" onclick="setBulkDecision(${i},'update',this)">🔄 تحديث</button>
-        <button class="dup-btn-add-anyway" onclick="setBulkDecision(${i},'add',this)">➕ إضافة</button>
-      </div></div>`;
+    const newItem=entry.item, ex=influencers[entry.dup.idx];
+    const label=newItem.name||newItem.ig||newItem.phone||'مؤثر '+(i+1);
+
+    const fieldRows = FIELDS.map(f=>{
+      const oldVal=ex[f.key]||'', newVal=newItem[f.key]||'';
+      const hasNew=!!newVal, isDiff=newVal!==oldVal;
+      const checked=(hasNew&&isDiff)?'checked':'';
+      const disabled=(!hasNew)?'disabled':'';
+      const newClass=hasNew?'dup-field-new':'dup-field-new empty';
+      return `<div class="dup-field-row">
+        <div class="dup-field-label">${f.label}</div>
+        <div class="dup-field-old">${oldVal||'—'}</div>
+        <div class="${newClass}">${newVal||'—'}</div>
+        <input type="checkbox" class="dup-check" id="bchk_${i}_${f.key}" ${checked} ${disabled}>
+      </div>`;
+    }).join('');
+
+    return `<div class="dup-item" id="dupBulkItem_${i}" style="margin-bottom:1rem;border:1px solid #d97706;border-radius:10px;padding:.8rem;background:#1a1200;">
+      <div class="dup-item-title" style="margin-bottom:6px;">
+        <span style="font-weight:700;color:#fbbf24;">⚠️ ${label}</span>
+        <span style="font-size:10px;color:#6e7681;">رقم ${entry.dup.idx+1} في القائمة</span>
+      </div>
+      <div class="dup-match-reason" style="margin-bottom:8px;">تطابق في: ${entry.dup.reasons.join(' · ')}</div>
+      <div style="font-size:10px;color:#6e7681;margin-bottom:5px;display:grid;grid-template-columns:80px 1fr 1fr 36px;gap:6px;padding:0 4px;">
+        <span></span><span style="color:#8b949e;">📁 موجود</span><span style="color:#4ade80;">✨ جديد</span><span></span>
+      </div>
+      ${fieldRows}
+      <div style="display:flex;gap:6px;margin-top:8px;flex-wrap:wrap;">
+        <button onclick="setBulkDecision(${i},'update',this)" style="flex:2;padding:7px;border-radius:8px;border:1px solid #059669;background:#0d1f14;color:#4ade80;font-size:12px;font-weight:700;cursor:pointer;font-family:Tajawal,sans-serif;">🔄 تطبيق المحدد</button>
+        <button onclick="setBulkDecision(${i},'add',this)" style="flex:2;padding:7px;border-radius:8px;border:1px solid #d97706;background:#2d1f0a;color:#fbbf24;font-size:12px;font-weight:700;cursor:pointer;font-family:Tajawal,sans-serif;">➕ إضافة كجديد</button>
+        <button onclick="setBulkDecision(${i},'skip',this)" style="flex:1;padding:7px;border-radius:8px;border:1px solid #30363d;background:#21262d;color:#8b949e;font-size:12px;cursor:pointer;font-family:Tajawal,sans-serif;">⏭ تخطي</button>
+      </div>
+    </div>`;
   }).join('');
   document.getElementById('dupBulkSummary').innerHTML=`<b>${_bulkClean.length}</b> بدون تكرار سيُضافون · <b style="color:#fbbf24">${_bulkPending.length}</b> يحتاجون قرارك`;
 }
-function setBulkDecision(i,decision,btn){_bulkDecisions[i]=decision;btn.parentElement.querySelectorAll('button').forEach(b=>b.style.opacity='0.4');btn.style.opacity='1';btn.style.fontWeight='900';}
+
+function setBulkDecision(i,decision,btn){
+  _bulkDecisions[i]=decision;
+  // highlight chosen button
+  btn.closest('.dup-item').querySelectorAll('button').forEach(b=>{b.style.opacity='0.4';b.style.fontWeight='400';});
+  btn.style.opacity='1'; btn.style.fontWeight='900';
+}
+
 function applyBulkDecisions(){
   let added=0,updated=0,skipped=0;
   _bulkPending.forEach((entry,i)=>{
     const dec=_bulkDecisions[i]||'skip';
-    if(dec==='add'){entry.item.addedAt=Date.now();influencers.push(entry.item);added++;}
-    else if(dec==='update'){
+    if(dec==='add'){
+      entry.item.addedAt=Date.now(); influencers.push(entry.item); added++;
+    } else if(dec==='update'){
       const ex=influencers[entry.dup.idx];
-      if(!ex.name&&entry.item.name)ex.name=entry.item.name;
-      if(!ex.phone&&entry.item.phone)ex.phone=entry.item.phone;
-      if(!ex.ig&&entry.item.ig){ex.ig=entry.item.ig;ex.ig_url=entry.item.ig_url;}
-      if(!ex.tt&&entry.item.tt){ex.tt=entry.item.tt;ex.tt_url=entry.item.tt_url;}
-      if(!ex.snap&&entry.item.snap)ex.snap=entry.item.snap;
+      const FIELDS=['name','phone','civil','nationality','ig','tt','snap'];
+      let changed=0;
+      FIELDS.forEach(key=>{
+        const cb=document.getElementById('bchk_'+i+'_'+key);
+        if(cb&&cb.checked&&!cb.disabled){
+          if(key==='ig'){ex.ig=entry.item.ig;ex.ig_url=entry.item.ig_url;}
+          else if(key==='tt'){ex.tt=entry.item.tt;ex.tt_url=entry.item.tt_url;}
+          else ex[key]=entry.item[key];
+          changed++;
+        }
+      });
       updated++;
     } else skipped++;
   });
-  _bulkClean.forEach(i=>{if(!i.addedAt)i.addedAt=Date.now();});influencers.push(..._bulkClean);added+=_bulkClean.length;
+  _bulkClean.forEach(i=>{if(!i.addedAt)i.addedAt=Date.now();}); influencers.push(..._bulkClean); added+=_bulkClean.length;
   document.getElementById('dupBulkOverlay').classList.add('hidden');
-  renderGrid();saveFile();showToast('✅ '+added+' أُضيف · 🔄 '+updated+' حُدّث · ⏭ '+skipped+' تخطّي','#059669');
+  renderGrid(); saveFile();
+  showToast('✅ '+added+' أُضيف · 🔄 '+updated+' حُدّث · ⏭ '+skipped+' تخطّي','#059669');
 }
 function closeDupBulk(){document.getElementById('dupBulkOverlay').classList.add('hidden');}
 
@@ -1838,7 +1938,7 @@ function showSingleDupWarning(newItem, dup) {
       <div class="dup-field-label">${f.label}</div>
       <div class="dup-field-old" title="موجود">${oldDisplay}</div>
       <div class="${newClass}" title="جديد">${newDisplay}</div>
-      <input type="checkbox" class="dup-check" id="dupchk_${f.key}" ${checked} ${!hasNew||!isDiff?'disabled':''} title="${hasNew&&isDiff?'اختار للتطبيق':''}">
+      <input type="checkbox" class="dup-check" id="dupchk_${f.key}" ${checked} ${!hasNew?'disabled':''} title="${hasNew&&isDiff?'اختار للتطبيق':''}">
     </div>`;
   }).join('');
 
@@ -1900,7 +2000,7 @@ function sendWhatsApp(idx) {
   const msg = `مرحبا ${name}
 تم قبولكم لتغطية عيادة التجميل في الشعب البحري
 الرجاء التسجيل في الرابط:
-https://cure-submit-form.vercel.app/
+https://cure-submit-form-gsheets.vercel.app
 
 شروط الحملة:
 1- صوتك الحقيقي وليس AI.
@@ -1954,6 +2054,8 @@ function openFormImport() {
   document.getElementById('formImportText').value = '';
   document.getElementById('formImportPreview').style.display = 'none';
   document.getElementById('formImportAddBtn').style.display = 'none';
+  _formImportItem = null;
+  _formImportItems = [];
   document.getElementById('formImportOverlay').classList.remove('hidden');
 }
 function closeFormImport() {
@@ -1961,93 +2063,216 @@ function closeFormImport() {
   _formImportItem = null;
 }
 
+let _formImportItems = []; // supports multiple people
+
 function parseFormImport() {
   const rawText = document.getElementById('formImportText').value;
   if(!rawText.trim()) return;
-  // Normalize line endings
   const text = rawText.replace(/\r\n/g,'\n').replace(/\r/g,'\n');
+  const lines = text.split('\n');
 
-  // Extract field: find label then get next non-empty line
-  function extract(...labels) {
-    for(const label of labels) {
-      const lines = text.split('\n');
-      for(let i=0; i<lines.length; i++) {
-        if(lines[i].trim().replace(/[:\s]/g,'').includes(label.replace(/[:\s]/g,''))) {
-          // Return next non-empty line
-          for(let j=i+1; j<lines.length; j++) {
-            const val = lines[j].trim();
-            if(val && val.length > 0) return val;
+  // ── Multi-row Sheet mode: each non-empty line that has tabs or 12-digit civil ──
+  const sheetLines = lines.filter(l => l.trim() && (l.includes('\t') || /\b\d{12}\b/.test(l)));
+
+  if(sheetLines.length > 0) {
+    _formImportItems = [];
+    for(const line of sheetLines) {
+      const item = parseSheetRow(line.trim());
+      if(item && (item.name || item.phone || item.ig)) _formImportItems.push(item);
+    }
+    if(_formImportItems.length === 0) { showToast('⚠️ لم يتم استخراج أي بيانات', '#d97706'); return; }
+
+    const preview = document.getElementById('formImportPreview');
+    preview.style.display = 'block';
+
+    const rows = _formImportItems.map((item, idx) => {
+      const dup = findDuplicate(item);
+      item._dup = dup || null;
+      return `<div style="border:1px solid ${dup?'#d97706':'#16a34a'};border-radius:9px;padding:.6rem .8rem;margin-bottom:.5rem;background:${dup?'#2d1f0a':'#0d1f14'};">
+        <div style="font-weight:700;color:${dup?'#fbbf24':'#4ade80'};font-size:12px;margin-bottom:4px;">
+          ${dup?'⚠️ موجود مسبقاً':'✅'} ${idx+1}. ${item.name||'—'}
+          ${item.gender==='m'?'<span style="color:#60a5fa;font-size:11px;"> · ذكر</span>':item.gender==='f'?'<span style="color:#f0abfc;font-size:11px;"> · أنثى</span>':''}
+          ${item.nationality?`<span style="color:#0e9a6e;font-size:11px;"> · ${item.nationality}</span>`:''}
+        </div>
+        <div style="font-size:11px;color:#8b949e;display:flex;flex-wrap:wrap;gap:8px;">
+          ${item.phone?`<span>📞 ${item.phone}</span>`:'<span style="color:#f87171;">📞 —</span>'}
+          ${item.civil?`<span>🪪 ${item.civil}</span>`:''}
+          ${item.ig?`<span>📸 ${item.ig}</span>`:''}
+          ${item.tt?`<span>🎵 ${item.tt}</span>`:''}
+          ${item.snap?`<span>👻 ✓</span>`:''}
+        </div>
+        ${dup?`<div style="font-size:10px;color:#fbbf24;margin-top:3px;">تطابق: ${dup.reasons.join(' · ')}</div>`:''}
+      </div>`;
+    }).join('');
+
+    const newCount  = _formImportItems.filter(i=>!i._dup).length;
+    const dupCount  = _formImportItems.filter(i=> i._dup).length;
+
+    preview.innerHTML = `
+      <div style="font-weight:700;color:#4ade80;margin-bottom:8px;font-size:13px;">
+        🔍 تم استخراج <b>${_formImportItems.length}</b> شخص
+        ${newCount?`· <span style="color:#4ade80">${newCount} جديد</span>`:''}
+        ${dupCount?`· <span style="color:#fbbf24">${dupCount} موجود مسبقاً</span>`:''}
+      </div>
+      ${rows}
+    `;
+
+    const addBtn = document.getElementById('formImportAddBtn');
+    addBtn.style.display = 'block';
+    addBtn.textContent = `✅ إضافة الكل (${_formImportItems.length})`;
+    addBtn.style.background = '#059669';
+    // legacy single-item null
+    _formImportItem = null;
+    return;
+  }
+
+  // ── Fallback: label-based email form — supports multiple submissions pasted together ──
+  _formImportItems = [];
+
+  function parseEmailBlock(blockText) {
+    function extract(...labels) {
+      const ls = blockText.split('\n');
+      for(const label of labels) {
+        for(let i=0;i<ls.length;i++) {
+          if(ls[i].trim().replace(/[:\s]/g,'').includes(label.replace(/[:\s]/g,''))) {
+            for(let j=i+1;j<ls.length;j++) { const v=ls[j].trim(); if(v) return v; }
           }
         }
       }
+      return '';
     }
-    return '';
+    function extractUrl(domain) {
+      const m = blockText.match(new RegExp('https?://(?:www\\.)?'+domain+'[^\\s]+','i'));
+      return m?m[0]:'';
+    }
+    const name      = extract('الاسم الثلاثي','الاسم');
+    const gender_raw= extract('الجنس');
+    const civil     = extract('الرقم المدني','الرقم المدنى');
+    const phone_raw = extract('رقم التلفون','رقم الهاتف','رقم التواصل','رقم الجوال');
+    const nat_raw   = extract('الجنسية');
+    const ig_raw    = extract('انستاجرام','انستغرام','Instagram')||extractUrl('instagram.com');
+    const tt_raw    = extract('تيك توك','TikTok','تيك يوك')||extractUrl('tiktok.com');
+    const snap_raw  = extract('سناب شات','Snapchat','سناب')||extractUrl('snapchat.com');
+    if(!name && !phone_raw && !ig_raw) return null;
+    const gender= gender_raw.includes('أنثى')||gender_raw.includes('انثى')||/female/i.test(gender_raw)?'f':gender_raw.includes('ذكر')||/male/i.test(gender_raw)?'m':'';
+    const phone = normalizePhone(phone_raw);
+    const ig    = ig_raw?'@'+normalizeIg(ig_raw):'';
+    const ig_url= ig_raw.startsWith('http')?ig_raw.split('?')[0].split('&')[0]:ig?'https://www.instagram.com/'+ig.replace('@',''):'';
+    const tt    = tt_raw.includes('tiktok.com/@')?'@'+tt_raw.split('tiktok.com/@').pop().split('?')[0]:'';
+    const tt_url= tt_raw.startsWith('http')?tt_raw.split('?')[0]:'';
+    return {name,civil,phone,nationality:nat_raw,gender,ig,ig_url,tt,tt_url,snap:snap_raw,status:'pending',addedAt:Date.now()};
   }
 
-  // Also try to extract URLs directly from text
-  function extractUrl(domain) {
-    const regex = new RegExp('https?://(?:www\\.)?' + domain + '[^\\s]+', 'i');
-    const m = text.match(regex);
-    return m ? m[0] : '';
+  // Split into blocks by the email header marker or by "الاسم الثلاثي" / "الاسم" boundary
+  const EMAIL_HEADER = /Hello,|A new form has been submitted/i;
+  let emailBlocks = [];
+  if(EMAIL_HEADER.test(text)) {
+    // Split on the email header
+    emailBlocks = text.split(EMAIL_HEADER).filter(b=>b.trim());
+  } else {
+    // Split on repeated label pattern: if we see "الاسم" appearing more than once, split there
+    emailBlocks = text.split(/(?=(?:الاسم الثلاثي|الاسم)\s*\n)/);
+  }
+  if(emailBlocks.length === 0) emailBlocks = [text];
+
+  for(const block of emailBlocks) {
+    const item = parseEmailBlock(block);
+    if(item) _formImportItems.push(item);
   }
 
-  const name       = extract('الاسم الثلاثي','الاسم');
-  const gender_raw = extract('الجنس');
-  const civil      = extract('الرقم المدني','الرقم المدنى');
-  const phone_raw  = extract('رقم التلفون','رقم الهاتف','رقم التواصل','رقم الجوال');
-  const nat_raw    = extract('الجنسية');
-  const ig_raw     = extract('انستاجرام','انستغرام','Instagram') || extractUrl('instagram.com');
-  const tt_raw     = extract('تيك توك','TikTok','تيك يوك') || extractUrl('tiktok.com');
-  const snap_raw   = extract('سناب شات','Snapchat','سناب') || extractUrl('snapchat.com');
+  if(_formImportItems.length === 0) { showToast('⚠️ لم يتم استخراج أي بيانات', '#d97706'); return; }
 
-  // Normalize
-  const gender = gender_raw.includes('أنثى')||gender_raw.includes('انثى')||gender_raw.toLowerCase().includes('female') ? 'f'
-               : gender_raw.includes('ذكر')||gender_raw.toLowerCase().includes('male') ? 'm' : '';
-  const phone  = normalizePhone(phone_raw);
-  const ig     = ig_raw ? '@'+normalizeIg(ig_raw) : '';
-  const ig_url = ig_raw.startsWith('http') ? ig_raw.split('?')[0].split('&')[0] : ig ? 'https://www.instagram.com/'+ig.replace('@','') : '';
-  const tt     = tt_raw.includes('tiktok.com/@') ? '@'+tt_raw.split('tiktok.com/@').pop().split('?')[0] : '';
-  const tt_url = tt_raw.startsWith('http') ? tt_raw.split('?')[0] : '';
-
-  _formImportItem = { name, civil, phone, nationality:nat_raw, gender, ig, ig_url, tt, tt_url, snap:snap_raw, status:'pending', addedAt:Date.now() };
-
-  // Check duplicate immediately
-  const dup = findDuplicate(_formImportItem);
-
-  // Preview
+  // Show preview (reuse same multi-person preview)
   const preview = document.getElementById('formImportPreview');
-  preview.style.display = 'block';
-  preview.innerHTML = `
-    <div style="font-weight:700;color:${dup?'#fbbf24':'#4ade80'};margin-bottom:6px;">${dup ? '⚠️ هذا الشخص موجود مسبقاً — يمكنك تحديث بياناته' : '✅ تم استخراج البيانات:'}</div>
-    ${name?`<div>👤 <b>الاسم:</b> ${name}</div>`:'<div style="color:#f87171;">⚠️ لم يتم العثور على الاسم</div>'}
-    ${gender?`<div>${gender==='f'?'👩 أنثى':'👨 ذكر'}</div>`:''}
-    ${civil?`<div>🪪 <b>الرقم المدني:</b> ${civil}</div>`:''}
-    ${phone?`<div>📞 <b>الموبايل:</b> ${phone}</div>`:'<div style="color:#f87171;">⚠️ لم يتم العثور على رقم الموبايل</div>'}
-    ${nat_raw?`<div>🌍 <b>الجنسية:</b> ${nat_raw}</div>`:''}
-    ${ig?`<div>📸 <b>انستاجرام:</b> ${ig}</div>`:''}
-    ${tt?`<div>🎵 <b>تيك توك:</b> ${tt}</div>`:''}
-    ${snap_raw?`<div>👻 <b>سناب:</b> ✓</div>`:''}
-    ${dup?`<div style="margin-top:6px;color:#fbbf24;font-size:11px;">تطابق مع: ${dup.reasons.join(' · ')}</div>`:''}
-  `;
-  document.getElementById('formImportAddBtn').style.display = 'block';
-  document.getElementById('formImportAddBtn').textContent = dup ? '🔄 تحديث الموجود' : '✅ إضافة';
-  document.getElementById('formImportAddBtn').style.background = dup ? '#1a6fa8' : '#059669';
+  preview.style.display='block';
+  if(_formImportItems.length === 1) {
+    const item = _formImportItems[0];
+    _formImportItem = item;
+    const dup = findDuplicate(item); item._dup=dup||null;
+    preview.innerHTML=`
+      <div style="font-weight:700;color:${dup?'#fbbf24':'#4ade80'};margin-bottom:6px;">${dup?'⚠️ هذا الشخص موجود مسبقاً':'✅ تم استخراج البيانات:'}</div>
+      ${item.name?`<div>👤 <b>الاسم:</b> ${item.name}</div>`:'<div style="color:#f87171;">⚠️ لم يتم العثور على الاسم</div>'}
+      ${item.gender?`<div>${item.gender==='f'?'👩 أنثى':'👨 ذكر'}</div>`:''}
+      ${item.civil?`<div>🪪 <b>الرقم المدني:</b> ${item.civil}</div>`:''}
+      ${item.phone?`<div>📞 <b>الموبايل:</b> ${item.phone}</div>`:'<div style="color:#f87171;">⚠️ لم يتم العثور على رقم الموبايل</div>'}
+      ${item.nationality?`<div>🌍 <b>الجنسية:</b> ${item.nationality}</div>`:''}
+      ${item.ig?`<div>📸 <b>انستاجرام:</b> ${item.ig}</div>`:''}
+      ${item.tt?`<div>🎵 <b>تيك توك:</b> ${item.tt}</div>`:''}
+      ${item.snap?`<div>👻 <b>سناب:</b> ✓</div>`:''}
+      ${dup?`<div style="margin-top:6px;color:#fbbf24;font-size:11px;">تطابق مع: ${dup.reasons.join(' · ')}</div>`:''}
+    `;
+  } else {
+    _formImportItem = null;
+    const rows = _formImportItems.map((item,idx)=>{
+      const dup=findDuplicate(item); item._dup=dup||null;
+      return `<div style="border:1px solid ${dup?'#d97706':'#16a34a'};border-radius:9px;padding:.6rem .8rem;margin-bottom:.5rem;background:${dup?'#2d1f0a':'#0d1f14'};">
+        <div style="font-weight:700;color:${dup?'#fbbf24':'#4ade80'};font-size:12px;margin-bottom:4px;">
+          ${dup?'⚠️ موجود مسبقاً':'✅'} ${idx+1}. ${item.name||'—'}
+          ${item.gender==='m'?'<span style="color:#60a5fa;font-size:11px;"> · ذكر</span>':item.gender==='f'?'<span style="color:#f0abfc;font-size:11px;"> · أنثى</span>':''}
+          ${item.nationality?`<span style="color:#0e9a6e;font-size:11px;"> · ${item.nationality}</span>`:''}
+        </div>
+        <div style="font-size:11px;color:#8b949e;display:flex;flex-wrap:wrap;gap:8px;">
+          ${item.phone?`<span>📞 ${item.phone}</span>`:'<span style="color:#f87171;">📞 —</span>'}
+          ${item.civil?`<span>🪪 ${item.civil}</span>`:''}
+          ${item.ig?`<span>📸 ${item.ig}</span>`:''}
+          ${item.tt?`<span>🎵 ${item.tt}</span>`:''}
+          ${item.snap?`<span>👻 ✓</span>`:''}
+        </div>
+        ${dup?`<div style="font-size:10px;color:#fbbf24;margin-top:3px;">تطابق: ${dup.reasons.join(' · ')}</div>`:''}
+      </div>`;
+    }).join('');
+    const newCount=_formImportItems.filter(i=>!i._dup).length, dupCount=_formImportItems.filter(i=>i._dup).length;
+    preview.innerHTML=`
+      <div style="font-weight:700;color:#4ade80;margin-bottom:8px;font-size:13px;">
+        🔍 تم استخراج <b>${_formImportItems.length}</b> شخص
+        ${newCount?`· <span style="color:#4ade80">${newCount} جديد</span>`:''}
+        ${dupCount?`· <span style="color:#fbbf24">${dupCount} موجود مسبقاً</span>`:''}
+      </div>${rows}`;
+  }
+  const addBtn=document.getElementById('formImportAddBtn');
+  addBtn.style.display='block';
+  addBtn.textContent=_formImportItems.length>1?`✅ إضافة الكل (${_formImportItems.length})`:(_formImportItems[0]._dup?'🔄 تحديث الموجود':'✅ إضافة');
+  addBtn.style.background=_formImportItems.length===1&&_formImportItems[0]._dup?'#1a6fa8':'#059669';
 }
 
 function confirmFormImport() {
-  if(!_formImportItem) return;
-  const itemToAdd = Object.assign({}, _formImportItem);
-  const dup = findDuplicate(itemToAdd);
-  document.getElementById('formImportOverlay').classList.add('hidden');
-  // Don't clear _formImportItem yet — showSingleDupWarning will set _pendingSingleItem
-  _formImportItem = null;
-  if(dup) {
-    showSingleDupWarning(itemToAdd, dup);
+  // Multi-person mode
+  if(_formImportItems.length > 0) {
+    // Separate clean from duplicates — route dups through the bulk dup modal
+    _bulkClean = [];
+    _bulkPending = [];
+    _bulkDecisions = {};
+    for(const item of _formImportItems) {
+      const clean = Object.assign({}, item);
+      delete clean._dup;
+      const dup = findDuplicate(clean);
+      if(dup) _bulkPending.push({item: clean, dup});
+      else _bulkClean.push(clean);
+    }
+    _formImportItems = [];
+    _formImportItem = null;
+    document.getElementById('formImportOverlay').classList.add('hidden');
+    if(_bulkPending.length === 0) {
+      _bulkClean.forEach(i=>{ if(!i.addedAt) i.addedAt=Date.now(); });
+      influencers.push(..._bulkClean);
+      renderGrid(); saveFile();
+      showToast('✅ تم إضافة ' + _bulkClean.length + ' مؤثر بنجاح!', '#059669');
+      return;
+    }
+    renderBulkDupModal();
+    document.getElementById('dupBulkOverlay').classList.remove('hidden');
     return;
   }
+  // legacy single
+  if(!_formImportItem) return;
+  const itemToAdd=Object.assign({},_formImportItem);
+  const dup=findDuplicate(itemToAdd);
+  document.getElementById('formImportOverlay').classList.add('hidden');
+  _formImportItem=null;
+  if(dup){ showSingleDupWarning(itemToAdd,dup); return; }
   influencers.push(itemToAdd);
   renderGrid(); saveFile();
-  showToast('✅ تم إضافة المؤثر من الفورم', '#059669');
+  showToast('✅ تم إضافة المؤثر من الفورم','#059669');
 }
 
 // -- Convert Arabic digits to Western in all number inputs ---------
