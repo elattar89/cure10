@@ -519,9 +519,26 @@ body{font-family:'Tajawal',sans-serif;direction:rtl;background:#0d1117;color:#e6
 </div>
 
 <!-- FAB -->
-<button class="fab" onclick="openModal()" title="إضافة مؤثر جديد" id="fabBtn">
-  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+<button class="fab" onclick="toggleFabMenu()" title="إضافة" id="fabBtn">
+  <svg id="fabIcon" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
 </button>
+<!-- Fab Mini Menu -->
+<div id="fabMenu" style="display:none;position:fixed;top:62px;right:10px;z-index:9998;display:none;flex-direction:column;gap:8px;align-items:flex-end;">
+  <div style="display:flex;align-items:center;gap:8px;cursor:pointer;" onclick="closeFabMenu();openModal();">
+    <span style="background:#161b22;color:#e6edf3;font-size:12px;font-weight:700;padding:6px 12px;border-radius:20px;border:1px solid #30363d;font-family:Tajawal,sans-serif;white-space:nowrap;box-shadow:0 2px 8px rgba(0,0,0,0.4);">➕ مؤثر جديد</span>
+    <div style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#0a3d62,#1a6fa8);display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,0.4);">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><circle cx="12" cy="7" r="4"/><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/></svg>
+    </div>
+  </div>
+  <div style="display:flex;align-items:center;gap:8px;cursor:pointer;" onclick="closeFabMenu();openFormImport();">
+    <span style="background:#161b22;color:#e6edf3;font-size:12px;font-weight:700;padding:6px 12px;border-radius:20px;border:1px solid #30363d;font-family:Tajawal,sans-serif;white-space:nowrap;box-shadow:0 2px 8px rgba(0,0,0,0.4);">📋 إضافة من فورم</span>
+    <div style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#0e7490,#0891b2);display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,0.4);">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="8" y1="9" x2="16" y2="9"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="12" y2="17"/></svg>
+    </div>
+  </div>
+</div>
+<!-- Backdrop to close fab menu -->
+<div id="fabBackdrop" onclick="closeFabMenu()" style="display:none;position:fixed;inset:0;z-index:9997;"></div>
 
 <!-- Dialect Popup -->
 <div class="service-popup" id="dialectPopup" onclick="if(event.target===this)closeDialectPopup()">
@@ -2482,6 +2499,32 @@ async function recoverFromFirebase() {
 }
 window.openRecovery=openRecovery; window.recoverFromKey=recoverFromKey; window.recoverFromFirebase=recoverFromFirebase;
 window.openFormImport=openFormImport; window.closeFormImport=closeFormImport;
+
+function toggleFabMenu() {
+  const menu = document.getElementById('fabMenu');
+  const backdrop = document.getElementById('fabBackdrop');
+  const icon = document.getElementById('fabIcon');
+  const isOpen = menu.style.display === 'flex';
+  if (isOpen) {
+    menu.style.display = 'none';
+    backdrop.style.display = 'none';
+    icon.innerHTML = '<line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>';
+  } else {
+    menu.style.display = 'flex';
+    backdrop.style.display = 'block';
+    icon.innerHTML = '<line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>';
+  }
+}
+function closeFabMenu() {
+  const menu = document.getElementById('fabMenu');
+  const backdrop = document.getElementById('fabBackdrop');
+  const icon = document.getElementById('fabIcon');
+  menu.style.display = 'none';
+  backdrop.style.display = 'none';
+  if(icon) icon.innerHTML = '<line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>';
+}
+window.toggleFabMenu = toggleFabMenu;
+window.closeFabMenu = closeFabMenu;
 window.parseFormImport=parseFormImport; window.confirmFormImport=confirmFormImport;
 
 function openServicePopup(idx, e){
