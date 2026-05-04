@@ -786,8 +786,8 @@ const LS_KEY = 'cure_influencers_v18';
 const LS_DELETED_KEY = 'cure_deleted_v18';
 
 async function saveToStorage() {
-  try { localStorage.setItem(LS_KEY, JSON.stringify(influencers)); } catch(e) {}
-  try { localStorage.setItem(LS_DELETED_KEY, JSON.stringify(deletedInfluencers)); } catch(e) {}
+  try { localStorage.setItem(LS_KEY, JSON.stringify(influencers)); localStorage.setItem(LS_KEY+'_savedAt', Date.now().toString()); } catch(e) {}
+  try { localStorage.setItem(LS_DELETED_KEY, JSON.stringify(deletedInfluencers)); localStorage.setItem(LS_DELETED_KEY+'_savedAt', Date.now().toString()); } catch(e) {}
   try {
     const res = await fetch(`${DB_URL}/${DB_PATH}.json`, {
       method: 'PUT', headers: {'Content-Type':'application/json'},
@@ -1715,7 +1715,7 @@ function parseBulkText(fullText) {
   for(const line of lines) {
     const l = line.trim();
     if(!l) continue;
-    if(l.includes('\t') || /\b\d{12}\b/.test(l)) {
+    if(l.includes('\t')) {
       const item = parseSheetRow(l);
       if(item && (item.name || item.phone || item.ig)) sheetItems.push(item);
     }
@@ -2092,8 +2092,9 @@ function parseFormImport() {
   const text = rawText.replace(/\r\n/g,'\n').replace(/\r/g,'\n');
   const lines = text.split('\n');
 
-  // ── Multi-row Sheet mode: each non-empty line that has tabs or 12-digit civil ──
-  const sheetLines = lines.filter(l => l.trim() && (l.includes('\t') || /\b\d{12}\b/.test(l)));
+  // ── Multi-row Sheet mode: lines that have TABS (Google Sheets copy-paste)
+  // Do NOT use 12-digit detection alone — a civil number on its own line in an email would falsely match
+  const sheetLines = lines.filter(l => l.trim() && l.includes('\t'));
 
   if(sheetLines.length > 0) {
     _formImportItems = [];
@@ -2368,35 +2369,76 @@ function openRecovery() {
   try {
     for(let i=0;i<localStorage.length;i++){
       const k=localStorage.key(i);
-      if(k&&(k.includes('cure')||k.includes('influenc'))) keys.push(k);
+      if(k&&(k.includes('cure')||k.includes('influenc'))&&!k.endsWith('_savedAt')&&!k.includes('auth')&&!k.includes('log')&&!k.includes('migration')) keys.push(k);
     }
   } catch(e){}
 
+  // Helper: format timestamp in Arabic
+  function formatSavedAt(ts) {
+    if(!ts) return null;
+    const d = new Date(parseInt(ts));
+    if(isNaN(d.getTime())) return null;
+    const days = ['الأحد','الاثنين','الثلاثاء','الأربعاء','الخميس','الجمعة','السبت'];
+    const months = ['يناير','فبراير','مارس','أبريل','مايو','يونيو','يوليو','أغسطس','سبتمبر','أكتوبر','نوفمبر','ديسمبر'];
+    const day = days[d.getDay()];
+    const date = d.getDate();
+    const month = months[d.getMonth()];
+    const year = d.getFullYear();
+    const hours = d.getHours().toString().padStart(2,'0');
+    const mins = d.getMinutes().toString().padStart(2,'0');
+    // How long ago
+    const diff = Date.now() - d.getTime();
+    let ago = '';
+    if(diff < 60000) ago = 'منذ أقل من دقيقة';
+    else if(diff < 3600000) ago = `منذ ${Math.floor(diff/60000)} دقيقة`;
+    else if(diff < 86400000) ago = `منذ ${Math.floor(diff/3600000)} ساعة`;
+    else if(diff < 604800000) ago = `منذ ${Math.floor(diff/86400000)} يوم`;
+    else ago = `${date} ${month} ${year}`;
+    return { label: `${day} ${date} ${month} ${year} — ${hours}:${mins}`, ago };
+  }
+
+  // Build key list with metadata, sort newest first
+  const keyData = keys.map(k => {
+    let count = '?', ts = null, tsLabel = null, tsAgo = null;
+    try {
+      const raw = localStorage.getItem(k);
+      const savedAtRaw = localStorage.getItem(k+'_savedAt');
+      ts = savedAtRaw ? parseInt(savedAtRaw) : null;
+      const fmt = formatSavedAt(savedAtRaw);
+      if(fmt) { tsLabel = fmt.label; tsAgo = fmt.ago; }
+      const p = JSON.parse(raw);
+      if(Array.isArray(p)) count = p.length + ' شخص';
+      else if(p && p.data) { const arr=JSON.parse(p.data); count=(Array.isArray(arr)?arr.length:'?')+' شخص'; }
+    } catch(e2){}
+    return {k, count, ts, tsLabel, tsAgo};
+  }).sort((a,b) => (b.ts||0)-(a.ts||0)); // newest first
+
   let html = `<div style="position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,.85);display:flex;align-items:center;justify-content:center;padding:1rem;" id="recoveryOverlay">
   <div style="background:#161b22;border:2px solid #dc2626;border-radius:16px;padding:1.5rem;width:100%;max-width:500px;max-height:85vh;overflow-y:auto;font-family:Tajawal,sans-serif;">
-    <h3 style="color:#f87171;margin-bottom:1rem;font-size:16px;">🆘 استرداد طارئ للبيانات</h3>
-    <p style="font-size:12px;color:#8b949e;margin-bottom:1rem;">النسخ المحفوظة في هذا الجهاز:</p>`;
+    <h3 style="color:#f87171;margin-bottom:.5rem;font-size:16px;">🆘 استرداد طارئ للبيانات</h3>
+    <p style="font-size:12px;color:#8b949e;margin-bottom:1rem;">النسخ المحفوظة في هذا الجهاز — مرتّبة من الأحدث للأقدم:</p>`;
 
-  if(!keys.length) {
+  if(!keyData.length) {
     html += `<div style="color:#484f58;font-size:13px;text-align:center;padding:1rem;">لا توجد نسخ محفوظة في هذا الجهاز</div>`;
   } else {
-    keys.forEach(k => {
-      try {
-        const raw = localStorage.getItem(k);
-        let count = '?';
-        try {
-          const p = JSON.parse(raw);
-          if(Array.isArray(p)) count = p.length + ' شخص';
-          else if(p && p.data) { const arr=JSON.parse(p.data); count=(Array.isArray(arr)?arr.length:'?')+' شخص'; }
-        } catch(e2){}
-        html += `<div style="background:#21262d;border-radius:8px;padding:.8rem;margin-bottom:.5rem;display:flex;justify-content:space-between;align-items:center;gap:8px;">
-          <div>
-            <div style="font-size:12px;color:#e6edf3;font-weight:700;">${k}</div>
-            <div style="font-size:11px;color:#4ade80;">${count}</div>
+    keyData.forEach((item, idx) => {
+      const isNewest = idx === 0;
+      const borderColor = isNewest ? '#16a34a' : '#30363d';
+      const badge = isNewest ? `<span style="background:#14532d;color:#4ade80;font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px;margin-right:6px;">⭐ الأحدث</span>` : '';
+      const dateHtml = item.tsLabel
+        ? `<div style="font-size:11px;color:#60a5fa;margin-top:3px;">🕐 ${item.tsLabel}</div>
+           <div style="font-size:10px;color:#8b949e;">${item.tsAgo}</div>`
+        : `<div style="font-size:11px;color:#484f58;margin-top:3px;">تاريخ الحفظ: غير متاح</div>`;
+      html += `<div style="background:#21262d;border:1px solid ${borderColor};border-radius:10px;padding:.8rem;margin-bottom:.5rem;">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;">
+          <div style="flex:1;min-width:0;">
+            <div style="font-size:11px;color:#6e7681;word-break:break-all;">${item.k} ${badge}</div>
+            <div style="font-size:13px;color:#4ade80;font-weight:700;margin-top:2px;">📦 ${item.count}</div>
+            ${dateHtml}
           </div>
-          <button onclick="recoverFromKey('${k}')" style="padding:6px 14px;border-radius:8px;border:1px solid #16a34a;background:#0d1f14;color:#4ade80;font-size:12px;font-weight:700;cursor:pointer;font-family:Tajawal,sans-serif;">↩ استرجاع</button>
-        </div>`;
-      } catch(e){}
+          <button onclick="recoverFromKey('${item.k}')" style="flex-shrink:0;padding:8px 14px;border-radius:8px;border:1px solid #16a34a;background:#0d1f14;color:#4ade80;font-size:12px;font-weight:700;cursor:pointer;font-family:Tajawal,sans-serif;">↩ استرجاع</button>
+        </div>
+      </div>`;
     });
   }
 
