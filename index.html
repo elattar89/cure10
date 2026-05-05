@@ -366,13 +366,13 @@ body{font-family:'Tajawal',sans-serif;direction:rtl;background:#0d1117;color:#e6
     <div class="stat" style="cursor:pointer" onclick="setFilterFromStat('male',this)"><div class="stat-num" id="statMale">0</div><div class="stat-label">👨 ذكور</div></div>
     <div class="stat" style="cursor:pointer" onclick="setFilterFromStat('female',this)"><div class="stat-num" id="statFemale">0</div><div class="stat-label">👩 إناث</div></div>
   </div>
-  <!-- Guest Buttons inside header -->
-  <div id="guestBtns" style="display:none;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:1rem;">
-    <button id="guestReportBtn" style="padding:14px 28px;border-radius:10px;border:1px solid #16a34a;background:#0d1f14;color:#4ade80;font-size:15px;font-weight:700;cursor:pointer;font-family:Tajawal,sans-serif;min-height:50px;">📋 كشف المقبولين</button>
-    <button id="guestApptsBtn" style="padding:14px 28px;border-radius:10px;border:1px solid #0891b2;background:#0e2433;color:#22d3ee;font-size:15px;font-weight:700;cursor:pointer;font-family:Tajawal,sans-serif;min-height:50px;">📅 مواعيد الزيارات</button>
-    <button id="guestRefreshBtn" style="padding:14px 28px;border-radius:10px;border:1px solid #484f58;background:#21262d;color:#8b949e;font-size:13px;font-weight:700;cursor:pointer;font-family:Tajawal,sans-serif;min-height:50px;">🔄 تحديث</button>
-  </div>
 </div>
+  <!-- Guest Buttons OUTSIDE header to avoid overflow:hidden clipping -->
+  <div id="guestBtns" style="display:none;gap:12px;justify-content:center;flex-wrap:wrap;padding:16px;background:#0d1117;border-bottom:1px solid #21262d;">
+    <button id="guestReportBtn" style="padding:16px 24px;border-radius:12px;border:1px solid #16a34a;background:#0d1f14;color:#4ade80;font-size:16px;font-weight:700;cursor:pointer;font-family:Tajawal,sans-serif;min-height:56px;min-width:160px;-webkit-tap-highlight-color:rgba(74,222,128,0.2);touch-action:manipulation;">📋 كشف المقبولين</button>
+    <button id="guestApptsBtn" style="padding:16px 24px;border-radius:12px;border:1px solid #0891b2;background:#0e2433;color:#22d3ee;font-size:16px;font-weight:700;cursor:pointer;font-family:Tajawal,sans-serif;min-height:56px;min-width:160px;-webkit-tap-highlight-color:rgba(34,211,238,0.2);touch-action:manipulation;">📅 مواعيد الزيارات</button>
+    <button id="guestRefreshBtn" style="padding:16px 24px;border-radius:12px;border:1px solid #484f58;background:#21262d;color:#8b949e;font-size:14px;font-weight:700;cursor:pointer;font-family:Tajawal,sans-serif;min-height:56px;min-width:120px;-webkit-tap-highlight-color:rgba(139,148,158,0.2);touch-action:manipulation;">🔄 تحديث</button>
+  </div>
 
 <div class="toolbar">
   <div class="search-wrap">
