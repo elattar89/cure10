@@ -49,6 +49,9 @@ body{font-family:'Tajawal',sans-serif;direction:rtl;background:#0d1117;color:#e6
 .card-phone{font-size:12px;color:#6e7681;margin-top:2px;direction:ltr;text-align:right;}
 .status-badge{font-size:11px;padding:3px 10px;border-radius:20px;font-weight:700;white-space:nowrap;}
 .status-badge.pending{background:#21262d;color:#8b949e;border:1px solid #30363d;}
+.status-badge.duplicate_pending{background:#2d1f0e;color:#fbbf24;border:1px solid #d97706;animation:pulseDup 1.6s ease-in-out infinite;}
+@keyframes pulseDup{0%,100%{opacity:1;}50%{opacity:.6;}}
+.card.duplicate_pending{border-color:#d97706;background:#1a1200;}
 .status-badge.approved{background:#14532d;color:#4ade80;border:1px solid #16a34a;}
 .status-badge.rejected{background:#450a0a;color:#f87171;border:1px solid #dc2626;}
 .social-links{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:.8rem;}
@@ -116,8 +119,8 @@ body{font-family:'Tajawal',sans-serif;direction:rtl;background:#0d1117;color:#e6
 .service-option:hover{background:#21262d;}
 .service-option.checked{background:#1a1040;color:#c084fc;}
 .service-option input[type=checkbox]{width:18px;height:18px;cursor:pointer;accent-color:#7c3aed;flex-shrink:0;}
-.date-picker-popup{position:fixed;background:#1c2128;border:1px solid #30363d;border-radius:12px;padding:.8rem;z-index:4000;box-shadow:0 8px 32px rgba(0,0,0,.5);width:280px;display:none;} .date-picker-header{position:relative;}
-.date-picker-popup.open{display:block;}
+.date-picker-popup{position:fixed;inset:0;z-index:4000;background:rgba(0,0,0,.6);display:none;align-items:center;justify-content:center;} .date-picker-popup.open{display:flex;} .date-picker-inner{background:#1c2128;border:1px solid #30363d;border-radius:16px;padding:.8rem;box-shadow:0 8px 32px rgba(0,0,0,.5);width:295px;} .date-picker-header{position:relative;}
+
 .date-picker-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:.5rem;}
 .dp-nav-btn{background:none;border:1px solid #30363d;color:#e6edf3;border-radius:7px;width:28px;height:28px;cursor:pointer;font-size:16px;}
 .dp-month-year-select{display:flex;gap:6px;margin-bottom:.5rem;}
@@ -646,6 +649,20 @@ body{font-family:'Tajawal',sans-serif;direction:rtl;background:#0d1117;color:#e6
   </div>
 </div>
 
+<!-- Form duplicate_pending review popup -->
+<div class="modal-overlay hidden" id="formDupOverlay" onclick="if(event.target===this)closeFormDupOverlay()">
+  <div class="modal" style="max-width:520px;">
+    <h3 style="color:#fbbf24;">🔔 تسجيلات جديدة تحتاج مراجعة</h3>
+    <div style="background:#1a1200;border:1px solid #d97706;border-radius:8px;padding:.6rem .9rem;font-size:12px;color:#fbbf24;margin-bottom:1rem;line-height:1.7;">
+      الأشخاص التاليون سجّلوا عبر الفورم لكن <b>يبدو أنهم مكررين</b> مع أشخاص موجودين في القائمة. اختر ماذا تفعل مع كل واحد.
+    </div>
+    <div id="formDupList" style="max-height:55vh;overflow-y:auto;display:flex;flex-direction:column;gap:.6rem;"></div>
+    <div class="modal-actions" style="margin-top:1rem;">
+      <button class="modal-cancel" onclick="closeFormDupOverlay()">أغلق</button>
+    </div>
+  </div>
+</div>
+
 <!-- Duplicate bulk modal -->
 <div class="modal-overlay hidden" id="dupBulkOverlay">
   <div class="modal" style="max-width:520px;">
@@ -660,7 +677,7 @@ body{font-family:'Tajawal',sans-serif;direction:rtl;background:#0d1117;color:#e6
 </div>
 
 <!-- Date picker -->
-<div class="date-picker-popup" id="datePickerPopup">
+<div class="date-picker-popup" id="datePickerPopup" onclick="if(event.target===this)cancelDatePicker()"><div class="date-picker-inner" onclick="event.stopPropagation()">
   <div class="date-picker-header">
     <button class="dp-nav-btn" onclick="dpNavigate(-1)">›</button>
     <span id="dpMonthYear"></span>
@@ -696,7 +713,7 @@ body{font-family:'Tajawal',sans-serif;direction:rtl;background:#0d1117;color:#e6
   </div>
   <button class="dp-close-btn" onclick="closeDatePicker()">تأكيد ✓</button>
   <button class="dp-clear-btn" onclick="clearVisitDate()">مسح التاريخ 🗑</button>
-</div>
+</div></div>
 
 <!-- Appointments Panel -->
 <div class="appt-panel-overlay" id="apptPanelOverlay" onclick="if(event.target===this)closeApptPanel()">
@@ -1206,12 +1223,13 @@ function renderGrid() {
   // Sort: pending (newest first) → cancelled → approved (newest first) → rejected
   const sorted = [...influencers].map((item,idx)=>({item,idx})).sort((a,b)=>{
     const order = i => {
-      if(!i.status||i.status==='pending') return 0;
-      if(i.status==='approved'&&i.visitStatus==='cancelled') return 1;
-      if(i.status==='approved'&&i.visitStatus==='done') return 2;
-      if(i.status==='approved') return 3;
-      if(i.status==='rejected') return 4;
-      return 5;
+      if(i.status==='duplicate_pending') return 0;
+      if(!i.status||i.status==='pending') return 1;
+      if(i.status==='approved'&&i.visitStatus==='cancelled') return 2;
+      if(i.status==='approved'&&i.visitStatus==='done') return 3;
+      if(i.status==='approved') return 4;
+      if(i.status==='rejected') return 5;
+      return 6;
     };
     const oa=order(a.item), ob=order(b.item);
     if(oa!==ob) return oa-ob;
@@ -1234,7 +1252,7 @@ function renderGrid() {
       (currentFilter==='ig'&&item.ig)||(currentFilter==='tt'&&item.tt)||(currentFilter==='snap'&&item.snap)||
       (currentFilter==='all3'&&item.ig&&item.tt&&item.snap)||
       (currentFilter==='male'&&item.gender==='m')||(currentFilter==='female'&&item.gender==='f')||
-      (currentFilter==='pending'&&(!item.status||item.status==='pending'))||
+      (currentFilter==='pending'&&(!item.status||item.status==='pending'||item.status==='duplicate_pending'))||
       (currentFilter==='nat_kuwait' && NAT_GROUPS.kuwait.includes(item.nationality||''))||
       (currentFilter==='nat_gulf'   && NAT_GROUPS.gulf.includes(item.nationality||''))||
       (currentFilter==='nat_egypt'  && NAT_GROUPS.egypt.includes(item.nationality||''))||
@@ -1285,8 +1303,7 @@ function renderGrid() {
           ${item.gender?`<span class="gender-badge ${item.gender}">${item.gender==='m'?'👨 ذكر':'👩 أنثى'}</span>`:''}
         </div>
         <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex-shrink:0;">
-          <span class="status-badge ${item.status||'pending'}">${item.status==='approved'?'✅ مقبول':item.status==='rejected'?'❌ مرفوض':'⏳ قيد المراجعة'}</span>
-          <span onclick="openEditModal(${idx})" style="font-size:11px;color:#e6edf3;cursor:pointer;white-space:nowrap;padding:3px 8px;border-radius:6px;border:1px solid #30363d;background:#21262d;">✏️ تعديل</span>
+          <span class="status-badge ${item.status||'pending'}">${item.status==='approved'?'✅ مقبول':item.status==='rejected'?'❌ مرفوض':item.status==='duplicate_pending'?'⚠️ مكرر — بحاجة مراجعة':'⏳ قيد المراجعة'}</span>          <span onclick="openEditModal(${idx})" style="font-size:11px;color:#e6edf3;cursor:pointer;white-space:nowrap;padding:3px 8px;border-radius:6px;border:1px solid #30363d;background:#21262d;">✏️ تعديل</span>
           ${item.visitStatus==='done'?`<div style="display:flex;gap:4px;margin-top:4px;">
             <button onclick="setContentStatus(${idx},'published')" style="flex:1;padding:3px 6px;border-radius:6px;border:1px solid ${item.contentStatus==='published'?'#ca8a04':'#30363d'};background:${item.contentStatus==='published'?'rgba(202,138,4,0.2)':'#21262d'};color:${item.contentStatus==='published'?'#fbbf24':'#6e7681'};font-size:10px;font-weight:700;cursor:pointer;font-family:Tajawal,sans-serif;white-space:nowrap;">🌟 تم النشر</button>
             <button onclick="setContentStatus(${idx},'unpublished')" style="flex:1;padding:3px 6px;border-radius:6px;border:1px solid ${item.contentStatus==='unpublished'?'#7c3aed':'#30363d'};background:${item.contentStatus==='unpublished'?'rgba(124,58,237,0.2)':'#21262d'};color:${item.contentStatus==='unpublished'?'#c084fc':'#6e7681'};font-size:10px;font-weight:700;cursor:pointer;font-family:Tajawal,sans-serif;white-space:nowrap;">🟣 لم يتم</button>
@@ -3448,6 +3465,8 @@ function removeDuplicates() {
   const seenPhones = {}, seenIgs = {}, seenTts = {}, seenSnaps = {}, seenCivils = {};
   const toRemove = [];
   influencers.forEach((item, i) => {
+    // Never auto-delete items flagged as duplicate_pending — user must decide
+    if(item.status === 'duplicate_pending') return;
     const ph = normalizePhone(item.phone);
     const ig = normalizeIg(item.ig);
     const tt = (item.tt||'').replace('@','').toLowerCase().trim().split('?')[0];
@@ -3815,15 +3834,15 @@ function openGuestReadOnlyReport() {
       <td style="font-size:11px;color:#555;direction:ltr;text-align:center;">${item.civil||'—'}</td>
       <td style="text-align:center;">${socialsCell}</td>
       <td style="text-align:center;">
-        <div style="display:inline-flex;align-items:center;gap:5px;">
+        <div style="display:flex;flex-direction:column;align-items:center;gap:4px;">
           <span style="font-weight:600;color:${thBg};white-space:nowrap;">${dateStr}</span>
-          ${!guest?`<button onclick="openInlineDate(${realIdx},this,event)" style="width:18px;height:18px;border-radius:50%;border:1.5px solid #0891b2;background:#ecfeff;color:#0891b2;font-size:10px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;padding:0;flex-shrink:0;" title="تعديل الموعد">▼</button>`:''}
+          ${!guest?`<button onclick="openInlineDate(${realIdx},this,event)" style="padding:3px 8px;border-radius:6px;border:1px solid #dc2626;background:#fff;color:#dc2626;font-size:11px;font-weight:700;cursor:pointer;font-family:Tajawal,sans-serif;" title="تعديل الموعد">تعديل</button>`:''}
         </div>
       </td>
       <td style="text-align:center;">
-        <div style="display:inline-flex;align-items:center;gap:5px;">
+        <div style="display:flex;flex-direction:column;align-items:center;gap:4px;">
           <span id="svcDisplay_${realIdx}">${svcLabel}</span>
-          ${!guest?`<button onclick="openInlineSvc(${realIdx},this,event)" style="width:18px;height:18px;border-radius:50%;border:1.5px solid #7c3aed;background:#f3e8ff;color:#7c3aed;font-size:10px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;padding:0;flex-shrink:0;" title="تعديل الخدمة">▼</button>`:''}
+          ${!guest?`<button onclick="openInlineSvc(${realIdx},this,event)" style="padding:3px 8px;border-radius:6px;border:1px solid #dc2626;background:#fff;color:#dc2626;font-size:11px;font-weight:700;cursor:pointer;font-family:Tajawal,sans-serif;" title="تعديل الخدمة">تعديل</button>`:''}
         </div>
       </td>
       <td style="text-align:center;">${visitBtns}</td>
@@ -4017,14 +4036,6 @@ function openInlineDate(idx, btn, e) {
   }
 
   const dpEl = document.getElementById('datePickerPopup');
-  const rect = btn.getBoundingClientRect();
-  let top = rect.bottom + 6;
-  let left = rect.left - 130;
-  if(left < 8) left = 8;
-  if(left + 295 > window.innerWidth) left = window.innerWidth - 300;
-  if(top + 430 > window.innerHeight) top = rect.top - 435;
-  dpEl.style.top = top + 'px';
-  dpEl.style.left = left + 'px';
   dpEl.classList.add('open');
   renderDpSelects(); renderDpDays();
   if(item.visitDate) enableTimeSelects(); else disableTimeSelects();
@@ -4094,6 +4105,94 @@ closeServicePopup = function() {
 };
 window.closeServicePopup = closeServicePopup;
 
+// ── Form duplicate_pending review ─────────────────────────────────
+function checkFormDuplicates() {
+  const pending = influencers
+    .map((item, idx) => ({item, idx}))
+    .filter(({item}) => item.status === 'duplicate_pending');
+  if(!pending.length) return;
+
+  const list = document.getElementById('formDupList');
+  list.innerHTML = pending.map(({item, idx}) => {
+    // Find what it duplicates
+    const dupOf = item.duplicateOf || 'غير محدد';
+    return `
+    <div style="background:#21262d;border:1px solid #d97706;border-radius:10px;padding:.85rem;margin-bottom:2px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.5rem;">
+        <span style="font-size:14px;font-weight:700;color:#e6edf3;">${item.name||'—'}</span>
+        <span style="font-size:11px;color:#6e7681;">${item.addedAt ? new Date(item.addedAt).toLocaleDateString('ar-KW') : ''}</span>
+      </div>
+      <div style="font-size:11px;color:#fbbf24;margin-bottom:.3rem;">⚠️ مشابه لـ: ${dupOf}</div>
+      <div style="font-size:11px;color:#8b949e;margin-bottom:.7rem;">
+        📱 ${item.phone||'—'} &nbsp;|&nbsp; 🪪 ${item.civil||'—'}<br>
+        ${item.ig?'📷 '+item.ig:''} ${item.tt?'🎵 '+item.tt:''}
+      </div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;">
+        <button onclick="formDupDecision(${idx},'keep')" style="flex:1;padding:7px;border-radius:8px;border:1px solid #16a34a;background:#0d1f14;color:#4ade80;font-size:12px;cursor:pointer;font-family:'Tajawal',sans-serif;">
+          ✅ إضافة كشخص جديد
+        </button>
+        <button onclick="formDupDecision(${idx},'merge')" style="flex:1;padding:7px;border-radius:8px;border:1px solid #1a6fa8;background:#0a2340;color:#60a5fa;font-size:12px;cursor:pointer;font-family:'Tajawal',sans-serif;">
+          🔄 تحديث الموجود
+        </button>
+        <button onclick="formDupDecision(${idx},'delete')" style="flex:1;padding:7px;border-radius:8px;border:1px solid #dc2626;background:#1f0d0d;color:#f87171;font-size:12px;cursor:pointer;font-family:'Tajawal',sans-serif;">
+          🗑 حذف التكرار
+        </button>
+      </div>
+    </div>`;
+  }).join('');
+
+  document.getElementById('formDupOverlay').classList.remove('hidden');
+}
+
+function formDupDecision(idx, decision) {
+  const item = influencers[idx];
+  if(!item) return;
+
+  if(decision === 'keep') {
+    // Treat as new normal pending
+    item.status = 'pending';
+    delete item.duplicateOf;
+  } else if(decision === 'merge') {
+    // Find the original and update its info with the new entry's data
+    const dupName = (item.duplicateOf||'').split('(')[0].trim();
+    const origIdx = influencers.findIndex((p, i) => i !== idx && (
+      p.name === dupName ||
+      (item.civil && p.civil && p.civil.trim() === item.civil.trim()) ||
+      (item.ig && p.ig && p.ig.replace('@','').toLowerCase() === item.ig.replace('@','').toLowerCase())
+    ));
+    if(origIdx !== -1) {
+      const orig = influencers[origIdx];
+      // Update fields that are empty or override with new data
+      ['phone','ig','tt','snap','nationality','gender'].forEach(f => {
+        if(item[f] && !orig[f]) orig[f] = item[f];
+      });
+      orig.updatedAt = new Date().toISOString();
+    }
+    // Remove the duplicate
+    influencers.splice(idx, 1);
+  } else if(decision === 'delete') {
+    influencers.splice(idx, 1);
+  }
+
+  // Re-render the popup or close if no more pending
+  const remaining = influencers.filter(p => p.status === 'duplicate_pending');
+  if(remaining.length === 0) {
+    document.getElementById('formDupOverlay').classList.add('hidden');
+  } else {
+    checkFormDuplicates(); // re-render with updated indices
+  }
+
+  saveToStorage().catch(()=>{});
+  renderGrid();
+}
+
+function closeFormDupOverlay() {
+  document.getElementById('formDupOverlay').classList.add('hidden');
+}
+window.formDupDecision = formDupDecision;
+window.closeFormDupOverlay = closeFormDupOverlay;
+// ──────────────────────────────────────────────────────────────────
+
 async function init() {
   if(!checkAuth()) return;
   updateWelcome();
@@ -4127,6 +4226,8 @@ async function init() {
   await saveToStorage();
   renderGrid();
   if(removed > 0) showToast('🧹 تم حذف '+removed+' تكرار تلقائياً', '#ca8a04');
+  // Check for form-submitted duplicates pending review
+  setTimeout(checkFormDuplicates, 600);
   // Check missed visits after short delay
   setTimeout(checkMissedVisits, 800);
   // Poll Firebase every 30s to sync with other devices
