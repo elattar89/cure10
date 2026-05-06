@@ -3091,7 +3091,7 @@ function closeApptCard() {
   const rc = document.getElementById('reportContainer');
   if(rc && rc.querySelector('[id^="rrow_"]')) {
     rc.remove();
-    openStatusReport('approved');
+    openGuestReadOnlyReport();
   }
 }
 window.showApptCard = showApptCard;
@@ -3807,7 +3807,8 @@ function openGuestReadOnlyReport() {
          </div>`;
     return `<tr id="rrow_${realIdx}" style="background:${rowBg};${rowBorder}">
       <td style="text-align:center;font-weight:900;color:${thBg};">${i+1}</td>
-      <td style="font-weight:700;font-size:12px;text-align:right;">${name}${vsLabel}</td>
+      <td style="font-weight:700;font-size:12px;text-align:right;${!guest?'cursor:pointer;':''}" ${!guest?`onclick="showApptCard(${realIdx})" title="اضغط لعرض تفاصيل المؤثر"`:''}>
+        ${!guest?`<span style="border-bottom:2px dotted #1a6fa8;color:#1a6fa8;">${name}</span>`:name}${vsLabel}</td>
       <td style="text-align:center;">${gLabel}</td>
       <td style="text-align:center;">${natCell}</td>
       <td style="direction:ltr;text-align:center;">${phoneCell}</td>
