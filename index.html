@@ -3546,7 +3546,7 @@ function openGuestReadOnlyReport() {
       : '—';
     const cs = item.contentStatus || '';
     const hasDate = !!item.visitDate;
-    const rowBg = cs==='published'?'#fef9c3':cs==='unpublished'?'#f3e8ff':vs==='cancelled'?'#fee2e2':vs==='done'?'#bbf7d0':hasDate?'#dcfce7':'#fff';
+    const rowBg = cs==='published'?'#fef9c3':cs==='unpublished'?'#f3e8ff':vs==='cancelled'?'#fee2e2':vs==='done'?'#86efac':hasDate?'#dcfce7':'#fff';
     const rowBorder = cs==='published'?'border-right:4px solid #ca8a04;':cs==='unpublished'?'border-right:4px solid #7c3aed;':vs==='cancelled'?'border-right:4px solid #dc2626;':vs==='done'?'border-right:4px solid #16a34a;':hasDate?'border-right:4px solid #16a34a;':'';
     const doneA = vs===''?'background:#f0fdf4;color:#15803d;opacity:1;'
       :vs==='done'?'background:#15803d;color:#fff;opacity:1;'
