@@ -116,7 +116,7 @@ body{font-family:'Tajawal',sans-serif;direction:rtl;background:#0d1117;color:#e6
 .service-option:hover{background:#21262d;}
 .service-option.checked{background:#1a1040;color:#c084fc;}
 .service-option input[type=checkbox]{width:18px;height:18px;cursor:pointer;accent-color:#7c3aed;flex-shrink:0;}
-.date-picker-popup{position:fixed;background:#1c2128;border:1px solid #30363d;border-radius:12px;padding:.8rem;z-index:4000;box-shadow:0 8px 32px rgba(0,0,0,.5);width:280px;display:none;}
+.date-picker-popup{position:fixed;background:#1c2128;border:1px solid #30363d;border-radius:12px;padding:.8rem;z-index:4000;box-shadow:0 8px 32px rgba(0,0,0,.5);width:280px;display:none;} .date-picker-header{position:relative;}
 .date-picker-popup.open{display:block;}
 .date-picker-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:.5rem;}
 .dp-nav-btn{background:none;border:1px solid #30363d;color:#e6edf3;border-radius:7px;width:28px;height:28px;cursor:pointer;font-size:16px;}
@@ -512,8 +512,9 @@ body{font-family:'Tajawal',sans-serif;direction:rtl;background:#0d1117;color:#e6
     </div>
   </div>
 </div>
-<div class="service-popup" id="servicePopup" onclick="if(event.target===this)closeServicePopup()">
-  <div class="service-popup-inner" onclick="event.stopPropagation()">
+<div class="service-popup" id="servicePopup" onclick="if(event.target===this)cancelServicePopup()">
+  <div class="service-popup-inner" onclick="event.stopPropagation()" style="position:relative;">
+    <button onclick="cancelServicePopup()" style="position:absolute;top:8px;left:10px;width:26px;height:26px;border-radius:50%;border:none;background:#dc2626;color:#fff;font-size:14px;font-weight:900;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0;line-height:1;" title="إلغاء">✕</button>
     <div style="font-size:14px;font-weight:700;color:#e6edf3;text-align:center;margin-bottom:.8rem;font-family:Tajawal,sans-serif;">اختر الخدمة</div>
     <div class="service-option"><input type="checkbox" id="svc_filler" onchange="toggleServiceById('فيلر',this)"><label for="svc_filler" style="cursor:pointer;font-family:Tajawal,sans-serif;flex:1;">💉 فيلر</label></div>
     <div class="service-option"><input type="checkbox" id="svc_botox" onchange="toggleServiceById('بوتوكس',this)"><label for="svc_botox" style="cursor:pointer;font-family:Tajawal,sans-serif;flex:1;">✨ بوتوكس</label></div>
@@ -664,6 +665,7 @@ body{font-family:'Tajawal',sans-serif;direction:rtl;background:#0d1117;color:#e6
     <button class="dp-nav-btn" onclick="dpNavigate(-1)">›</button>
     <span id="dpMonthYear"></span>
     <button class="dp-nav-btn" onclick="dpNavigate(1)">‹</button>
+    <button onclick="cancelDatePicker()" style="position:absolute;top:8px;left:8px;width:22px;height:22px;border-radius:50%;border:none;background:#dc2626;color:#fff;font-size:13px;font-weight:900;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0;line-height:1;" title="إلغاء">✕</button>
   </div>
   <div class="dp-month-year-select">
     <select id="dpMonthSelect" onchange="dpGoToSelected()"></select>
@@ -2549,6 +2551,7 @@ function openServicePopup(idx, e){
 
   // Show as overlay from bottom
   popup.classList.add('open');
+  _svcOrigServices = item.services ? [...item.services] : [];
 }
 
 function toggleServiceById(svc, cb) {
@@ -2602,9 +2605,9 @@ function openServicePopupFromReport(idx, e) {
     cb.checked = !!(item.services && item.services.includes(svc));
     opt.classList.toggle('checked', cb.checked);
   });
-  // Position popup near the button
   popup.classList.add('open');
   _svcFromReport = true;
+  _svcOrigServices = item.services ? [...item.services] : [];
 }
 let _svcFromReport = false;
 
@@ -2613,6 +2616,18 @@ function closeServicePopup(){
   _svcTargetIdx = null;
   _svcFromReport = false;
 }
+function cancelServicePopup(){
+  // Restore original services and close without saving
+  if(_svcTargetIdx !== null && typeof _svcOrigServices !== 'undefined' && _svcOrigServices !== null){
+    influencers[_svcTargetIdx].services = _svcOrigServices;
+  }
+  document.getElementById('servicePopup').classList.remove('open');
+  _svcTargetIdx = null;
+  _svcFromReport = false;
+  _svcOrigServices = null;
+  _inlineSvcRowIdx = null;
+}
+window.cancelServicePopup=cancelServicePopup;
 
 // -- Dialect popup -------------------------------------------------
 let _dlctTargetIdx = null;
@@ -2703,8 +2718,8 @@ function openDatePicker(idx,e){
   if(top+420>window.innerHeight)top=rect.top-425;
   popup.style.top=top+'px';popup.style.left=left+'px';
   popup.classList.add('open');renderDpSelects();renderDpDays();
-  // Enable time only if date already set, otherwise disable
   if(item.visitDate) enableTimeSelects(); else disableTimeSelects();
+  _dpOrigDate = item.visitDate || null; // save original for cancel
 }
 function closeDatePicker(){
   if(dpTargetIdx!==null && influencers[dpTargetIdx].visitDate){
@@ -2713,7 +2728,6 @@ function closeDatePicker(){
     const mm=document.getElementById('dpMinute').value||'00';
     const ap=document.getElementById('dpAmPm').value||'AM';
     influencers[dpTargetIdx].visitDate=dateOnly+'T'+hh+':'+mm+ap;
-    // If was cancelled, reset to active on new date
     if(influencers[dpTargetIdx].visitStatus==='cancelled'){
       influencers[dpTargetIdx].visitStatus='';
       showToast('✅ تم تجديد الموعد — رجع للمقبولين','#059669');
@@ -2723,6 +2737,23 @@ function closeDatePicker(){
   document.getElementById('datePickerPopup').classList.remove('open');
   dpTargetIdx=null;
 }
+function cancelDatePicker(){
+  // Just close — restore original date (no save, no renderGrid)
+  document.getElementById('datePickerPopup').classList.remove('open');
+  // Restore saved date if we modified it in-memory during selection
+  if(dpTargetIdx!==null){
+    // Re-load from influencers (selectDay already mutated it, so reload from Firebase/LS isn't needed
+    // but we do need to undo any selectDay call made during this session)
+    // We stored _dpOrigDate when the picker opened
+    if(typeof _dpOrigDate !== 'undefined' && _dpOrigDate !== null){
+      influencers[dpTargetIdx].visitDate = _dpOrigDate;
+    }
+  }
+  dpTargetIdx=null;
+  _dpOrigDate=null;
+  _inlineDateRowIdx=null;
+}
+window.cancelDatePicker=cancelDatePicker;
 function clearVisitDate(){
   if(dpTargetIdx!==null){influencers[dpTargetIdx].visitDate='';document.getElementById('datePickerPopup').classList.remove('open');dpTargetIdx=null;renderGrid();saveFile();}
 }
@@ -3505,6 +3536,7 @@ function guestOpenReport() {
 }
 
 function openGuestReadOnlyReport() {
+  const guest = isGuest();
   const thBg = '#0a3d62';
   const countColor = '#16a34a';
   let list = influencers.filter(i => i.status === 'approved');
@@ -3533,7 +3565,14 @@ function openGuestReadOnlyReport() {
     const natCell = item.nationality
       ? `<span style="background:#e6f7f1;color:#0a7a55;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:700;">🌍 ${item.nationality}</span>`
       : '—';
-    const phoneCell = '<span style="color:#9ca3af;font-size:11px;">🔒 مخفي</span>';
+    const phoneCell = guest
+      ? '<span style="color:#9ca3af;font-size:11px;">🔒 مخفي</span>'
+      : item.phone
+      ? `<span onclick="showPhonePopup('${item.phone.replace(/'/g,"\\'")}','${(item.name||item.ig||'').replace(/'/g,"\\'")}',event)" style="color:#0369a1;direction:ltr;display:block;white-space:nowrap;font-size:12px;cursor:pointer;font-weight:600;" title="اضغط للتواصل">📞 ${item.phone}</span>`
+      : '—';
+    const socialsCell = guest
+      ? '<span style="color:#9ca3af;font-size:11px;">🔒 مخفي</span>'
+      : `<div style="display:flex;flex-direction:column;gap:3px;">${buildSocialsHtml(item)}</div>`;
     const dateStr = item.visitDate ? formatDateAr(item.visitDate) : '—';
     const vs = item.visitStatus || '';
     const vsLabel = vs==='done'
@@ -3560,7 +3599,17 @@ function openGuestReadOnlyReport() {
     const unpubA= cs===''?'background:#f3e8ff;color:#7c3aed;opacity:1;'
       :cs==='unpublished'?'background:#7c3aed;color:#fff;opacity:1;'
       :'background:#e5e7eb;color:#9ca3af;opacity:0.45;';
-    const sigCell = item.signature
+    const visitBtns = `<div style="display:flex;gap:4px;flex-direction:column;align-items:center;">
+          <button ${!guest?`onclick="setVisitStatus(${realIdx},'done')"`:''} style="padding:4px 8px;border-radius:6px;border:1px solid #15803d;font-size:11px;font-weight:700;font-family:Tajawal,sans-serif;white-space:nowrap;${guest?'pointer-events:none;cursor:default;':'cursor:pointer;'};width:100%;${doneA}">✅ تمت</button>
+          <button ${!guest?`onclick="setVisitStatus(${realIdx},'cancelled')"`:''} style="padding:4px 8px;border-radius:6px;border:1px solid #ca8a04;font-size:11px;font-weight:700;font-family:Tajawal,sans-serif;white-space:nowrap;${guest?'pointer-events:none;cursor:default;':'cursor:pointer;'};width:100%;${cancA}">⚠️ ألغيت</button>
+        </div>`;
+    const pubBtns = `<div style="display:flex;gap:4px;flex-direction:column;align-items:center;">
+          <button ${!guest?`onclick="setContentStatus(${realIdx},'published')"`:''} style="padding:4px 8px;border-radius:6px;border:1px solid #ca8a04;font-size:11px;font-weight:700;font-family:Tajawal,sans-serif;white-space:nowrap;${guest?'pointer-events:none;cursor:default;':'cursor:pointer;'};width:100%;${pubA}">🌟 تم النشر</button>
+          <button ${!guest?`onclick="setContentStatus(${realIdx},'unpublished')"`:''} style="padding:4px 8px;border-radius:6px;border:1px solid #7c3aed;font-size:11px;font-weight:700;font-family:Tajawal,sans-serif;white-space:nowrap;${guest?'pointer-events:none;cursor:default;':'cursor:pointer;'};width:100%;${unpubA}">🟣 لم يتم</button>
+        </div>`;
+    const sigCell = guest
+      ? (item.signature ? `<img src="${item.signature}" style="width:140px;height:50px;object-fit:contain;display:block;" />` : '—')
+      : item.signature
       ? `<div style="position:relative;">
            <img src="${item.signature}" style="width:140px;height:50px;object-fit:contain;display:block;" />
            <button onclick="clearSignature(${realIdx})" style="position:absolute;top:0;left:0;background:#dc2626;color:#fff;border:none;border-radius:4px;font-size:9px;padding:1px 5px;cursor:pointer;">✕</button>
@@ -3573,24 +3622,28 @@ function openGuestReadOnlyReport() {
            <button onclick="saveSig(${realIdx})" style="flex:1;padding:2px;border:1px solid #059669;background:#f0fdf4;color:#059669;border-radius:4px;font-size:10px;cursor:pointer;font-family:Tajawal,sans-serif;">✓ حفظ</button>
            <button onclick="clearCanvas(${realIdx})" style="flex:1;padding:2px;border:1px solid #9ca3af;background:#f9fafb;color:#555;border-radius:4px;font-size:10px;cursor:pointer;font-family:Tajawal,sans-serif;">مسح</button>
          </div>`;
-    return `<tr style="background:${rowBg};${rowBorder}">
+    return `<tr id="rrow_${realIdx}" style="background:${rowBg};${rowBorder}">
       <td style="text-align:center;font-weight:900;color:${thBg};">${i+1}</td>
       <td style="font-weight:700;font-size:12px;text-align:right;">${name}${vsLabel}</td>
       <td style="text-align:center;">${gLabel}</td>
       <td style="text-align:center;">${natCell}</td>
       <td style="direction:ltr;text-align:center;">${phoneCell}</td>
       <td style="font-size:11px;color:#555;direction:ltr;text-align:center;">${item.civil||'—'}</td>
-      <td style="text-align:center;"><span style="color:#9ca3af;font-size:11px;">🔒 مخفي</span></td>
-      <td style="white-space:nowrap;color:${thBg};font-weight:600;text-align:center;">${dateStr}</td>
-      <td style="text-align:center;">${svcLabel}</td>
-      <td style="text-align:center;"><div style="display:flex;gap:4px;flex-direction:column;align-items:center;">
-        <button style="padding:4px 8px;border-radius:6px;border:1px solid #15803d;font-size:11px;font-weight:700;font-family:Tajawal,sans-serif;white-space:nowrap;pointer-events:none;cursor:default;width:100%;${doneA}">✅ تمت</button>
-        <button style="padding:4px 8px;border-radius:6px;border:1px solid #ca8a04;font-size:11px;font-weight:700;font-family:Tajawal,sans-serif;white-space:nowrap;pointer-events:none;cursor:default;width:100%;${cancA}">⚠️ ألغيت</button>
-      </div></td>
-      <td style="text-align:center;"><div style="display:flex;gap:4px;flex-direction:column;align-items:center;">
-        <button style="padding:4px 8px;border-radius:6px;border:1px solid #ca8a04;font-size:11px;font-weight:700;font-family:Tajawal,sans-serif;white-space:nowrap;pointer-events:none;cursor:default;width:100%;${pubA}">🌟 تم النشر</button>
-        <button style="padding:4px 8px;border-radius:6px;border:1px solid #7c3aed;font-size:11px;font-weight:700;font-family:Tajawal,sans-serif;white-space:nowrap;pointer-events:none;cursor:default;width:100%;${unpubA}">🟣 لم يتم</button>
-      </div></td>
+      <td style="text-align:center;">${socialsCell}</td>
+      <td style="text-align:center;">
+        <div style="display:inline-flex;align-items:center;gap:5px;">
+          <span style="font-weight:600;color:${thBg};white-space:nowrap;">${dateStr}</span>
+          ${!guest?`<button onclick="openInlineDate(${realIdx},this,event)" style="width:18px;height:18px;border-radius:50%;border:1.5px solid #0891b2;background:#ecfeff;color:#0891b2;font-size:10px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;padding:0;flex-shrink:0;" title="تعديل الموعد">▼</button>`:''}
+        </div>
+      </td>
+      <td style="text-align:center;">
+        <div style="display:inline-flex;align-items:center;gap:5px;">
+          <span id="svcDisplay_${realIdx}">${svcLabel}</span>
+          ${!guest?`<button onclick="openInlineSvc(${realIdx},this,event)" style="width:18px;height:18px;border-radius:50%;border:1.5px solid #7c3aed;background:#f3e8ff;color:#7c3aed;font-size:10px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;padding:0;flex-shrink:0;" title="تعديل الخدمة">▼</button>`:''}
+        </div>
+      </td>
+      <td style="text-align:center;">${visitBtns}</td>
+      <td style="text-align:center;">${pubBtns}</td>
       <td style="text-align:center;padding:4px;">${sigCell}</td>
     </tr>`;
   }).join('');
@@ -3752,6 +3805,110 @@ function renderGuestView() {
     </div>`;
   }).join('');
 }
+
+// ── Inline Date popup from report ──────────────────────────────────
+function openInlineDate(idx, btn, e) {
+  e.stopPropagation();
+  // Close any existing inline popup
+  const old = document.getElementById('inlineReportPopup');
+  if(old) old.remove();
+
+  dpTargetIdx = idx;
+  const item = influencers[idx];
+  if(item.visitDate) {
+    const parts = item.visitDate.split('T');
+    const [y,m,d] = parts[0].split('-');
+    dpYear = parseInt(y); dpMonth = parseInt(m)-1;
+    if(parts[1]) {
+      const [hh,mm] = parts[1].replace('AM','').replace('PM','').trim().split(':');
+      document.getElementById('dpHour').value = String(parseInt(hh)||9).padStart(2,'0');
+      document.getElementById('dpMinute').value = mm||'00';
+      document.getElementById('dpAmPm').value = parts[1].includes('PM')?'PM':'AM';
+    }
+  } else {
+    const now = new Date(); dpYear = now.getFullYear(); dpMonth = now.getMonth();
+    document.getElementById('dpHour').value = '09';
+    document.getElementById('dpMinute').value = '00';
+    document.getElementById('dpAmPm').value = 'AM';
+  }
+
+  const dpEl = document.getElementById('datePickerPopup');
+  const rect = btn.getBoundingClientRect();
+  let top = rect.bottom + 6;
+  let left = rect.left - 130;
+  if(left < 8) left = 8;
+  if(left + 295 > window.innerWidth) left = window.innerWidth - 300;
+  if(top + 430 > window.innerHeight) top = rect.top - 435;
+  dpEl.style.top = top + 'px';
+  dpEl.style.left = left + 'px';
+  dpEl.classList.add('open');
+  renderDpSelects(); renderDpDays();
+  if(item.visitDate) enableTimeSelects(); else disableTimeSelects();
+  _inlineDateRowIdx = idx;
+  _dpOrigDate = item.visitDate || null; // save original so cancel can restore
+}
+let _inlineDateRowIdx = null;
+let _dpOrigDate = null;
+
+// Patch closeDatePicker to also refresh the report cell
+const _origCloseDp = closeDatePicker;
+closeDatePicker = function() {
+  const idx = _inlineDateRowIdx;
+  _origCloseDp();
+  _inlineDateRowIdx = null;
+  if(idx !== null) {
+    // Update the date cell text in the report table without closing report
+    const row = document.getElementById('rrow_' + idx);
+    if(row) {
+      const td = row.querySelector('td:nth-child(8)');
+      if(td) {
+        const item = influencers[idx];
+        const newDateStr = item.visitDate ? formatDateAr(item.visitDate) : '—';
+        const span = td.querySelector('span');
+        if(span) span.textContent = newDateStr;
+      }
+    }
+  }
+};
+window.closeDatePicker = closeDatePicker;
+
+// ── Inline Service popup from report ───────────────────────────────
+function openInlineSvc(idx, btn, e) {
+  e.stopPropagation();
+  _svcTargetIdx = idx;
+  _svcFromReport = true;
+  _inlineSvcRowIdx = idx;
+  const item = influencers[idx];
+  const svcPopup = document.getElementById('servicePopup');
+  SERVICES.forEach((svc, i) => {
+    const cb = document.getElementById(SVC_IDS[i]);
+    const opt = svcPopup.querySelectorAll('.service-option')[i];
+    cb.checked = !!(item.services && item.services.includes(svc));
+    opt.classList.toggle('checked', cb.checked);
+  });
+  svcPopup.classList.add('open');
+  _svcOrigServices = item.services ? [...item.services] : [];
+}
+let _inlineSvcRowIdx = null;
+let _svcOrigServices = null;
+
+// Patch closeServicePopup to refresh svcDisplay in report row
+const _origCloseSvc = closeServicePopup;
+closeServicePopup = function() {
+  const idx = _inlineSvcRowIdx;
+  _origCloseSvc();
+  _inlineSvcRowIdx = null;
+  if(idx !== null) {
+    const item = influencers[idx];
+    const el = document.getElementById('svcDisplay_' + idx);
+    if(el) {
+      el.innerHTML = (item.services && item.services.length)
+        ? item.services.map(s=>`<span style="display:inline-block;background:#f3e8ff;color:#7c3aed;border:1px solid #c084fc;border-radius:5px;padding:2px 7px;font-size:11px;margin:1px;">${s}</span>`).join('')
+        : '—';
+    }
+  }
+};
+window.closeServicePopup = closeServicePopup;
 
 async function init() {
   if(!checkAuth()) return;
