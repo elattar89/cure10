@@ -448,7 +448,7 @@ body{font-family:'Tajawal',sans-serif;direction:rtl;background:#0d1117;color:#e6
     <button class="add-bottom-btn" onclick="openFormImport()" style="background:linear-gradient(135deg,#0e7490,#0891b2);">📋 إضافة من فورم</button>
     <button class="save-bottom-btn" id="manualSaveBtn" onclick="manualSave()">💾 حفظ يدوي</button>
     <button class="add-bottom-btn" onclick="openActivityLog()" style="background:linear-gradient(135deg,#1e3a5f,#1a6fa8);">📋 سجل النشاط</button>
-    <button class="add-bottom-btn" onclick="openRecovery()" style="background:linear-gradient(135deg,#7f1d1d,#dc2626);">🆘 استرداد طارئ</button>
+    <button class="add-bottom-btn" onclick="openRecovery()" style="background:linear-gradient(135deg,#7f1d1d,#dc2626);">🚨 حالات الطوارئ</button>
   </div>
   <div>مركز كيور الطبي © 2026 — جميع الحقوق محفوظة</div>
 </div>
@@ -2440,7 +2440,7 @@ function openRecovery() {
 
   let html = `<div style="position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,.85);display:flex;align-items:center;justify-content:center;padding:1rem;" id="recoveryOverlay">
   <div style="background:#161b22;border:2px solid #dc2626;border-radius:16px;padding:1.5rem;width:100%;max-width:500px;max-height:85vh;overflow-y:auto;font-family:Tajawal,sans-serif;">
-    <h3 style="color:#f87171;margin-bottom:.5rem;font-size:16px;">🆘 استرداد طارئ للبيانات</h3>
+    <h3 style="color:#f87171;margin-bottom:.5rem;font-size:16px;">🚨 حالات الطوارئ</h3>
     <p style="font-size:12px;color:#8b949e;margin-bottom:1rem;">النسخ المحفوظة في هذا الجهاز — مرتّبة من الأحدث للأقدم:</p>`;
 
   if(!keyData.length) {
@@ -2461,16 +2461,23 @@ function openRecovery() {
             <div style="font-size:13px;color:#4ade80;font-weight:700;margin-top:2px;">📦 ${item.count}</div>
             ${dateHtml}
           </div>
-          <button onclick="recoverFromKey('${item.k}')" style="flex-shrink:0;padding:8px 14px;border-radius:8px;border:1px solid #16a34a;background:#0d1f14;color:#4ade80;font-size:12px;font-weight:700;cursor:pointer;font-family:Tajawal,sans-serif;">↩ استرجاع</button>
+          <div style="display:flex;flex-direction:column;gap:6px;flex-shrink:0;">
+            <button onclick="recoverFromKey('${item.k}')" style="padding:8px 14px;border-radius:8px;border:1px solid #16a34a;background:#0d1f14;color:#4ade80;font-size:12px;font-weight:700;cursor:pointer;font-family:Tajawal,sans-serif;">↩ استرجاع</button>
+            <button onclick="exportKeyToExcel('${item.k}')" style="padding:8px 14px;border-radius:8px;border:1px solid #0891b2;background:#0c2030;color:#22d3ee;font-size:12px;font-weight:700;cursor:pointer;font-family:Tajawal,sans-serif;">💾 حفظ Excel</button>
+          </div>
         </div>
       </div>`;
     });
   }
 
-  html += `<div style="margin-top:1rem;display:flex;gap:8px;">
-    <button onclick="document.getElementById('recoveryOverlay').remove()" style="flex:1;padding:10px;border-radius:9px;border:1px solid #30363d;background:#21262d;color:#8b949e;font-size:13px;cursor:pointer;font-family:Tajawal,sans-serif;">إغلاق</button>
-    <button onclick="recoverFromFirebase()" style="flex:2;padding:10px;border-radius:9px;border:none;background:#1a6fa8;color:#fff;font-size:13px;font-weight:700;cursor:pointer;font-family:Tajawal,sans-serif;">☁️ إعادة تحميل من Firebase</button>
-  </div></div></div>`;
+  html += `<div style="margin-top:1rem;display:flex;gap:8px;flex-wrap:wrap;">
+    <button onclick="document.getElementById('recoveryOverlay').remove()" style="flex:1;min-width:100px;padding:10px;border-radius:9px;border:1px solid #30363d;background:#21262d;color:#8b949e;font-size:13px;cursor:pointer;font-family:Tajawal,sans-serif;">إغلاق</button>
+    <button onclick="exportCurrentToExcel()" style="flex:2;min-width:140px;padding:10px;border-radius:9px;border:1px solid #0891b2;background:#0c2030;color:#22d3ee;font-size:13px;font-weight:700;cursor:pointer;font-family:Tajawal,sans-serif;">💾 تصدير البيانات الحالية Excel</button>
+    <button onclick="triggerCsvImport()" style="flex:2;min-width:140px;padding:10px;border-radius:9px;border:1px solid #7c3aed;background:#1a1040;color:#c084fc;font-size:13px;font-weight:700;cursor:pointer;font-family:Tajawal,sans-serif;">📂 استيراد من CSV</button>
+    <button onclick="recoverFromFirebase()" style="flex:2;min-width:140px;padding:10px;border-radius:9px;border:none;background:#1a6fa8;color:#fff;font-size:13px;font-weight:700;cursor:pointer;font-family:Tajawal,sans-serif;">☁️ إعادة تحميل من Firebase</button>
+  </div>
+  <input type="file" id="csvImportInput" accept=".csv" style="display:none;" onchange="handleCsvImport(event)">
+  </div></div>`;
 
   const div=document.createElement('div');div.innerHTML=html;document.body.appendChild(div.firstElementChild);
 }
@@ -2505,6 +2512,176 @@ async function recoverFromFirebase() {
     showToast('❌ تعذر الاتصال بـ Firebase', '#dc2626');
   }
 }
+function buildExcelFromData(arr, filename) {
+  if(!arr || !arr.length) { showToast('⚠️ لا توجد بيانات للتصدير', '#d97706'); return; }
+  const headers = ['#','الاسم','الجنس','الجنسية','الهاتف','الرقم المدني','انستاجرام','تيك توك','سناب','الحالة','موعد الزيارة','حالة الزيارة','الخدمات','حالة النشر','ملاحظات'];
+  const statusMap = {approved:'مقبول', rejected:'مرفوض', pending:'قيد المراجعة'};
+  const visitMap = {done:'تمت الزيارة', cancelled:'ألغيت الزيارة'};
+  const contentMap = {published:'تم النشر', unpublished:'لم يتم النشر'};
+  const rows = arr.map((item, i) => [
+    i+1,
+    item.name||'',
+    item.gender==='m'?'ذكر':item.gender==='f'?'أنثى':'',
+    item.nationality||'',
+    item.phone||'',
+    item.civil||'',
+    item.ig||'',
+    item.tt||'',
+    item.snap||'',
+    statusMap[item.status]||'',
+    item.visitDate?(item.visitDate.split('T')[0]):'',
+    visitMap[item.visitStatus]||'',
+    (item.services&&item.services.length)?item.services.join(' | '):'',
+    contentMap[item.contentStatus]||'',
+    item.notes||''
+  ]);
+
+  // Build CSV with BOM for Arabic support in Excel
+  const bom = '\uFEFF';
+  const escape = v => {
+    const s = String(v);
+    return (s.includes(',') || s.includes('"') || s.includes('\n')) ? '"' + s.replace(/"/g,'""') + '"' : s;
+  };
+  const csv = bom + [headers, ...rows].map(r => r.map(escape).join(',')).join('\r\n');
+  const blob = new Blob([csv], {type:'text/csv;charset=utf-8;'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = filename;
+  a.click();
+  URL.revokeObjectURL(a.href);
+  showToast(`✅ تم تصدير ${arr.length} شخص بنجاح`, '#16a34a');
+}
+
+function exportCurrentToExcel() {
+  const today = new Date().toISOString().slice(0,10);
+  buildExcelFromData(influencers, `مؤثرين-كيور-${today}.csv`);
+}
+
+function exportKeyToExcel(key) {
+  try {
+    const raw = localStorage.getItem(key);
+    let arr = null;
+    const p = JSON.parse(raw);
+    if(Array.isArray(p)) arr = p;
+    else if(p && p.data) arr = JSON.parse(p.data);
+    if(!arr) { showToast('❌ تعذر قراءة النسخة', '#dc2626'); return; }
+    const today = new Date().toISOString().slice(0,10);
+    buildExcelFromData(arr, `نسخة-احتياطية-${today}.csv`);
+  } catch(e) { showToast('❌ خطأ في التصدير: '+e.message, '#dc2626'); }
+}
+
+function triggerCsvImport() {
+  const inp = document.getElementById('csvImportInput');
+  if(inp) inp.click();
+}
+
+function handleCsvImport(event) {
+  const file = event.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      let text = e.target.result;
+      // Remove BOM if present
+      if(text.charCodeAt(0) === 0xFEFF) text = text.slice(1);
+      const lines = text.split(/\r?\n/).filter(l => l.trim());
+      if(lines.length < 2) { showToast('❌ الملف فارغ أو غلط', '#dc2626'); return; }
+
+      // Parse CSV respecting quoted fields
+      function parseCsvLine(line) {
+        const result = []; let cur = ''; let inQ = false;
+        for(let i=0;i<line.length;i++){
+          const c=line[i];
+          if(c==='"'){ if(inQ&&line[i+1]==='"'){cur+='"';i++;}else{inQ=!inQ;} }
+          else if(c===','&&!inQ){ result.push(cur.trim()); cur=''; }
+          else cur+=c;
+        }
+        result.push(cur.trim());
+        return result;
+      }
+
+      const headers = parseCsvLine(lines[0]);
+      // Map Arabic headers to field names
+      const colMap = {
+        '#':'_num','الاسم':'name','الجنس':'gender','الجنسية':'nationality',
+        'الهاتف':'phone','الرقم المدني':'civil','انستاجرام':'ig',
+        'تيك توك':'tt','سناب':'snap','الحالة':'status',
+        'موعد الزيارة':'visitDate','حالة الزيارة':'visitStatus',
+        'الخدمات':'services','حالة النشر':'contentStatus','ملاحظات':'notes'
+      };
+      const statusRevMap = {'مقبول':'approved','مرفوض':'rejected','قيد المراجعة':'pending'};
+      const visitRevMap = {'تمت الزيارة':'done','ألغيت الزيارة':'cancelled'};
+      const contentRevMap = {'تم النشر':'published','لم يتم النشر':'unpublished'};
+      const genderRevMap = {'ذكر':'m','أنثى':'f'};
+
+      const colIdxMap = {};
+      headers.forEach((h,i) => { if(colMap[h]) colIdxMap[colMap[h]] = i; });
+
+      if(!('name' in colIdxMap) && !('phone' in colIdxMap)) {
+        showToast('❌ الملف لا يحتوي أعمدة صحيحة — تأكد إنه محفوظ من الموقع', '#dc2626');
+        return;
+      }
+
+      const imported = [];
+      for(let r=1;r<lines.length;r++){
+        const cols = parseCsvLine(lines[r]);
+        if(cols.every(c=>!c)) continue;
+        const get = f => (colIdxMap[f]!==undefined ? cols[colIdxMap[f]] : '') || '';
+        const svcRaw = get('services');
+        const item = {
+          name: get('name'),
+          phone: get('phone'),
+          civil: get('civil'),
+          nationality: get('nationality'),
+          gender: genderRevMap[get('gender')] || '',
+          ig: get('ig'),
+          tt: get('tt'),
+          snap: get('snap'),
+          status: statusRevMap[get('status')] || 'pending',
+          visitDate: get('visitDate'),
+          visitStatus: visitRevMap[get('visitStatus')] || '',
+          services: svcRaw ? svcRaw.split('|').map(s=>s.trim()).filter(Boolean) : [],
+          contentStatus: contentRevMap[get('contentStatus')] || '',
+          notes: get('notes')
+        };
+        if(item.name || item.phone) imported.push(item);
+      }
+
+      if(!imported.length) { showToast('❌ لم يتم العثور على بيانات صالحة', '#dc2626'); return; }
+
+      // Preview + confirmation dialog
+      const preview = imported.slice(0,3).map(i=>i.name||i.phone||'—').join('، ');
+      const currentCount = influencers.length;
+      const msg = currentCount > 0
+        ? `📂 الملف فيه ${imported.length} شخص\n(${preview}...)\n\n⚠️ الموقع فيه ${currentCount} شخص حالياً\n\nهتمسح الكل وتحط الجديد؟\nاضغط OK للتأكيد`
+        : `📂 الملف فيه ${imported.length} شخص\n(${preview}...)\n\nتضيفهم للموقع؟`;
+
+      if(!confirm(msg)) {
+        event.target.value = '';
+        return;
+      }
+
+      influencers = imported;
+      saveToStorage().then(() => {
+        renderGrid(); updateStats();
+        const ov = document.getElementById('recoveryOverlay');
+        if(ov) ov.remove();
+        showToast(`✅ تم استيراد ${imported.length} شخص بنجاح`, '#16a34a');
+      });
+    } catch(err) {
+      showToast('❌ خطأ في قراءة الملف: ' + err.message, '#dc2626');
+    }
+    event.target.value = '';
+  };
+  reader.readAsText(file, 'UTF-8');
+}
+
+window.triggerCsvImport=triggerCsvImport;
+window.handleCsvImport=handleCsvImport;
+
+window.exportCurrentToExcel=exportCurrentToExcel;
+window.exportKeyToExcel=exportKeyToExcel;
+
 window.openRecovery=openRecovery; window.recoverFromKey=recoverFromKey; window.recoverFromFirebase=recoverFromFirebase;
 window.openFormImport=openFormImport; window.closeFormImport=closeFormImport;
 
@@ -2910,6 +3087,12 @@ function showApptCard(idx) {
 }
 function closeApptCard() {
   document.getElementById('apptCardOverlay').style.display = 'none';
+  // لو الكشف مفتوح، أعد بناءه عشان تظهر التعديلات
+  const rc = document.getElementById('reportContainer');
+  if(rc && rc.querySelector('[id^="rrow_"]')) {
+    rc.remove();
+    openStatusReport('approved');
+  }
 }
 window.showApptCard = showApptCard;
 window.closeApptCard = closeApptCard;
@@ -3064,7 +3247,7 @@ function openStatusReport(type) {
       const vsLabel=vs==='done'?'<br><span style="font-size:10px;color:#16a34a;font-weight:700;">✅ تمت الزيارة</span>':vs==='cancelled'?'<br><span style="font-size:10px;color:#dc2626;font-weight:700;">⚠️ ألغيت الزيارة</span>':'';
       return `<tr id="rrow_${realIdx}" style="background:${rowBg};${rowBorder}">
         <td style="text-align:center;font-weight:900;color:${thBg};width:30px;padding:8px 6px;">${i+1}</td>
-        <td style="font-weight:700;font-size:13px;min-width:100px;">${name}${vsLabel}</td>
+        <td style="font-weight:700;font-size:13px;min-width:100px;cursor:pointer;" onclick="showApptCard(${realIdx})" title="اضغط لعرض تفاصيل المؤثر"><span style="border-bottom:2px dotted #1a6fa8;color:#1a6fa8;">${name}</span>${vsLabel}</td>
         <td style="min-width:50px;">${gLabel}</td>
         <td style="min-width:70px;">${natCell}</td>
         <td style="direction:ltr;min-width:90px;">${phoneCell}</td>
