@@ -4144,46 +4144,109 @@ function checkFormDuplicates() {
   document.getElementById('formDupOverlay').classList.remove('hidden');
 }
 
+// Track which form-dup idx is pending a merge decision
+let _formDupMergeIdx = null;
+
 function formDupDecision(idx, decision) {
   const item = influencers[idx];
   if(!item) return;
 
   if(decision === 'keep') {
-    // Treat as new normal pending
     item.status = 'pending';
     delete item.duplicateOf;
+    _afterFormDupAction();
+
   } else if(decision === 'merge') {
-    // Find the original and update its info with the new entry's data
-    const dupName = (item.duplicateOf||'').split('(')[0].trim();
+    // Find the original person this duplicates
     const origIdx = influencers.findIndex((p, i) => i !== idx && (
-      p.name === dupName ||
       (item.civil && p.civil && p.civil.trim() === item.civil.trim()) ||
-      (item.ig && p.ig && p.ig.replace('@','').toLowerCase() === item.ig.replace('@','').toLowerCase())
+      (item.ig && p.ig && p.ig.replace('@','').toLowerCase() === item.ig.replace('@','').toLowerCase()) ||
+      (item.tt && p.tt && p.tt.replace('@','').toLowerCase() === item.tt.replace('@','').toLowerCase()) ||
+      (item.phone && p.phone && normalizePhone(p.phone) === normalizePhone(item.phone))
     ));
-    if(origIdx !== -1) {
-      const orig = influencers[origIdx];
-      // Update fields that are empty or override with new data
-      ['phone','ig','tt','snap','nationality','gender'].forEach(f => {
-        if(item[f] && !orig[f]) orig[f] = item[f];
-      });
-      orig.updatedAt = new Date().toISOString();
+    if(origIdx === -1) {
+      // Can't find original → just keep as new
+      item.status = 'pending';
+      delete item.duplicateOf;
+      _afterFormDupAction();
+      return;
     }
-    // Remove the duplicate
-    influencers.splice(idx, 1);
+    // Close the form-dup overlay temporarily and open the comparison popup
+    document.getElementById('formDupOverlay').classList.add('hidden');
+    _formDupMergeIdx = idx; // remember so we can delete after merge
+
+    // Re-use the existing single-dup comparison popup
+    const ex = influencers[origIdx];
+    const reasons = [];
+    if(item.civil && ex.civil && item.civil.trim()===ex.civil.trim()) reasons.push('الرقم المدني');
+    if(item.ig && ex.ig && item.ig.replace('@','').toLowerCase()===ex.ig.replace('@','').toLowerCase()) reasons.push('انستاجرام');
+    if(item.tt && ex.tt && item.tt.replace('@','').toLowerCase()===ex.tt.replace('@','').toLowerCase()) reasons.push('تيك توك');
+    if(item.phone && ex.phone && normalizePhone(item.phone)===normalizePhone(ex.phone)) reasons.push('رقم الموبايل');
+
+    // Override the apply & skip functions temporarily so after action we clean up
+    const _origApply = dupSingleApplySelected;
+    const _origSkip  = dupSingleSkip;
+    const _origAdd   = dupSingleAddAnyway;
+
+    window.dupSingleApplySelected = function() {
+      _origApply();
+      // Delete the duplicate_pending entry after merge
+      if(_formDupMergeIdx !== null) {
+        influencers.splice(_formDupMergeIdx, 1);
+        _formDupMergeIdx = null;
+      }
+      // Restore originals
+      window.dupSingleApplySelected = _origApply;
+      window.dupSingleSkip = _origSkip;
+      window.dupSingleAddAnyway = _origAdd;
+      _afterFormDupAction();
+    };
+    window.dupSingleSkip = function() {
+      // User skipped → keep the duplicate_pending as-is, re-open form dup overlay
+      document.getElementById('dupSingleOverlay').classList.add('hidden');
+      _pendingSingleItem = null;
+      _formDupMergeIdx = null;
+      window.dupSingleApplySelected = _origApply;
+      window.dupSingleSkip = _origSkip;
+      window.dupSingleAddAnyway = _origAdd;
+      _afterFormDupAction();
+    };
+    window.dupSingleAddAnyway = function() {
+      // User chose to add as new anyway
+      if(_formDupMergeIdx !== null) {
+        const dup = influencers[_formDupMergeIdx];
+        if(dup) { dup.status = 'pending'; delete dup.duplicateOf; }
+        _formDupMergeIdx = null;
+      }
+      document.getElementById('dupSingleOverlay').classList.add('hidden');
+      _pendingSingleItem = null;
+      window.dupSingleApplySelected = _origApply;
+      window.dupSingleSkip = _origSkip;
+      window.dupSingleAddAnyway = _origAdd;
+      _afterFormDupAction();
+    };
+
+    showSingleDupWarning(item, { idx: origIdx, reasons });
+
   } else if(decision === 'delete') {
     influencers.splice(idx, 1);
-  }
-
-  // Re-render the popup or close if no more pending
-  const remaining = influencers.filter(p => p.status === 'duplicate_pending');
-  if(remaining.length === 0) {
-    document.getElementById('formDupOverlay').classList.add('hidden');
-  } else {
-    checkFormDuplicates(); // re-render with updated indices
+    _afterFormDupAction();
   }
 
   saveToStorage().catch(()=>{});
   renderGrid();
+}
+
+function _afterFormDupAction() {
+  saveToStorage().catch(()=>{});
+  renderGrid();
+  const remaining = influencers.filter(p => p.status === 'duplicate_pending');
+  if(remaining.length === 0) {
+    document.getElementById('formDupOverlay').classList.add('hidden');
+  } else {
+    checkFormDuplicates();
+    document.getElementById('formDupOverlay').classList.remove('hidden');
+  }
 }
 
 function closeFormDupOverlay() {
