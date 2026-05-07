@@ -466,7 +466,7 @@ body{font-family:'Tajawal',sans-serif;direction:rtl;background:#0d1117;color:#e6
     <button class="save-bottom-btn" id="manualSaveBtn" onclick="manualSave()">💾 حفظ يدوي</button>
     <button class="add-bottom-btn" onclick="openActivityLog()" style="background:linear-gradient(135deg,#1e3a5f,#1a6fa8);">📋 سجل النشاط</button>
     <button class="add-bottom-btn" onclick="openRecovery()" style="background:linear-gradient(135deg,#7f1d1d,#dc2626);">🚨 حالات الطوارئ</button>
-    <button class="add-bottom-btn" id="dupReviewBtn" onclick="openDupReview()" style="background:linear-gradient(135deg,#7c2d12,#ea580c);display:none;">🔍 مراجعة المكررين <span id="dupReviewCount" style="background:#fff;color:#ea580c;border-radius:10px;padding:1px 7px;font-size:11px;margin-right:4px;font-weight:900;"></span></button>
+    <button class="add-bottom-btn" id="dupReviewBtn" onclick="openDupReview()" style="background:linear-gradient(135deg,#7c2d12,#ea580c);">🔍 مراجعة المكررين <span id="dupReviewCount" style="background:#fff;color:#ea580c;border-radius:10px;padding:1px 7px;font-size:11px;margin-right:4px;font-weight:900;display:none;"></span></button>
   </div>
   <div>مركز كيور الطبي © 2026 — جميع الحقوق محفوظة</div>
 </div>
@@ -1845,24 +1845,42 @@ function closeEditModal(){ document.getElementById('editModalOverlay').classList
 function saveEditInfluencer() {
   if(_editIdx===null) return;
   const item=influencers[_editIdx];
-  item.name=document.getElementById('eName').value.trim();
-  item.phone=document.getElementById('ePhone').value.trim();
-  item.civil=document.getElementById('eCivil').value.trim();
-  item.nationality=document.getElementById('eNationality').value;
-  item.gender=document.getElementById('eGenderM').dataset.selected==='1'?'m':document.getElementById('eGenderF').dataset.selected==='1'?'f':'';
+  // بناء النسخة المؤقتة للفحص
   const igRaw=document.getElementById('eIg').value.trim();
   const ttRaw=document.getElementById('eTt').value.trim();
-  item.ig=igRaw.includes('instagram.com/')?'@'+igRaw.split('instagram.com/').pop().replace('/','').split('?')[0]:igRaw;
+  const tempItem = {
+    name: document.getElementById('eName').value.trim(),
+    phone: document.getElementById('ePhone').value.trim(),
+    civil: document.getElementById('eCivil').value.trim(),
+    ig: igRaw.includes('instagram.com/')?'@'+igRaw.split('instagram.com/').pop().replace('/','').split('?')[0]:igRaw,
+    tt: ttRaw.includes('tiktok.com/@')?'@'+ttRaw.split('tiktok.com/@').pop().split('?')[0]:ttRaw,
+    snap: document.getElementById('eSnap').value.trim()
+  };
+  // أزل السجل الحالي مؤقتاً عشان ما يطابقش نفسه
+  const removed = influencers.splice(_editIdx, 1)[0];
+  const dup = findDuplicate(tempItem);
+  influencers.splice(_editIdx, 0, removed);
+  if(dup) {
+    const dupName = dup.item.name || dup.item.ig || 'مؤثر آخر';
+    const reasons = dup.reasons.join(' + ');
+    if(!confirm(`⚠️ تحذير: هذا التعديل سيخلق تكراراً مع "${dupName}"\nالتطابق في: ${reasons}\n\nهل تريد الحفظ رغم ذلك؟`)) return;
+  }
+  // تطبيق التعديلات
+  item.name=tempItem.name;
+  item.phone=tempItem.phone;
+  item.civil=tempItem.civil;
+  item.nationality=document.getElementById('eNationality').value;
+  item.gender=document.getElementById('eGenderM').dataset.selected==='1'?'m':document.getElementById('eGenderF').dataset.selected==='1'?'f':'';
+  item.ig=tempItem.ig;
   item.ig_url=igRaw.startsWith('http')?igRaw:(igRaw?'https://www.instagram.com/'+igRaw.replace('@',''):'');
-  item.tt=ttRaw.includes('tiktok.com/@')?'@'+ttRaw.split('tiktok.com/@').pop().split('?')[0]:ttRaw;
+  item.tt=tempItem.tt;
   item.tt_url=ttRaw.startsWith('http')?ttRaw:(ttRaw?'https://www.tiktok.com/'+item.tt:'');
-  item.snap=document.getElementById('eSnap').value.trim();
+  item.snap=tempItem.snap;
   item.wasUpdated = true;
   const savedIdx=_editIdx;
-  closeEditModal(); renderGrid(); saveFile();
+  closeEditModal(); renderGrid(); saveFile(); updateDupReviewBtn();
   logActivity('edit', `تعديل بيانات: ${item.name||item.ig||'مؤثر'}`);
   showToast('✅ تم حفظ التعديلات','#1a6fa8');
-  // Refresh appt card if open
   if(document.getElementById('apptCardOverlay').style.display==='flex') showApptCard(savedIdx);
 }
 
@@ -4422,11 +4440,13 @@ function updateDupReviewBtn() {
   const btn = document.getElementById('dupReviewBtn');
   const badge = document.getElementById('dupReviewCount');
   if(!btn) return;
+  // الزر دايماً ظاهر
+  btn.style.display = 'inline-flex';
   if(groups.length > 0) {
-    btn.style.display = 'inline-flex';
     badge.textContent = groups.length + ' مجموعة';
+    badge.style.display = 'inline';
   } else {
-    btn.style.display = 'none';
+    badge.style.display = 'none';
   }
 }
 
@@ -4533,7 +4553,13 @@ function _dupReviewGroupHTML(group, gi) {
     <div class="dup-match-reason" style="margin-bottom:8px;">
       📁 الأصل: <b>${ex.name||'—'}</b> | 📞 ${ex.phone||'—'} | 📅 ${ex.visitDate?ex.visitDate.split('T')[0]:'لا يوجد موعد'} | ${ex.visitStatus==='done'?'🏁 تمت الزيارة':ex.visitStatus==='cancelled'?'⚠️ ألغيت':''}
       ${ex.services&&ex.services.length?'| خدمات: '+ex.services.join(', '):''}
+      ${ex.notes?`| 📝 ${ex.notes}`:''}
     </div>
+    ${dup?`<div class="dup-match-reason" style="margin-bottom:8px;color:#fb923c;">
+      🔁 المكرر: <b>${dup.name||'—'}</b> | 📞 ${dup.phone||'—'} | 📅 ${dup.visitDate?dup.visitDate.split('T')[0]:'لا يوجد موعد'} | ${dup.visitStatus==='done'?'🏁 تمت الزيارة':dup.visitStatus==='cancelled'?'⚠️ ألغيت':''}
+      ${dup.services&&dup.services.length?'| خدمات: '+dup.services.join(', '):''}
+      ${dup.notes?`| 📝 ${dup.notes}`:''}
+    </div>`:''}
     ${compareHTML}
   </div>`;
 }
@@ -4689,6 +4715,29 @@ async function init() {
   if(removed > 0) showToast('🧹 تم حذف '+removed+' تكرار تلقائياً', '#ca8a04');
   // Check missed visits after short delay
   setTimeout(checkMissedVisits, 800);
+  // ⚠️ إشعار تلقائي لو في مكررين أو جدد عند فتح الصفحة
+  setTimeout(function() {
+    const dupGroups = findAllDuplicates();
+    const now48h = Date.now() - 48*60*60*1000;
+    const newCount = influencers.filter(i => i.addedAt && i.addedAt > now48h && !i.wasUpdated).length;
+    const dupCount = dupGroups.reduce((s,g) => s+g.length, 0);
+    if((dupGroups.length > 0 || newCount > 0) && !document.getElementById('dupWarningBanner')) {
+      const names = dupGroups.slice(0,2).map(g => influencers[g[0]] ? (influencers[g[0]].name||influencers[g[0]].ig||'؟') : '؟').join('، ');
+      const banner = document.createElement('div');
+      banner.id = 'dupWarningBanner';
+      banner.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:9999;background:linear-gradient(135deg,#0f172a,#1e3a5f);color:#fff;padding:10px 16px;font-family:Tajawal,sans-serif;font-size:13px;font-weight:700;display:flex;align-items:center;justify-content:space-between;gap:10px;box-shadow:0 4px 20px rgba(0,0,0,.6);direction:rtl;flex-wrap:wrap;';
+      const infoHTML =
+        (newCount > 0 ? `<span style="background:rgba(59,130,246,0.25);border:1px solid #3b82f6;color:#93c5fd;padding:2px 10px;border-radius:20px;font-size:12px;">🆕 ${newCount} جديد</span>` : '') +
+        (dupGroups.length > 0 ? `<span style="background:rgba(234,88,12,0.25);border:1px solid #ea580c;color:#fb923c;padding:2px 10px;border-radius:20px;font-size:12px;">🔁 ${dupCount} مكرر في ${dupGroups.length} مجموعة${names?' — '+names+(dupGroups.length>2?'...':''):''}</span>` : '');
+      banner.innerHTML =
+        `<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">${infoHTML}</div>` +
+        `<div style="display:flex;gap:8px;flex-shrink:0;">` +
+        (dupGroups.length > 0 ? `<button onclick="openDupReview();document.getElementById('dupWarningBanner').remove();" style="background:linear-gradient(135deg,#7c2d12,#ea580c);color:#fff;border:none;border-radius:7px;padding:5px 12px;font-size:12px;font-weight:900;cursor:pointer;font-family:Tajawal,sans-serif;">🔍 مراجعة المكررين</button>` : '') +
+        `<button onclick="document.getElementById('dupWarningBanner').remove()" style="background:rgba(255,255,255,0.1);color:#fff;border:1px solid rgba(255,255,255,0.2);border-radius:7px;padding:5px 10px;font-size:14px;cursor:pointer;">✕</button>` +
+        `</div>`;
+      document.body.prepend(banner);
+    }
+  }, 1500);
   // Poll Firebase every 30s to sync with other devices
   setInterval(function() {
     tryLoadFirebase().then(function(loaded) {
