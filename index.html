@@ -1914,6 +1914,7 @@ function renderBulkDupModal() {
     {key:'phone',     label:'الموبايل'},
     {key:'civil',     label:'م. مدني'},
     {key:'nationality',label:'الجنسية'},
+    {key:'gender',    label:'الجنس'},
     {key:'ig',        label:'انستاجرام'},
     {key:'tt',        label:'تيك توك'},
     {key:'snap',      label:'سناب'},
@@ -1970,7 +1971,10 @@ function applyBulkDecisions(){
     const dec=_bulkDecisions[i]||'skip';
     if(dec==='update'){
       const ex=influencers[entry.dup.idx];
-      const FIELDS=['name','phone','civil','nationality','ig','tt','snap'];
+      // PROTECTED fields — never overwritten during dup update
+      // status, visitStatus, visitDate, visitRating, contentStatus, notes,
+      // waSent, addedAt, autoAdded, signature, services, dialects, wasUpdated
+      const FIELDS=['name','phone','civil','nationality','gender','ig','tt','snap'];
       let changed=0;
       FIELDS.forEach(key=>{
         const cb=document.getElementById('bchk_'+i+'_'+key);
@@ -2008,6 +2012,7 @@ function showSingleDupWarning(newItem, dup) {
     { key:'phone',    label:'الموبايل',    oldVal:ex.phone,       newVal:newItem.phone },
     { key:'civil',    label:'م. مدني',     oldVal:ex.civil,       newVal:newItem.civil },
     { key:'nationality',label:'الجنسية',   oldVal:ex.nationality, newVal:newItem.nationality },
+    { key:'gender',   label:'الجنس',       oldVal:ex.gender==='m'?'ذكر':ex.gender==='f'?'أنثى':'', newVal:newItem.gender==='m'?'ذكر':newItem.gender==='f'?'أنثى':'' },
     { key:'ig',       label:'انستاجرام',   oldVal:ex.ig,          newVal:newItem.ig },
     { key:'tt',       label:'تيك توك',     oldVal:ex.tt,          newVal:newItem.tt },
     { key:'snap',     label:'سناب',        oldVal:ex.snap,        newVal:newItem.snap },
@@ -2049,7 +2054,10 @@ function dupSingleApplySelected() {
   const ex = influencers[_pendingSingleDupIdx];
   const newItem = _pendingSingleItem;
 
-  const fields = ['name','phone','civil','nationality','ig','tt','snap'];
+  // PROTECTED fields — never overwritten during dup update
+  // status, visitStatus, visitDate, visitRating, contentStatus, notes,
+  // waSent, addedAt, autoAdded, signature, services, dialects, wasUpdated
+  const fields = ['name','phone','civil','nationality','gender','ig','tt','snap'];
   let changed = 0;
   fields.forEach(key => {
     const cb = document.getElementById('dupchk_' + key);
