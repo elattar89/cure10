@@ -3253,7 +3253,7 @@ function openApptPanel(){
     seenNameDate.add(key);
     return true;
   });
-  if(!uniqueDates.length){list.innerHTML='<div class="appt-empty">لا توجد مواعيد مسجلة</div>';document.getElementById('apptPanelOverlay').classList.add('open');return;}
+  if(!uniqueDates.length){list.innerHTML='<div class="appt-empty">لا توجد مواعيد مسجلة</div>';document.getElementById('apptPanelOverlay').classList.add('open');_hideBannerForReport();return;}
   const today=new Date(); today.setHours(0,0,0,0);
   list.innerHTML=uniqueDates.map((item)=>{
     const idx=influencers.indexOf(item);const name=getDisplayName(item,idx);
@@ -3282,9 +3282,9 @@ function openApptPanel(){
       <span class="appt-status-tag ${item.status||'pending'}">${item.status==='approved'?'✅':item.status==='rejected'?'❌':'⏳'}</span>
     </div>`;
   }).join('');
-  document.getElementById('apptPanelOverlay').classList.add('open');
+  document.getElementById('apptPanelOverlay').classList.add('open'); _hideBannerForReport();
 }
-function closeApptPanel(){document.getElementById('apptPanelOverlay').classList.remove('open');}
+function closeApptPanel(){document.getElementById('apptPanelOverlay').classList.remove('open');const b=document.getElementById('dupWarningBanner');if(b)b.style.display='';}
 
 function showApptCard(idx) {
   const item = influencers[idx];
@@ -3369,7 +3369,8 @@ function openReportFromBtn(){
   if(currentFilter==='approved'||currentFilter==='rejected'||currentFilter==='visited'||currentFilter==='cancelled')openStatusReport('approved');
   else if(currentFilter==='male'||currentFilter==='female')openGenderReport(currentFilter==='male'?'m':'f');
 }
-function closeReport(){const c=document.getElementById('reportContainer');if(c)c.remove();}
+function closeReport(){const c=document.getElementById('reportContainer');if(c)c.remove();const b=document.getElementById('dupWarningBanner');if(b)b.style.display='';}
+function _hideBannerForReport(){const b=document.getElementById('dupWarningBanner');if(b)b.style.display='none';}
 function closeReportIfBg(e){if(e.target.id==='reportOverlay')closeReport();}
 
 function setContentStatus(idx, status) {
@@ -3580,7 +3581,7 @@ function openStatusReport(type) {
       </tr></thead><tbody>${rows}</tbody></table></div>
       <div class="report-footer-note">هذا الكشف سري ومخصص للاستخدام الداخلي — مركز كيور الطبي © 2026</div>
     </div></div>`;
-  const div=document.createElement('div');div.id='reportContainer';div.innerHTML=html;document.body.appendChild(div);
+  const div=document.createElement('div');div.id='reportContainer';div.innerHTML=html;document.body.appendChild(div);_hideBannerForReport();
 }
 
 // --- Gender Reports (male / female) ------------------------------
@@ -3627,7 +3628,7 @@ function openGenderReport(gender) {
       </tr></thead><tbody>${rows}</tbody></table></div>
       <div class="report-footer-note">هذا الكشف سري ومخصص للاستخدام الداخلي — مركز كيور الطبي © 2026</div>
     </div></div>`;
-  const div=document.createElement('div');div.id='reportContainer';div.innerHTML=html;document.body.appendChild(div);
+  const div=document.createElement('div');div.id='reportContainer';div.innerHTML=html;document.body.appendChild(div);_hideBannerForReport();
 }
 
 // --- Share functions ----------------------------------------------
@@ -3957,7 +3958,7 @@ function openGuestReport() {
     </div>
   </div>`;
   const div = document.createElement('div'); div.id = 'reportContainer'; div.innerHTML = html;
-  document.body.appendChild(div);
+  document.body.appendChild(div); _hideBannerForReport();
 }
 // Attach guest button listeners after DOM ready
 document.addEventListener('DOMContentLoaded', function() {
@@ -4126,7 +4127,7 @@ function openGuestReadOnlyReport() {
       </tr></thead><tbody>${rows}</tbody></table></div>
       <div class="report-footer-note">هذا الكشف سري ومخصص للاستخدام الداخلي — مركز كيور الطبي © 2026</div>
     </div></div>`;
-  const div = document.createElement('div'); div.id = 'reportContainer'; div.innerHTML = html; document.body.appendChild(div);
+  const div = document.createElement('div'); div.id = 'reportContainer'; div.innerHTML = html; document.body.appendChild(div); _hideBannerForReport();
 }
 function guestOpenAppts() {
   if(influencers.length === 0) {
@@ -4725,7 +4726,7 @@ async function init() {
       const names = dupGroups.slice(0,2).map(g => influencers[g[0]] ? (influencers[g[0]].name||influencers[g[0]].ig||'؟') : '؟').join('، ');
       const banner = document.createElement('div');
       banner.id = 'dupWarningBanner';
-      banner.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:9999;background:linear-gradient(135deg,#0f172a,#1e3a5f);color:#fff;padding:10px 16px;font-family:Tajawal,sans-serif;font-size:13px;font-weight:700;display:flex;align-items:center;justify-content:center;gap:10px;box-shadow:0 4px 20px rgba(0,0,0,.6);direction:rtl;flex-wrap:wrap;text-align:center;';
+      banner.style.cssText = 'width:100%;background:rgba(0,0,0,0.25);border:1px solid rgba(255,255,255,0.1);border-radius:12px;color:#fff;padding:10px 16px;font-family:Tajawal,sans-serif;font-size:13px;font-weight:700;display:flex;align-items:center;justify-content:center;gap:10px;direction:rtl;flex-wrap:wrap;text-align:center;margin-top:1rem;position:relative;z-index:1;';
       const infoHTML =
         (newCount > 0 ? `<span style="background:rgba(59,130,246,0.25);border:1px solid #3b82f6;color:#93c5fd;padding:2px 10px;border-radius:20px;font-size:12px;">🆕 ${newCount} جديد</span>` : '') +
         (dupGroups.length > 0 ? `<span style="background:rgba(234,88,12,0.25);border:1px solid #ea580c;color:#fb923c;padding:2px 10px;border-radius:20px;font-size:12px;">🔁 ${dupCount} مكرر في ${dupGroups.length} مجموعة${names?' — '+names+(dupGroups.length>2?'...':''):''}</span>` : '');
@@ -4735,7 +4736,7 @@ async function init() {
         (dupGroups.length > 0 ? `<button onclick="openDupReview();document.getElementById('dupWarningBanner').remove();" style="background:linear-gradient(135deg,#7c2d12,#ea580c);color:#fff;border:none;border-radius:7px;padding:5px 12px;font-size:12px;font-weight:900;cursor:pointer;font-family:Tajawal,sans-serif;">🔍 مراجعة المكررين</button>` : '') +
         `<button onclick="document.getElementById('dupWarningBanner').remove()" style="background:rgba(255,255,255,0.1);color:#fff;border:1px solid rgba(255,255,255,0.2);border-radius:7px;padding:5px 10px;font-size:14px;cursor:pointer;">✕</button>` +
         `</div>`;
-      document.body.prepend(banner);
+      document.querySelector('.header').appendChild(banner);
     }
   }, 1500);
   // Poll Firebase every 30s to sync with other devices
