@@ -465,7 +465,7 @@ body{font-family:'Tajawal',sans-serif;direction:rtl;background:#0d1117;color:#e6
     <button class="save-bottom-btn" id="manualSaveBtn" onclick="manualSave()">💾 حفظ يدوي</button>
     <button class="add-bottom-btn" onclick="openActivityLog()" style="background:linear-gradient(135deg,#1e3a5f,#1a6fa8);">📋 سجل النشاط</button>
     <button class="add-bottom-btn" onclick="openRecovery()" style="background:linear-gradient(135deg,#7f1d1d,#dc2626);">🚨 حالات الطوارئ</button>
-    <button class="add-bottom-btn" id="dupReviewBtn" onclick="openDupReview()" style="background:linear-gradient(135deg,#7c2d12,#ea580c);display:none;">🔍 مراجعة المكررين <span id="dupReviewCount" style="background:#fff;color:#ea580c;border-radius:10px;padding:1px 7px;font-size:11px;margin-right:4px;font-weight:900;"></span></button>
+    <button class="add-bottom-btn" id="dupReviewBtn" onclick="openDupReview()" style="background:linear-gradient(135deg,#7c2d12,#ea580c);display:inline-flex;align-items:center;gap:6px;">🔍 كشف المكررين <span id="dupReviewCount" style="display:none;background:#fff;color:#ea580c;border-radius:10px;padding:1px 7px;font-size:11px;font-weight:900;"></span></button>
   </div>
   <div>مركز كيور الطبي © 2026 — جميع الحقوق محفوظة</div>
 </div>
@@ -4289,14 +4289,13 @@ function findAllDuplicates() {
 
 function updateDupReviewBtn() {
   const groups = findAllDuplicates();
-  const btn = document.getElementById('dupReviewBtn');
   const badge = document.getElementById('dupReviewCount');
-  if(!btn) return;
+  if(!badge) return;
   if(groups.length > 0) {
-    btn.style.display = 'inline-flex';
     badge.textContent = groups.length + ' مجموعة';
+    badge.style.display = 'inline';
   } else {
-    btn.style.display = 'none';
+    badge.style.display = 'none';
   }
 }
 
@@ -4313,72 +4312,26 @@ function openDupReview() {
   }
 
   summary.innerHTML = `وُجد <b style="color:#fbbf24;">${groups.length}</b> مجموعة تكرار تضم <b style="color:#fbbf24;">${groups.reduce((s,g)=>s+g.length,0)}</b> شخص — اختر لكل مجموعة من تحذف`;
-
-  // Find which fields differ between items in a group
-  function getDiffFields(items) {
-    const fields = ['phone','civil','ig','tt','snap','nationality','gender','name','status','visitDate','visitStatus','services'];
-    const diffs = new Set();
-    for(let a=0;a<items.length;a++) {
-      for(let b=a+1;b<items.length;b++) {
-        fields.forEach(f => {
-          if((items[a].item[f]||'') !== (items[b].item[f]||'')) diffs.add(f);
-        });
-      }
-    }
-    return diffs;
-  }
-
   list.innerHTML = groups.map((group, gi) => {
     const items = group.map(idx => ({idx, item: influencers[idx]}));
-    const diffFields = getDiffFields(items);
-
     const cardsHTML = items.map(({idx, item}) => {
       const name = item.name || item.ig || 'مؤثر #'+(idx+1);
       const statusColor = item.status==='approved'?'#4ade80':item.status==='rejected'?'#f87171':'#8b949e';
-      const statusBg    = item.status==='approved'?'rgba(74,222,128,0.1)':item.status==='rejected'?'rgba(248,113,113,0.1)':'rgba(139,148,158,0.1)';
       const statusLabel = item.status==='approved'?'✅ مقبول':item.status==='rejected'?'❌ مرفوض':'⏳ قيد المراجعة';
-      const genderLabel = item.gender==='m'?'👨 ذكر':item.gender==='f'?'👩 أنثى':'';
-      const diff = f => diffFields.has(f) ? 'border:1px solid #d97706;background:#1f1600;' : '';
-
-      // Build detail rows — highlight fields that differ between duplicates
-      const rows = [
-        item.phone    ? `<div style="font-size:12px;padding:4px 7px;border-radius:6px;margin-bottom:3px;${diff('phone')}color:#e6edf3;">📞 ${item.phone}</div>` : '',
-        item.civil    ? `<div style="font-size:12px;padding:4px 7px;border-radius:6px;margin-bottom:3px;${diff('civil')}color:#e6edf3;">🪪 ${item.civil}</div>` : '<div style="font-size:11px;color:#484f58;padding:4px 7px;margin-bottom:3px;">🪪 لا يوجد رقم مدني</div>',
-        genderLabel   ? `<div style="font-size:12px;padding:4px 7px;border-radius:6px;margin-bottom:3px;${diff('gender')}color:#e6edf3;">${genderLabel}</div>` : '',
-        item.nationality ? `<div style="font-size:12px;padding:4px 7px;border-radius:6px;margin-bottom:3px;${diff('nationality')}color:#0e9a6e;">🌍 ${item.nationality}</div>` : '',
-        item.ig       ? `<div style="font-size:12px;padding:4px 7px;border-radius:6px;margin-bottom:3px;${diff('ig')}color:#e6edf3;">📸 ${item.ig}</div>` : '<div style="font-size:11px;color:#484f58;padding:4px 7px;margin-bottom:3px;">📸 لا يوجد انستاجرام</div>',
-        item.tt       ? `<div style="font-size:12px;padding:4px 7px;border-radius:6px;margin-bottom:3px;${diff('tt')}color:#e6edf3;">🎵 ${item.tt}</div>` : '',
-        item.snap     ? `<div style="font-size:12px;padding:4px 7px;border-radius:6px;margin-bottom:3px;${diff('snap')}color:#e6edf3;">👻 ${item.snap}</div>` : '',
-        item.services && item.services.length ? `<div style="font-size:12px;padding:4px 7px;border-radius:6px;margin-bottom:3px;${diff('services')}color:#c084fc;">💉 ${item.services.join('، ')}</div>` : '',
-        item.visitDate ? `<div style="font-size:12px;padding:4px 7px;border-radius:6px;margin-bottom:3px;${diff('visitDate')}color:#22d3ee;">📅 ${item.visitDate.split('T')[0]}</div>` : '',
-        item.visitStatus==='done'     ? '<div style="font-size:11px;color:#4ade80;padding:4px 7px;">🏁 تمت الزيارة</div>' : '',
-        item.visitStatus==='cancelled'? '<div style="font-size:11px;color:#fbbf24;padding:4px 7px;">⚠️ ألغيت الزيارة</div>' : '',
-        item.notes    ? `<div style="font-size:11px;color:#fbbf24;padding:4px 7px;border-radius:6px;${diff('notes')}background:#1a1400;">📝 ${item.notes}</div>` : '',
-      ].filter(Boolean).join('');
-
-      return `<div style="background:#161b22;border:1px solid ${item.status==='approved'?'#16a34a':item.status==='rejected'?'#dc2626':'#30363d'};border-radius:12px;padding:.9rem;flex:1;min-width:240px;display:flex;flex-direction:column;gap:4px;">
-        <!-- Header -->
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
-          <div style="font-weight:900;font-size:14px;color:#e6edf3;">${name}</div>
-          <span style="font-size:10px;font-weight:700;padding:3px 9px;border-radius:20px;background:${statusBg};color:${statusColor};border:1px solid ${statusColor};">${statusLabel}</span>
-        </div>
-        <!-- Details -->
-        <div style="background:#0d1117;border-radius:8px;padding:.5rem;margin-bottom:6px;">
-          ${rows || '<div style="color:#484f58;font-size:11px;">لا توجد تفاصيل</div>'}
-        </div>
-        ${diffFields.size > 0 ? `<div style="font-size:10px;color:#d97706;margin-bottom:4px;">🟡 الحقول المختلفة بين النسخ المكررة مُحاطة بإطار برتقالي</div>` : ''}
-        <!-- Actions -->
-        <button onclick="deleteDupEntry(${idx},${gi})" style="width:100%;padding:7px;border-radius:8px;border:1px solid #dc2626;background:#1a0808;color:#f87171;font-size:12px;cursor:pointer;font-family:Tajawal,sans-serif;font-weight:700;margin-top:auto;">🗑 حذف هذا</button>
-        <button onclick="keepOnlyThis(${idx},${gi})" style="width:100%;padding:7px;border-radius:8px;border:1px solid #059669;background:#0d1f14;color:#4ade80;font-size:13px;cursor:pointer;font-family:Tajawal,sans-serif;font-weight:700;margin-top:4px;">✅ احتفظ بهذا واحذف الباقين</button>
+      return `<div style="background:#21262d;border:1px solid #30363d;border-radius:10px;padding:.7rem;flex:1;min-width:200px;">
+        <div style="font-weight:700;font-size:13px;margin-bottom:4px;">${name}</div>
+        <div style="font-size:11px;color:#8b949e;margin-bottom:4px;">${item.phone?'📞 '+item.phone:''} ${item.ig?'· '+item.ig:''}</div>
+        <div style="font-size:11px;color:${statusColor};margin-bottom:8px;">${statusLabel}</div>
+        ${item.visitDate?`<div style="font-size:11px;color:#22d3ee;margin-bottom:4px;">📅 ${item.visitDate.split('T')[0]}</div>`:''}
+        ${item.visitStatus==='done'?'<div style="font-size:11px;color:#4ade80;">🏁 تمت الزيارة</div>':''}
+        ${item.visitStatus==='cancelled'?'<div style="font-size:11px;color:#fbbf24;">⚠️ ألغيت</div>':''}
+        <button onclick="deleteDupEntry(${idx},${gi})" style="width:100%;margin-top:8px;padding:6px;border-radius:7px;border:1px solid #dc2626;background:#1a0808;color:#f87171;font-size:12px;cursor:pointer;font-family:Tajawal,sans-serif;font-weight:700;">🗑 حذف هذا</button>
+        <button onclick="keepOnlyThis(${idx},${gi})" style="width:100%;margin-top:4px;padding:6px;border-radius:7px;border:1px solid #059669;background:#0d1f14;color:#4ade80;font-size:12px;cursor:pointer;font-family:Tajawal,sans-serif;font-weight:700;">✅ احتفظ بهذا واحذف الباقين</button>
       </div>`;
     }).join('');
-
-    return `<div id="dupGroup_${gi}" style="border:1px solid #d97706;border-radius:14px;padding:1rem;background:#110e00;margin-bottom:8px;">
-      <div style="font-size:13px;color:#fbbf24;font-weight:900;margin-bottom:10px;display:flex;align-items:center;gap:6px;">
-        ⚠️ مجموعة ${gi+1} — ${group.length} أشخاص متشابهون
-        ${diffFields.size > 0 ? `<span style="font-size:10px;font-weight:400;color:#8b949e;">(${diffFields.size} حقل مختلف)</span>` : '<span style="font-size:10px;color:#f87171;">تطابق تام!</span>'}
-      </div>
-      <div style="display:flex;gap:10px;flex-wrap:wrap;">${cardsHTML}</div>
+    return `<div id="dupGroup_${gi}" style="border:1px solid #d97706;border-radius:12px;padding:.8rem;background:#1a1200;">
+      <div style="font-size:12px;color:#fbbf24;font-weight:700;margin-bottom:8px;">مجموعة ${gi+1} — ${group.length} أشخاص متشابهون</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;">${cardsHTML}</div>
     </div>`;
   }).join('');
 
