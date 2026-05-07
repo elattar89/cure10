@@ -643,7 +643,6 @@ body{font-family:'Tajawal',sans-serif;direction:rtl;background:#0d1117;color:#e6
       <button class="modal-cancel" onclick="dupSingleSkip()">⏭ تخطي</button>
       <button class="modal-save" style="background:#1a6fa8;" onclick="dupSinglePreview()">🔍 معاينة الموجود</button>
       <button class="modal-save" style="background:#059669;" onclick="dupSingleApplySelected()">✅ تطبيق المحدد</button>
-      <button class="modal-save" style="background:#d97706;" onclick="dupSingleAddAnyway()">➕ إضافة كشخص جديد</button>
     </div>
   </div>
 </div>
@@ -1070,7 +1069,7 @@ function updateStats() {
   if(statCan) statCan.textContent=cancelled;
   // New (last 48h)
   const now48h = Date.now() - (48 * 60 * 60 * 1000);
-  const newCount = influencers.filter(i=>i.addedAt && i.addedAt > now48h).length;
+  const newCount = influencers.filter(i=>i.addedAt && i.addedAt > now48h && !i.wasUpdated).length;
   const statNew=document.getElementById('statNew');
   if(statNew) statNew.textContent=newCount;
 }
@@ -1219,7 +1218,7 @@ function renderGrid() {
   const _now48 = Date.now() - (48 * 60 * 60 * 1000);
   const sorted = [...influencers].map((item,idx)=>({item,idx})).sort((a,b)=>{
     const order = i => {
-      const isNewAuto = i.autoAdded && i.addedAt && i.addedAt > _now48;
+      const isNewAuto = i.autoAdded && i.addedAt && i.addedAt > _now48 && !i.wasUpdated;
       if(isNewAuto) return 0;
       if(!i.status||i.status==='pending') return 1;
       if(i.status==='approved'&&i.visitStatus==='cancelled') return 2;
@@ -1262,7 +1261,8 @@ function renderGrid() {
       (currentFilter==='nat_egypt'  && NAT_GROUPS.egypt.includes(item.nationality||''))||
       (currentFilter==='nat_sham'   && NAT_GROUPS.sham.includes(item.nationality||''))||
       (currentFilter==='nat_foreign'&& item.nationality && !NAT_GROUPS.kuwait.includes(item.nationality) && !NAT_GROUPS.gulf.includes(item.nationality) && !NAT_GROUPS.egypt.includes(item.nationality) && !NAT_GROUPS.sham.includes(item.nationality))||
-      (currentFilter.startsWith('dlct_') && (item.dialects||[]).includes(currentFilter.replace('dlct_','')));
+      (currentFilter.startsWith('dlct_') && (item.dialects||[]).includes(currentFilter.replace('dlct_','')))||
+      (currentFilter==='new' && item.addedAt && item.addedAt > _now48 && !item.wasUpdated);
     if(!matchSearch||!matchFilter) return;
     visible++;
     const initial=getInitial(item), color=getColor(idx);
@@ -1288,9 +1288,9 @@ function renderGrid() {
     const dlctLabel=item.dialects&&item.dialects.length?'🗣️ يتحدث : '+item.dialects.join(' · '):'🗣️ اللهجة';
     const hasDlct=item.dialects&&item.dialects.length>0;
     const isPublished = item.visitStatus==='done' && item.contentStatus==='published';
-    // Badge "جديد" - اتضاف في آخر 48 ساعة
+    // Badge "جديد" - أُضيف في آخر 48 ساعة ولم يتم تحديثه كمكرر
     const now48 = Date.now() - (48 * 60 * 60 * 1000);
-    const isNew = item.addedAt && item.addedAt > now48;
+    const isNew = item.addedAt && item.addedAt > now48 && !item.wasUpdated;
     // الكرت الأزرق: فقط لو اتضاف تلقائياً (من فورم/bulk) وفي خلال 48 ساعة
     const isNewAutoBlue = isNew && item.autoAdded;
     const isUnpublished = item.visitStatus==='done' && item.contentStatus==='unpublished';
@@ -1600,7 +1600,8 @@ function confirmDelete() {
 function restoreInfluencer(deletedIdx) {
   const item = deletedInfluencers[deletedIdx];
   delete item.deletedAt;
-  item.addedAt=Date.now();influencers.push(item);
+  item.wasUpdated = true;
+  influencers.push(item);
   deletedInfluencers.splice(deletedIdx, 1);
   renderGrid(); saveFile();
   showToast('✅ تمت استعادة المؤثر','#059669');
@@ -1715,6 +1716,7 @@ function saveEditInfluencer() {
   item.tt=ttRaw.includes('tiktok.com/@')?'@'+ttRaw.split('tiktok.com/@').pop().split('?')[0]:ttRaw;
   item.tt_url=ttRaw.startsWith('http')?ttRaw:(ttRaw?'https://www.tiktok.com/'+item.tt:'');
   item.snap=document.getElementById('eSnap').value.trim();
+  item.wasUpdated = true;
   const savedIdx=_editIdx;
   closeEditModal(); renderGrid(); saveFile();
   logActivity('edit', `تعديل بيانات: ${item.name||item.ig||'مؤثر'}`);
@@ -1947,7 +1949,6 @@ function renderBulkDupModal() {
       ${fieldRows}
       <div style="display:flex;gap:6px;margin-top:8px;flex-wrap:wrap;">
         <button onclick="setBulkDecision(${i},'update',this)" style="flex:2;padding:7px;border-radius:8px;border:1px solid #059669;background:#0d1f14;color:#4ade80;font-size:12px;font-weight:700;cursor:pointer;font-family:Tajawal,sans-serif;">🔄 تطبيق المحدد</button>
-        <button onclick="setBulkDecision(${i},'add',this)" style="flex:2;padding:7px;border-radius:8px;border:1px solid #d97706;background:#2d1f0a;color:#fbbf24;font-size:12px;font-weight:700;cursor:pointer;font-family:Tajawal,sans-serif;">➕ إضافة كجديد</button>
         <button onclick="setBulkDecision(${i},'skip',this)" style="flex:1;padding:7px;border-radius:8px;border:1px solid #30363d;background:#21262d;color:#8b949e;font-size:12px;cursor:pointer;font-family:Tajawal,sans-serif;">⏭ تخطي</button>
         <button onclick="previewBulkDupExisting(${entry.dup.idx})" style="flex:1;padding:7px;border-radius:8px;border:1px solid #1a6fa8;background:#1e3a5f;color:#60a5fa;font-size:12px;cursor:pointer;font-family:Tajawal,sans-serif;">🔍 معاينة</button>
       </div>
@@ -1967,9 +1968,7 @@ function applyBulkDecisions(){
   let added=0,updated=0,skipped=0;
   _bulkPending.forEach((entry,i)=>{
     const dec=_bulkDecisions[i]||'skip';
-    if(dec==='add'){
-      entry.item.addedAt=Date.now(); influencers.push(entry.item); added++;
-    } else if(dec==='update'){
+    if(dec==='update'){
       const ex=influencers[entry.dup.idx];
       const FIELDS=['name','phone','civil','nationality','ig','tt','snap'];
       let changed=0;
@@ -1982,6 +1981,7 @@ function applyBulkDecisions(){
           changed++;
         }
       });
+      if(changed > 0) ex.wasUpdated = true;
       updated++;
     } else skipped++;
   });
@@ -2061,6 +2061,7 @@ function dupSingleApplySelected() {
     }
   });
 
+  if(changed > 0) ex.wasUpdated = true;
   document.getElementById('dupSingleOverlay').classList.add('hidden');
   _pendingSingleItem = null; _pendingSingleDupIdx = null;
   renderGrid(); saveFile();
@@ -2072,11 +2073,7 @@ function dupSingleSkip() {
   _pendingSingleItem = null;
   showToast('⏭ تم التخطي', '#6e7681');
 }
-function dupSingleAddAnyway() {
-  if(_pendingSingleItem) { influencers.push(_pendingSingleItem); renderGrid(); saveFile(); showToast('✅ تم الإضافة كشخص جديد','#d97706'); }
-  document.getElementById('dupSingleOverlay').classList.add('hidden');
-  _pendingSingleItem = null;
-}
+function dupSingleAddAnyway() { /* محذوف - المكرر لا يُضاف كجديد */ }
 function dupSinglePreview() {
   // فتح كرت الشخص الموجود مسبقاً بدون إغلاق modal التكرار
   if(_pendingSingleDupIdx === null) return;
