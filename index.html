@@ -876,7 +876,49 @@ async function tryLoadFirebase() {
         if(val && val.data) {
           const parsed = JSON.parse(val.data);
           if(Array.isArray(parsed) && parsed.length > 0) {
-            influencers = parsed;
+            if(influencers.length > 0) {
+              // Build a set of all local IDs/timestamps to detect what's new
+              const localKeys = new Set(influencers.map(i =>
+                [i.phone||'', i.ig||'', i.tt||'', i.snap||'', i.civil||'', i.name||''].join('|')
+              ));
+              // Find entries from Firebase that don't exist locally at all
+              const brandNew = parsed.filter(incoming => {
+                const key = [incoming.phone||'', incoming.ig||'', incoming.tt||'', incoming.snap||'', incoming.civil||'', incoming.name||''].join('|');
+                return !localKeys.has(key);
+              });
+              if(brandNew.length > 0) {
+                const cleanNew = [];
+                const dupNew = [];
+                for(const incoming of brandNew) {
+                  const dup = findDuplicate(incoming);
+                  if(!dup) {
+                    cleanNew.push(incoming);
+                  } else {
+                    dupNew.push({item: incoming, dup});
+                  }
+                }
+                _bulkClean = cleanNew.map(i => { if(!i.addedAt) i.addedAt=Date.now(); i.autoAdded=true; return i; });
+                _bulkPending = dupNew;
+                _bulkDecisions = {};
+                if(_bulkPending.length === 0) {
+                  influencers.push(..._bulkClean);
+                  renderGrid(); updateStats();
+                  saveToStorage();
+                  if(_bulkClean.length > 0) showToast('🆕 '+_bulkClean.length+' مؤثر جديد من الفورم', '#059669');
+                } else {
+                  // Show dup modal — admin must decide for each
+                  renderBulkDupModal();
+                  document.getElementById('dupBulkOverlay').classList.remove('hidden');
+                  const h3 = document.querySelector('#dupBulkOverlay h3');
+                  if(h3) h3.textContent = '⚠️ تسجيلات جديدة من الفورم — بعضها مكرر';
+                }
+              }
+              // Also sync back any fields updated remotely by other admins (non-destructive)
+              // but keep local status/visitStatus etc. protected
+            } else {
+              // First load — no local data yet
+              influencers = parsed;
+            }
             try { localStorage.setItem(LS_KEY, JSON.stringify(influencers)); } catch(e) {}
             // Also load deleted
             try {
@@ -1046,7 +1088,7 @@ function showToast(msg, color='#059669') {
 function updateStats() {
   const visited=influencers.filter(i=>i.status==='approved'&&i.visitStatus==='done').length;
   const cancelled=influencers.filter(i=>i.status==='approved'&&i.visitStatus==='cancelled').length;
-  const approved=influencers.filter(i=>i.status==='approved'&&i.visitStatus!=='done'&&i.visitStatus!=='cancelled').length;
+  const approved=influencers.filter(i=>i.status==='approved').length;
   const rejected=influencers.filter(i=>i.status==='rejected').length;
   const total=influencers.length;
   document.getElementById('statTotal').textContent=total;
@@ -1248,7 +1290,7 @@ function renderGrid() {
     const searchStr=(name+item.ig+item.tt+item.phone+item.snap+(item.nationality||'')).toLowerCase();
     const matchSearch=!q||searchStr.includes(q);
     const matchFilter=currentFilter==='all'||
-      (currentFilter==='approved'&&item.status==='approved'&&item.visitStatus!=='done'&&item.visitStatus!=='cancelled')||
+      (currentFilter==='approved'&&item.status==='approved')||
       (currentFilter==='rejected'&&item.status==='rejected')||
       (currentFilter==='visited'&&item.status==='approved'&&item.visitStatus==='done')||
       (currentFilter==='cancelled'&&item.status==='approved'&&item.visitStatus==='cancelled')||
