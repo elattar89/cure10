@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="UTF-8">
@@ -121,17 +122,17 @@ body{font-family:'Tajawal',sans-serif;direction:rtl;background:#0d1117;color:#e6
 .date-picker-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:.5rem;}
 .dp-nav-btn{background:none;border:1px solid #30363d;color:#e6edf3;border-radius:7px;width:28px;height:28px;cursor:pointer;font-size:16px;}
 .dp-month-year-select{display:flex;gap:6px;margin-bottom:.5rem;}
-.dp-month-year-select select{flex:1;background:#21262d;border:1px solid #30363d;color:#e6edf3;border-radius:7px;padding:4px;font-family:'Tajawal',sans-serif;font-size:12px;}
+.dp-month-year-select select{flex:1;background:#21262d;border:1px solid #30363d;color:#e6edf3;border-radius:7px;padding:4px;font-family:‘Tajawal’,sans-serif;font-size:12px;}
 .dp-weekdays{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;margin-bottom:3px;}
 .dp-weekday{text-align:center;font-size:10px;color:#6e7681;padding:2px;}
 .dp-days{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;}
-.dp-day{background:none;border:none;border-radius:6px;color:#e6edf3;font-size:12px;padding:5px;cursor:pointer;font-family:'Tajawal',sans-serif;}
+.dp-day{background:none;border:none;border-radius:6px;color:#e6edf3;font-size:12px;padding:5px;cursor:pointer;font-family:‘Tajawal’,sans-serif;}
 .dp-day:hover{background:#21262d;}
 .dp-day.today{border:1px solid #1a6fa8;color:#60a5fa;}
 .dp-day.selected{background:#1a6fa8;color:#fff;}
 .dp-day.empty{cursor:default;}
-.dp-close-btn{width:100%;margin-top:.5rem;padding:7px;border-radius:8px;background:#1a6fa8;border:none;color:#fff;font-family:'Tajawal',sans-serif;cursor:pointer;font-size:13px;}
-.dp-clear-btn{width:100%;margin-top:4px;padding:6px;border-radius:8px;background:#21262d;border:1px solid #30363d;color:#8b949e;font-family:'Tajawal',sans-serif;cursor:pointer;font-size:12px;}
+.dp-close-btn{width:100%;margin-top:.5rem;padding:7px;border-radius:8px;background:#1a6fa8;border:none;color:#fff;font-family:‘Tajawal’,sans-serif;cursor:pointer;font-size:13px;}
+.dp-clear-btn{width:100%;margin-top:4px;padding:6px;border-radius:8px;background:#21262d;border:1px solid #30363d;color:#8b949e;font-family:‘Tajawal’,sans-serif;cursor:pointer;font-size:12px;}
 .report-modal::-webkit-scrollbar{width:6px;}
 .report-modal::-webkit-scrollbar-track{background:#f1f5f9;}
 .report-modal::-webkit-scrollbar-thumb{background:#cbd5e1;border-radius:3px;}
@@ -152,7 +153,7 @@ body{font-family:'Tajawal',sans-serif;direction:rtl;background:#0d1117;color:#e6
 .dup-item{background:#21262d;border:1px solid #30363d;border-radius:10px;padding:.8rem;margin-bottom:.6rem;}
 .dup-item-title{display:flex;justify-content:space-between;align-items:center;font-size:13px;font-weight:700;margin-bottom:.6rem;}
 .dup-item-actions{display:flex;gap:6px;flex-wrap:wrap;margin-top:.6rem;}
-.dup-btn-skip,.dup-btn-update,.dup-btn-add-anyway{flex:1;padding:6px 8px;border-radius:7px;font-size:12px;cursor:pointer;font-family:'Tajawal',sans-serif;border:1px solid #30363d;background:#21262d;color:#8b949e;}
+.dup-btn-skip,.dup-btn-update,.dup-btn-add-anyway{flex:1;padding:6px 8px;border-radius:7px;font-size:12px;cursor:pointer;font-family:‘Tajawal’,sans-serif;border:1px solid #30363d;background:#21262d;color:#8b949e;}
 .dup-btn-update{border-color:#1a6fa8;color:#60a5fa;}
 .dup-btn-add-anyway{border-color:#d97706;color:#fbbf24;}
 .appt-panel-overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:300;display:none;}
@@ -182,50 +183,50 @@ body{font-family:'Tajawal',sans-serif;direction:rtl;background:#0d1117;color:#e6
 #dlctMenu{background:#1c2128!important;color:#e6edf3!important;}
 #dlctMenu button{color:#e6edf3!important;background:none!important;}
 #dlctMenu button:hover{background:#21262d!important;}
-#saveIndicator{position:fixed;top:12px;left:12px;background:#059669;color:#fff;padding:6px 14px;border-radius:20px;font-size:12px;font-family:'Tajawal',sans-serif;font-weight:700;z-index:9999;display:none;box-shadow:0 2px 12px rgba(0,0,0,.4);}
+#saveIndicator{position:fixed;top:12px;left:12px;background:#059669;color:#fff;padding:6px 14px;border-radius:20px;font-size:12px;font-family:‘Tajawal’,sans-serif;font-weight:700;z-index:9999;display:none;box-shadow:0 2px 12px rgba(0,0,0,.4);}
 #loadingOverlay{position:fixed;inset:0;background:#0d1117;z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1rem;}
 .loading-spinner{width:40px;height:40px;border:3px solid #21262d;border-top-color:#1a6fa8;border-radius:50%;animation:spin .8s linear infinite;}
 @keyframes spin{to{transform:rotate(360deg);}}
 @media(max-width:600px){
-  .grid{grid-template-columns:1fr;}
-  .header h1{font-size:18px;}
-  .header{padding:1.2rem 1rem 1.5rem;}
-  .stats-bar{gap:.4rem;}
-  .stat{padding:.4rem .6rem;min-width:55px;}
-  .stat-num{font-size:16px;}
-  .stat-label{font-size:9px;}
-  .filter-btns{display:flex;flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch;padding-bottom:4px;}
-  .filter-btns::-webkit-scrollbar{display:none;}
-  .filter-btn{white-space:nowrap;flex-shrink:0;font-size:11px;padding:6px 10px;}
-  .toolbar{flex-wrap:nowrap;overflow-x:auto;gap:6px;padding:.5rem;}
-  .toolbar::-webkit-scrollbar{display:none;}
-  .card{padding:.8rem;}
-  .card-name{font-size:13px;}
-  .action-btn{font-size:11px;padding:5px 8px;}
-  .modal{padding:1rem;max-height:92vh;}
-  .modal input,.modal select{font-size:14px;}
-  .fab{width:44px;height:44px;font-size:20px;}
-  .report-modal{padding:.8rem;border-radius:10px;}
-  .report-actions{flex-wrap:wrap;gap:6px;}
-  .report-btn-print,.report-btn-share,.report-btn-close{font-size:12px;padding:7px 12px;}
+.grid{grid-template-columns:1fr;}
+.header h1{font-size:18px;}
+.header{padding:1.2rem 1rem 1.5rem;}
+.stats-bar{gap:.4rem;}
+.stat{padding:.4rem .6rem;min-width:55px;}
+.stat-num{font-size:16px;}
+.stat-label{font-size:9px;}
+.filter-btns{display:flex;flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch;padding-bottom:4px;}
+.filter-btns::-webkit-scrollbar{display:none;}
+.filter-btn{white-space:nowrap;flex-shrink:0;font-size:11px;padding:6px 10px;}
+.toolbar{flex-wrap:nowrap;overflow-x:auto;gap:6px;padding:.5rem;}
+.toolbar::-webkit-scrollbar{display:none;}
+.card{padding:.8rem;}
+.card-name{font-size:13px;}
+.action-btn{font-size:11px;padding:5px 8px;}
+.modal{padding:1rem;max-height:92vh;}
+.modal input,.modal select{font-size:14px;}
+.fab{width:44px;height:44px;font-size:20px;}
+.report-modal{padding:.8rem;border-radius:10px;}
+.report-actions{flex-wrap:wrap;gap:6px;}
+.report-btn-print,.report-btn-share,.report-btn-close{font-size:12px;padding:7px 12px;}
 }
 @media(max-width:400px){
-  .stat{padding:.3rem .4rem;min-width:48px;}
-  .stat-num{font-size:14px;}
-  .header h1{font-size:16px;}
+.stat{padding:.3rem .4rem;min-width:48px;}
+.stat-num{font-size:14px;}
+.header h1{font-size:16px;}
 }
 /* iOS Safari fix */
 @supports (-webkit-touch-callout: none) {
-  .modal{max-height:85vh;}
-  input,select,textarea{font-size:16px !important;}
+.modal{max-height:85vh;}
+input,select,textarea{font-size:16px !important;}
 }
 /* Touch devices */
 @media (hover: none) and (pointer: coarse) {
-  .filter-btn,.action-btn,.modal-save,.modal-cancel{min-height:38px;}
+.filter-btn,.action-btn,.modal-save,.modal-cancel{min-height:38px;}
 }
 .report-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.8);z-index:2000;padding:0;overflow:hidden;}
 .report-overlay.open{display:flex;align-items:flex-start;justify-content:center;}
-.report-modal{background:#fff;color:#111;border-radius:0;padding:.8rem;width:100%;max-width:100%;margin:0;font-family:'Tajawal',sans-serif;height:100vh;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;}
+.report-modal{background:#fff;color:#111;border-radius:0;padding:.8rem;width:100%;max-width:100%;margin:0;font-family:‘Tajawal’,sans-serif;height:100vh;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;}
 .report-table-wrap{width:100%;overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;border-radius:8px;}
 .report-header{text-align:center;border-bottom:2px solid #0a3d62;padding-bottom:1rem;margin-bottom:1.5rem;}
 .report-header h2{font-size:22px;font-weight:900;color:#0a3d62;margin-bottom:4px;}
@@ -243,47 +244,49 @@ body{font-family:'Tajawal',sans-serif;direction:rtl;background:#0d1117;color:#e6
 .report-social a{color:#0a3d62;font-size:12px;text-decoration:none;display:flex;align-items:center;gap:5px;}
 .report-footer-note{text-align:center;margin-top:1.2rem;font-size:11px;color:#888;border-top:1px solid #e5e7eb;padding-top:.8rem;}
 .report-actions{display:flex;gap:10px;margin-bottom:1.2rem;justify-content:flex-end;}
-.report-btn-print{padding:9px 20px;border-radius:9px;background:#0a3d62;border:none;color:#fff;font-size:13px;font-weight:700;cursor:pointer;font-family:'Tajawal',sans-serif;}
-.report-btn-share{padding:9px 16px;border-radius:9px;background:#1e3a5f;border:1px solid #1a6fa8;color:#60a5fa;font-size:13px;font-weight:700;cursor:pointer;font-family:'Tajawal',sans-serif;transition:all .15s;}
-.report-btn-close{padding:9px 16px;border-radius:9px;background:#e5e7eb;border:none;color:#333;font-size:13px;cursor:pointer;font-family:'Tajawal',sans-serif;}
+.report-btn-print{padding:9px 20px;border-radius:9px;background:#0a3d62;border:none;color:#fff;font-size:13px;font-weight:700;cursor:pointer;font-family:‘Tajawal’,sans-serif;}
+.report-btn-share{padding:9px 16px;border-radius:9px;background:#1e3a5f;border:1px solid #1a6fa8;color:#60a5fa;font-size:13px;font-weight:700;cursor:pointer;font-family:‘Tajawal’,sans-serif;transition:all .15s;}
+.report-btn-close{padding:9px 16px;border-radius:9px;background:#e5e7eb;border:none;color:#333;font-size:13px;cursor:pointer;font-family:‘Tajawal’,sans-serif;}
 @media print{
-  .no-print { display:none!important; }
-  .no-print-hide { display:block!important; }
-  @page { size: A4 landscape; margin: 1cm; }
-  body{background:#fff!important;}
-  body > *{display:none!important;}
-  #reportContainer{display:block!important;position:fixed!important;inset:0!important;background:#fff!important;z-index:99999!important;}
-  .report-overlay{display:block!important;position:static!important;background:#fff!important;padding:0!important;}
-  .report-modal{border-radius:0!important;padding:.5cm!important;max-width:100%!important;box-shadow:none!important;width:100%!important;}
-  .report-actions{display:none!important;}
-  .report-table-wrap{overflow:visible!important;width:100%!important;}
-  .report-table{width:100%!important;table-layout:fixed!important;font-size:10px!important;}
-  .report-table th{padding:5px 5px!important;font-size:10px!important;border-left:1px solid rgba(255,255,255,0.3)!important;-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important;}
-  .report-table td{padding:4px 5px!important;font-size:10px!important;border:1px solid #ccc!important;-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important;}
-  /* Column widths for landscape A4 (~277mm printable) */
-  .report-table th:nth-child(1), .report-table td:nth-child(1){ width:25px!important; }
-  .report-table th:nth-child(2), .report-table td:nth-child(2){ width:85px!important; }
-  .report-table th:nth-child(3), .report-table td:nth-child(3){ width:30px!important; }
-  .report-table th:nth-child(4), .report-table td:nth-child(4){ width:50px!important; }
-  .report-table th:nth-child(5), .report-table td:nth-child(5){ width:65px!important; }
-  .report-table th:nth-child(6), .report-table td:nth-child(6){ width:65px!important; }
-  .report-table th:nth-child(7), .report-table td:nth-child(7){ width:80px!important; }
-  .report-table th:nth-child(8), .report-table td:nth-child(8){ width:65px!important; }
-  .report-table th:nth-child(9), .report-table td:nth-child(9){ width:50px!important; }
-  .report-table th:nth-child(10),.report-table td:nth-child(10){ width:60px!important; }
-  .report-table th:nth-child(11),.report-table td:nth-child(11){ width:60px!important; }
-  .report-table th:nth-child(12),.report-table td:nth-child(12){ width:100px!important;}
-  /* Signature column print */
-  .report-table td:nth-child(12) { overflow:visible!important; }
-  .sig-print-img { width:100px!important; height:45px!important; object-fit:contain!important; display:block!important; -webkit-print-color-adjust:exact!important; print-color-adjust:exact!important; }
-  .sig-print-line { height:40px!important; border-bottom:1.5px solid #374151!important; margin:10px 4px 0!important; display:block!important; }
-  /* Reduce font for social links */
-  .report-social a{ font-size:9px!important; }
-  .report-header h2{ font-size:16px!important; }
-  .report-header p{ font-size:10px!important; }
+.no-print { display:none!important; }
+.no-print-hide { display:block!important; }
+@page { size: A4 landscape; margin: 1cm; }
+body{background:#fff!important;}
+body > *{display:none!important;}
+#reportContainer{display:block!important;position:fixed!important;inset:0!important;background:#fff!important;z-index:99999!important;}
+.report-overlay{display:block!important;position:static!important;background:#fff!important;padding:0!important;}
+.report-modal{border-radius:0!important;padding:.5cm!important;max-width:100%!important;box-shadow:none!important;width:100%!important;}
+.report-actions{display:none!important;}
+.report-table-wrap{overflow:visible!important;width:100%!important;}
+.report-table{width:100%!important;table-layout:fixed!important;font-size:10px!important;}
+.report-table th{padding:5px 5px!important;font-size:10px!important;border-left:1px solid rgba(255,255,255,0.3)!important;-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important;}
+.report-table td{padding:4px 5px!important;font-size:10px!important;border:1px solid #ccc!important;-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important;}
+/* Column widths for landscape A4 (~277mm printable) */
+.report-table th:nth-child(1), .report-table td:nth-child(1){ width:25px!important; }
+.report-table th:nth-child(2), .report-table td:nth-child(2){ width:85px!important; }
+.report-table th:nth-child(3), .report-table td:nth-child(3){ width:30px!important; }
+.report-table th:nth-child(4), .report-table td:nth-child(4){ width:50px!important; }
+.report-table th:nth-child(5), .report-table td:nth-child(5){ width:65px!important; }
+.report-table th:nth-child(6), .report-table td:nth-child(6){ width:65px!important; }
+.report-table th:nth-child(7), .report-table td:nth-child(7){ width:80px!important; }
+.report-table th:nth-child(8), .report-table td:nth-child(8){ width:65px!important; }
+.report-table th:nth-child(9), .report-table td:nth-child(9){ width:50px!important; }
+.report-table th:nth-child(10),.report-table td:nth-child(10){ width:60px!important; }
+.report-table th:nth-child(11),.report-table td:nth-child(11){ width:60px!important; }
+.report-table th:nth-child(12),.report-table td:nth-child(12){ width:100px!important;}
+/* Signature column print */
+.report-table td:nth-child(12) { overflow:visible!important; }
+.sig-print-img { width:100px!important; height:45px!important; object-fit:contain!important; display:block!important; -webkit-print-color-adjust:exact!important; print-color-adjust:exact!important; }
+.sig-print-line { height:40px!important; border-bottom:1.5px solid #374151!important; margin:10px 4px 0!important; display:block!important; }
+/* Reduce font for social links */
+.report-social a{ font-size:9px!important; }
+.report-header h2{ font-size:16px!important; }
+.report-header p{ font-size:10px!important; }
 }
 </style>
+
 <style id="guestStyle"></style>
+
 <script>
 (function(){
   // Clear cache if requested
@@ -303,10 +306,12 @@ body{font-family:'Tajawal',sans-serif;direction:rtl;background:#0d1117;color:#e6
   }
 })();
 </script>
+
 </head>
 <body>
 
 <!-- Login Screen -->
+
 <div id="loginScreen" style="position:fixed;inset:0;z-index:99999;background:linear-gradient(135deg,#0a3d62 0%,#1a6fa8 60%,#22a6d6 100%);display:flex;align-items:center;justify-content:center;font-family:Tajawal,sans-serif;direction:rtl;">
   <div style="background:rgba(0,0,0,0.35);border:1px solid rgba(255,255,255,0.15);border-radius:20px;padding:2.5rem 2rem;width:100%;max-width:360px;box-shadow:0 20px 60px rgba(0,0,0,0.5);">
     <div style="text-align:center;margin-bottom:2rem;">
@@ -444,6 +449,7 @@ body{font-family:'Tajawal',sans-serif;direction:rtl;background:#0d1117;color:#e6
 <div class="grid" id="grid"></div>
 
 <!-- Duplicate Review Modal -->
+
 <div class="modal-overlay hidden" id="dupReviewOverlay" onclick="if(event.target===this)closeDupReview()">
   <div class="modal" style="max-width:640px;max-height:90vh;overflow-y:auto;">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;">
@@ -465,12 +471,13 @@ body{font-family:'Tajawal',sans-serif;direction:rtl;background:#0d1117;color:#e6
     <button class="save-bottom-btn" id="manualSaveBtn" onclick="manualSave()">💾 حفظ يدوي</button>
     <button class="add-bottom-btn" onclick="openActivityLog()" style="background:linear-gradient(135deg,#1e3a5f,#1a6fa8);">📋 سجل النشاط</button>
     <button class="add-bottom-btn" onclick="openRecovery()" style="background:linear-gradient(135deg,#7f1d1d,#dc2626);">🚨 حالات الطوارئ</button>
-    <button class="add-bottom-btn" id="dupReviewBtn" onclick="openDupReview()" style="background:linear-gradient(135deg,#7c2d12,#ea580c);display:inline-flex;align-items:center;gap:6px;">🔍 كشف المكررين <span id="dupReviewCount" style="display:none;background:#fff;color:#ea580c;border-radius:10px;padding:1px 7px;font-size:11px;font-weight:900;"></span></button>
+    <button class="add-bottom-btn" id="dupReviewBtn" onclick="openDupReview()" style="background:linear-gradient(135deg,#7c2d12,#ea580c);display:none;">🔍 مراجعة المكررين <span id="dupReviewCount" style="background:#fff;color:#ea580c;border-radius:10px;padding:1px 7px;font-size:11px;margin-right:4px;font-weight:900;"></span></button>
   </div>
   <div>مركز كيور الطبي © 2026 — جميع الحقوق محفوظة</div>
 </div>
 
 <!-- Appt Card Popup -->
+
 <div id="apptCardOverlay" style="display:none;position:fixed;inset:0;z-index:3000;background:rgba(0,0,0,0.7);align-items:center;justify-content:center;padding:1rem;" onclick="if(event.target===this)closeApptCard()">
   <div style="max-width:480px;width:100%;position:relative;max-height:90vh;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;" onclick="event.stopPropagation()">
     <button onclick="closeApptCard()" style="position:absolute;top:-14px;left:-14px;z-index:10;width:34px;height:34px;border-radius:50%;border:2px solid #fff;background:#dc2626;color:#fff;font-size:18px;cursor:pointer;font-weight:900;line-height:1;box-shadow:0 2px 8px rgba(0,0,0,.5);">✕</button>
@@ -479,6 +486,7 @@ body{font-family:'Tajawal',sans-serif;direction:rtl;background:#0d1117;color:#e6
 </div>
 
 <!-- Activity Log Modal -->
+
 <div class="modal-overlay hidden" id="activityLogOverlay" onclick="if(event.target===this)closeActivityLog()">
   <div class="modal" style="max-width:600px;max-height:85vh;overflow-y:auto;">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;">
@@ -493,6 +501,7 @@ body{font-family:'Tajawal',sans-serif;direction:rtl;background:#0d1117;color:#e6
 </div>
 
 <!-- Missed Visits Modal -->
+
 <div class="modal-overlay hidden" id="missedVisitsOverlay" onclick="if(event.target===this)closeMissedVisits()">
   <div class="modal" style="max-width:500px;">
     <h3>📅 مواعيد تحتاج تأكيد</h3>
@@ -505,6 +514,7 @@ body{font-family:'Tajawal',sans-serif;direction:rtl;background:#0d1117;color:#e6
 </div>
 
 <!-- Notes Modal -->
+
 <div class="modal-overlay hidden" id="notesOverlay" onclick="if(event.target===this)closeNotes()">
   <div class="modal" style="max-width:460px;">
     <h3>📝 ملاحظات</h3>
@@ -543,6 +553,7 @@ body{font-family:'Tajawal',sans-serif;direction:rtl;background:#0d1117;color:#e6
 </div>
 
 <!-- FAB -->
+
 <button class="fab" onclick="toggleFabMenu()" title="إضافة" id="fabBtn">
   <svg id="fabIcon" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
 </button>
@@ -565,6 +576,7 @@ body{font-family:'Tajawal',sans-serif;direction:rtl;background:#0d1117;color:#e6
 <div id="fabBackdrop" onclick="closeFabMenu()" style="display:none;position:fixed;inset:0;z-index:9997;"></div>
 
 <!-- Dialect Popup -->
+
 <div class="service-popup" id="dialectPopup" onclick="if(event.target===this)closeDialectPopup()">
   <div class="service-popup-inner" onclick="event.stopPropagation()">
     <div style="font-size:14px;font-weight:700;color:#e6edf3;text-align:center;margin-bottom:.8rem;font-family:Tajawal,sans-serif;">🗣️ اختر اللهجة</div>
@@ -578,6 +590,7 @@ body{font-family:'Tajawal',sans-serif;direction:rtl;background:#0d1117;color:#e6
 </div>
 
 <!-- Add Modal -->
+
 <div class="modal-overlay hidden" id="addModalOverlay" onclick="if(event.target===this)closeModal()">
   <div class="modal">
     <h3>
@@ -608,6 +621,7 @@ body{font-family:'Tajawal',sans-serif;direction:rtl;background:#0d1117;color:#e6
 </div>
 
 <!-- Edit Modal -->
+
 <div class="modal-overlay hidden" id="editModalOverlay" onclick="if(event.target===this)closeEditModal()">
   <div class="modal">
     <h3>
@@ -638,6 +652,7 @@ body{font-family:'Tajawal',sans-serif;direction:rtl;background:#0d1117;color:#e6
 </div>
 
 <!-- Bulk Modal -->
+
 <div class="modal-overlay hidden" id="bulkModalOverlay" onclick="if(event.target===this)closeBulkModal()">
   <div class="modal">
     <h3>⚡ إضافة جماعية للمؤثرين</h3>
@@ -651,6 +666,7 @@ body{font-family:'Tajawal',sans-serif;direction:rtl;background:#0d1117;color:#e6
 </div>
 
 <!-- Duplicate single modal - field by field comparison -->
+
 <div class="modal-overlay hidden" id="dupSingleOverlay" onclick="if(event.target===this)dupSingleSkip()">
   <div class="modal" style="max-width:500px;">
     <h3>⚠️ مؤثر موجود مسبقاً</h3>
@@ -664,6 +680,7 @@ body{font-family:'Tajawal',sans-serif;direction:rtl;background:#0d1117;color:#e6
 </div>
 
 <!-- Duplicate bulk modal -->
+
 <div class="modal-overlay hidden" id="dupBulkOverlay">
   <div class="modal" style="max-width:520px;">
     <h3>⚠️ تكرارات في الإضافة الجماعية</h3>
@@ -677,6 +694,7 @@ body{font-family:'Tajawal',sans-serif;direction:rtl;background:#0d1117;color:#e6
 </div>
 
 <!-- Date picker -->
+
 <div class="date-picker-popup" id="datePickerPopup" onclick="if(event.target===this)cancelDatePicker()"><div class="date-picker-inner" onclick="event.stopPropagation()">
   <div class="date-picker-header">
     <button class="dp-nav-btn" onclick="dpNavigate(-1)">›</button>
@@ -716,6 +734,7 @@ body{font-family:'Tajawal',sans-serif;direction:rtl;background:#0d1117;color:#e6
 </div></div>
 
 <!-- Appointments Panel -->
+
 <div class="appt-panel-overlay" id="apptPanelOverlay" onclick="if(event.target===this)closeApptPanel()">
   <div class="appt-panel">
     <div class="appt-panel-header">
@@ -727,6 +746,7 @@ body{font-family:'Tajawal',sans-serif;direction:rtl;background:#0d1117;color:#e6
 </div>
 
 <!-- Delete Confirmation Modal (move to trash) -->
+
 <div class="modal-overlay hidden" id="deleteConfirmOverlay" onclick="if(event.target===this)cancelDelete()">
   <div class="modal" style="max-width:360px;text-align:center;">
     <div style="font-size:40px;margin-bottom:.5rem;">🗑</div>
@@ -741,6 +761,7 @@ body{font-family:'Tajawal',sans-serif;direction:rtl;background:#0d1117;color:#e6
 </div>
 
 <!-- Permanent Delete Confirmation Modal -->
+
 <div class="modal-overlay hidden" id="permDeleteOverlay" onclick="if(event.target===this)cancelPermDelete()">
   <div class="modal" style="max-width:360px;text-align:center;">
     <div style="font-size:40px;margin-bottom:.5rem;">⚠️</div>
@@ -755,6 +776,7 @@ body{font-family:'Tajawal',sans-serif;direction:rtl;background:#0d1117;color:#e6
 </div>
 
 <!-- Phone Action Popup -->
+
 <div id="phonePopupOverlay" onclick="if(event.target===this)hidePhonePopup()" style="display:none;position:fixed;inset:0;z-index:5000;background:rgba(0,0,0,.55);">
   <div onclick="event.stopPropagation()" style="position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:440px;background:#1c2128;border-radius:20px 20px 0 0;padding:1.3rem 1rem 1.5rem;font-family:Tajawal,sans-serif;animation:slideUp .22s ease;">
     <div id="phonePopupName" style="font-size:13px;color:#8b949e;text-align:center;margin-bottom:.2rem;"></div>
@@ -1104,7 +1126,7 @@ function showToast(msg, color='#059669') {
 function updateStats() {
   const visited=influencers.filter(i=>i.status==='approved'&&i.visitStatus==='done').length;
   const cancelled=influencers.filter(i=>i.status==='approved'&&i.visitStatus==='cancelled').length;
-  const approved=influencers.filter(i=>i.status==='approved').length;
+  const approved=influencers.filter(i=>i.status==='approved'&&i.visitStatus!=='done'&&i.visitStatus!=='cancelled').length;
   const rejected=influencers.filter(i=>i.status==='rejected').length;
   const total=influencers.length;
   document.getElementById('statTotal').textContent=total;
@@ -1306,7 +1328,7 @@ function renderGrid() {
     const searchStr=(name+item.ig+item.tt+item.phone+item.snap+(item.nationality||'')).toLowerCase();
     const matchSearch=!q||searchStr.includes(q);
     const matchFilter=currentFilter==='all'||
-      (currentFilter==='approved'&&item.status==='approved')||
+      (currentFilter==='approved'&&item.status==='approved'&&item.visitStatus!=='done'&&item.visitStatus!=='cancelled')||
       (currentFilter==='rejected'&&item.status==='rejected')||
       (currentFilter==='visited'&&item.status==='approved'&&item.visitStatus==='done')||
       (currentFilter==='cancelled'&&item.status==='approved'&&item.visitStatus==='cancelled')||
@@ -3340,6 +3362,7 @@ thead tr th{background:${thBg};color:#fff;padding:10px 12px;font-size:13px;font-
 td{padding:9px 12px;border-bottom:1px solid #e5e7eb;font-size:12px;font-family:'Tajawal',sans-serif;vertical-align:middle;}
 .rpt-footer{text-align:center;padding:1rem;font-size:11px;color:#888;border-top:1px solid #e5e7eb;background:#f8fafc;}
 @media print{body{background:#fff;padding:0;}.wrap{box-shadow:none;border-radius:0;}.print-actions{display:none!important;}}</style></head>
+
 <body><div class="wrap">
 <div class="rpt-header"><div class="rpt-title">${emoji} ${title}</div><div class="rpt-sub">مركز كيور الطبي — الحملة الإعلانية | ${today}</div><div class="rpt-count">الإجمالي: ${count} مؤثر</div></div>
 <div class="rpt-body"><div class="print-actions"><button onclick="window.close()" style="background:#e5e7eb;color:#333;">✕ إغلاق</button><button onclick="window.print()" style="background:${thBg};color:#fff;">🖨️ طباعة / PDF</button></div>
@@ -3348,511 +3371,402 @@ td{padding:9px 12px;border-bottom:1px solid #e5e7eb;font-size:12px;font-family:'
 </div></body></html>`;
 }
 
-// --- Status Reports (approved / rejected) ------------------------
+// — Status Reports (approved / rejected) ————————
 function openStatusReport(type) {
-  const isApproved=type==='approved';
-  let list=influencers.filter(i=>i.status===type);
-  // Sort approved: done → cancelled → has date → no date
-  if(isApproved) {
-    list = list.sort((a,b)=>{
-    // عندهم موعد أولاً (من الأقدم للأحدث)، ثم بدون موعد (أبجدي)
-    const hasDateA = !!(a.visitDate);
-    const hasDateB = !!(b.visitDate);
-    if(hasDateA && !hasDateB) return -1;
-    if(!hasDateA && hasDateB) return 1;
-    if(hasDateA && hasDateB) return a.visitDate.localeCompare(b.visitDate);
-    // بدون موعد: أبجدي عربي ثم إنجليزي
-    const nameA = (a.name || a.ig || '').trim();
-    const nameB = (b.name || b.ig || '').trim();
-    const isArA = /[\u0600-\u06FF]/.test(nameA.charAt(0));
-    const isArB = /[\u0600-\u06FF]/.test(nameB.charAt(0));
-    if(isArA && !isArB) return -1;
-    if(!isArA && isArB) return 1;
-    return nameA.localeCompare(nameB, isArA ? 'ar' : 'en', {sensitivity:'base'});
-    });
-  }
-  logActivity('report', `فتح كشف: ${type==='approved'?'المقبولين':'المرفوضين'} — Admin`);
-  if(!list.length){showToast(isApproved?'⚠️ لا يوجد مقبولين!':'⚠️ لا يوجد مرفوضين!','#d97706');return;}
-  const today=new Date().toLocaleDateString('ar-KW',{year:'numeric',month:'long',day:'numeric'});
-  const title=isApproved?'✅ كشف المؤثرين المقبولين':'❌ كشف المؤثرين المرفوضين';
-  const thBg=isApproved?'#0a3d62':'#7f1d1d';
-  const countColor=isApproved?'#16a34a':'#dc2626';
-  const rows=list.map((item,i)=>{
-    const realIdx=influencers.indexOf(item);
-    const name=item.name||'—';
-    const gLabel=item.gender==='m'?'<span style="color:#1a6fa8;font-weight:700;">👨 ذكر</span>':item.gender==='f'?'<span style="color:#a21caf;font-weight:700;">👩 أنثى</span>':'—';
-    const natCell=item.nationality?`<span style="background:#e6f7f1;color:#0a7a55;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:700;">🌍 ${item.nationality}</span>`:'—';
-    const phoneCell=item.phone?`<span onclick="showPhonePopup('${item.phone.replace(/'/g,"\\'")}','${(item.name||item.ig||'').replace(/'/g,"\\'")}',event)" style="color:#0369a1;direction:ltr;display:block;white-space:nowrap;font-size:12px;cursor:pointer;font-weight:600;" title="اضغط للتواصل">📞 ${item.phone}</span>`:'—';
-    if(isApproved){
-      const dateStr=item.visitDate?formatDateAr(item.visitDate):'—';
-      const vs=item.visitStatus||'';
-      const doneA=vs===''?'background:#f0fdf4;color:#15803d;opacity:1;'
-        :vs==='done'?'background:#15803d;color:#fff;opacity:1;'
-        :'background:#e5e7eb;color:#9ca3af;opacity:0.45;';
-      const cancA=vs===''?'background:#fefce8;color:#ca8a04;opacity:1;'
-        :vs==='cancelled'?'background:#ca8a04;color:#fff;opacity:1;'
-        :'background:#e5e7eb;color:#9ca3af;opacity:0.45;';
-      const svcLabel=(item.services&&item.services.length)?item.services.map(s=>`<span style="display:inline-block;background:#f3e8ff;color:#7c3aed;border:1px solid #c084fc;border-radius:5px;padding:2px 7px;font-size:11px;margin:1px;">${s}</span>`).join(' '):'—';
-      const cs=item.contentStatus||'';
-      const pubStyle=cs===''?'background:#fefce8;color:#ca8a04;opacity:1;'
-        :cs==='published'?'background:#ca8a04;color:#fff;opacity:1;'
-        :'background:#e5e7eb;color:#9ca3af;opacity:0.45;';
-      const unpubStyle=cs===''?'background:#f3e8ff;color:#7c3aed;opacity:1;'
-        :cs==='unpublished'?'background:#7c3aed;color:#fff;opacity:1;'
-        :'background:#e5e7eb;color:#9ca3af;opacity:0.45;';
-      const rowBg=cs==='published'?'#fef9c3':cs==='unpublished'?'#f3e8ff':vs==='done'?'#bbf7d0':vs==='cancelled'?'#fee2e2':(i%2===1?'#f8fafc':'#fff');
-      const rowBorder=cs==='published'?'border-right:4px solid #ca8a04;':cs==='unpublished'?'border-right:4px solid #7c3aed;':vs==='done'?'border-right:4px solid #16a34a;':vs==='cancelled'?'border-right:4px solid #dc2626;':'';
-      const vsLabel=vs==='done'?'<br><span style="font-size:10px;color:#16a34a;font-weight:700;">✅ تمت الزيارة</span>':vs==='cancelled'?'<br><span style="font-size:10px;color:#dc2626;font-weight:700;">⚠️ ألغيت الزيارة</span>':'';
-      return `<tr id="rrow_${realIdx}" style="background:${rowBg};${rowBorder}">
-        <td style="text-align:center;font-weight:900;color:${thBg};width:30px;padding:8px 6px;">${i+1}</td>
-        <td style="font-weight:700;font-size:13px;min-width:100px;cursor:pointer;" onclick="showApptCard(${realIdx})" title="اضغط لعرض تفاصيل المؤثر"><span style="border-bottom:2px dotted #1a6fa8;color:#1a6fa8;">${name}</span>${vsLabel}</td>
-        <td style="min-width:50px;">${gLabel}</td>
-        <td style="min-width:70px;">${natCell}</td>
-        <td style="direction:ltr;min-width:90px;">${phoneCell}</td>
-        <td style="font-size:11px;color:#555;direction:ltr;min-width:80px;">${item.civil||'—'}</td>
-        <td style="min-width:90px;"><div style="display:flex;flex-direction:column;gap:3px;">${buildSocialsHtml(item)}</div></td>
-        <td style="white-space:nowrap;color:${thBg};font-weight:600;min-width:90px;">${dateStr}</td>
-        <td style="min-width:80px;">
-          <div style="display:flex;align-items:center;gap:5px;min-width:80px;" id="rptSvcBtn_${realIdx}">
-            <span style="flex:1;font-size:11px;color:${(item.services&&item.services.length)?'#7c3aed':'#9ca3af'};">${svcLabel}</span>
-            <button onclick="openServicePopupFromReport(${realIdx},event)" title="تعديل الخدمة" style="flex-shrink:0;width:24px;height:24px;border-radius:6px;border:1px solid #7c3aed;background:#f3e8ff;color:#7c3aed;font-size:13px;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0;line-height:1;">✏️</button>
-          </div>
-        </td>
-        <td style="min-width:100px;"><div style="display:flex;gap:4px;flex-direction:column;">
-          <button onclick="setVisitStatus(${realIdx},'done')" style="padding:5px 8px;border-radius:6px;border:1px solid #15803d;font-size:11px;font-weight:700;cursor:pointer;font-family:Tajawal,sans-serif;white-space:nowrap;${doneA}">✅ تمت</button>
-          <button onclick="setVisitStatus(${realIdx},'cancelled')" style="padding:5px 8px;border-radius:6px;border:1px solid #ca8a04;font-size:11px;font-weight:700;cursor:pointer;font-family:Tajawal,sans-serif;white-space:nowrap;${cancA}">⚠️ ألغيت</button>
-        </div></td>
-        <td style="min-width:110px;" id="pubCell_${realIdx}"><div style="display:flex;gap:4px;flex-direction:column;">
-          <button onclick="setContentStatus(${realIdx},'published')" style="padding:5px 8px;border-radius:6px;border:1px solid #ca8a04;font-size:11px;font-weight:700;cursor:pointer;font-family:Tajawal,sans-serif;white-space:nowrap;${pubStyle}">🌟 تم النشر</button>
-          <button onclick="setContentStatus(${realIdx},'unpublished')" style="padding:5px 8px;border-radius:6px;border:1px solid #7c3aed;font-size:11px;font-weight:700;cursor:pointer;font-family:Tajawal,sans-serif;white-space:nowrap;${unpubStyle}">🟣 لم يتم</button>
-        </div></td>
-        <td style="min-width:150px;border-left:1px solid #e5e7eb;padding:4px;">
-          ${item.signature
-            ? `<div style="position:relative;">
-                <img src="${item.signature}" class="sig-print-img" style="width:140px;height:50px;object-fit:contain;display:block;" />
-                <button onclick="clearSignature(${realIdx})" class="no-print" style="position:absolute;top:0;left:0;background:#dc2626;color:#fff;border:none;border-radius:4px;font-size:9px;padding:1px 5px;cursor:pointer;">✕</button>
-               </div>`
-            : `<canvas id="sigCanvas_${realIdx}" width="140" height="50"
-                class="no-print"
-                style="border:1.5px dashed #9ca3af;border-radius:4px;cursor:crosshair;touch-action:none;display:block;"
-                onmousedown="startSig(event,${realIdx})"
-                ontouchstart="startSig(event,${realIdx})"></canvas>
-               <div class="sig-print-line no-print-hide" style="display:none;"></div>
-               <div class="no-print" style="display:flex;gap:4px;margin-top:3px;">
-                 <button onclick="saveSig(${realIdx})" style="flex:1;padding:2px;border:1px solid #059669;background:#f0fdf4;color:#059669;border-radius:4px;font-size:10px;cursor:pointer;font-family:Tajawal,sans-serif;">✓ حفظ</button>
-                 <button onclick="clearCanvas(${realIdx})" style="flex:1;padding:2px;border:1px solid #9ca3af;background:#f9fafb;color:#555;border-radius:4px;font-size:10px;cursor:pointer;font-family:Tajawal,sans-serif;">مسح</button>
-               </div>`
-          }
-        </td>
-      </tr>`;
-    } else {
-      return `<tr style="background:${i%2===1?'#f8fafc':'#fff'}">
-        <td style="text-align:center;font-weight:900;color:${thBg};width:30px;">${i+1}</td>
-        <td style="font-weight:700;font-size:13px;">${name}</td><td>${gLabel}</td>
-        <td>${natCell}</td>
-        <td style="direction:ltr;">${phoneCell}</td>
-        <td style="font-size:11px;color:#555;direction:ltr;">${item.civil||'—'}</td>
-        <td><div style="display:flex;flex-direction:column;gap:3px;">${buildSocialsHtml(item)}</div></td>
-      </tr>`;
-    }
-  }).join('');
-  const extraH=isApproved?`<th style="background:${thBg};min-width:90px;">موعد الزيارة</th><th style="background:${thBg};min-width:80px;">الخدمة</th><th style="background:${thBg};min-width:100px;">حالة الزيارة</th><th style="background:${thBg};min-width:110px;">حالة النشر</th><th style="background:${thBg};min-width:150px;">توقيع المؤثر</th>`:'';
-  const html=`<div class="report-overlay open" id="reportOverlay" onclick="if(event.target===this)closeReport()">
-    <div class="report-modal" style="max-width:100%;width:100%;margin:0;border-radius:0;min-height:100vh;">
-      <div class="report-actions" style="position:sticky;top:0;background:#fff;z-index:10;padding:.5rem 0;border-bottom:1px solid #e5e7eb;">
-        <button class="report-btn-close" onclick="closeReport()">✕ إغلاق</button>
-        <button class="report-btn-print" style="background:${thBg}" onclick="window.print()">🖨️ طباعة / PDF</button>
-        <button class="report-btn-share" onclick="shareStatusReport('${type}')">📤 مشاركة</button>
-      </div>
-      <div class="report-header"><h2 style="color:${thBg}">${title}</h2>
-        <p>مركز كيور الطبي — الحملة الإعلانية | ${today}</p>
-        <p style="font-weight:700;color:${countColor};margin-top:4px;">الإجمالي: ${list.length} مؤثر</p>
-      </div>
-      <div class="report-table-wrap" style="overflow-x:auto;"><table class="report-table" style="min-width:900px;"><thead><tr>
-        <th style="background:${thBg};width:30px;text-align:center;">#</th>
-        <th style="background:${thBg};min-width:100px;">الاسم</th>
-        <th style="background:${thBg};min-width:50px;">الجنس</th>
-        <th style="background:${thBg};min-width:70px;">الجنسية</th>
-        <th style="background:${thBg};min-width:90px;">الهاتف</th>
-        <th style="background:${thBg};min-width:80px;">الرقم المدني</th>
-        <th style="background:${thBg};min-width:90px;">الصفحات</th>${extraH}
-      </tr></thead><tbody>${rows}</tbody></table></div>
-      <div class="report-footer-note">هذا الكشف سري ومخصص للاستخدام الداخلي — مركز كيور الطبي © 2026</div>
-    </div></div>`;
-  const div=document.createElement('div');div.id='reportContainer';div.innerHTML=html;document.body.appendChild(div);
+const isApproved=type===‘approved’;
+let list=influencers.filter(i=>i.status===type);
+// Sort approved: done → cancelled → has date → no date
+if(isApproved) {
+list = list.sort((a,b)=>{
+// عندهم موعد أولاً (من الأقدم للأحدث)، ثم بدون موعد (أبجدي)
+const hasDateA = !!(a.visitDate);
+const hasDateB = !!(b.visitDate);
+if(hasDateA && !hasDateB) return -1;
+if(!hasDateA && hasDateB) return 1;
+if(hasDateA && hasDateB) return a.visitDate.localeCompare(b.visitDate);
+// بدون موعد: أبجدي عربي ثم إنجليزي
+const nameA = (a.name || a.ig || ‘’).trim();
+const nameB = (b.name || b.ig || ‘’).trim();
+const isArA = /[\u0600-\u06FF]/.test(nameA.charAt(0));
+const isArB = /[\u0600-\u06FF]/.test(nameB.charAt(0));
+if(isArA && !isArB) return -1;
+if(!isArA && isArB) return 1;
+return nameA.localeCompare(nameB, isArA ? ‘ar’ : ‘en’, {sensitivity:‘base’});
+});
+}
+logActivity(‘report’, `فتح كشف: ${type==='approved'?'المقبولين':'المرفوضين'} — Admin`);
+if(!list.length){showToast(isApproved?‘⚠️ لا يوجد مقبولين!’:‘⚠️ لا يوجد مرفوضين!’,’#d97706’);return;}
+const today=new Date().toLocaleDateString(‘ar-KW’,{year:‘numeric’,month:‘long’,day:‘numeric’});
+const title=isApproved?‘✅ كشف المؤثرين المقبولين’:‘❌ كشف المؤثرين المرفوضين’;
+const thBg=isApproved?’#0a3d62’:’#7f1d1d’;
+const countColor=isApproved?’#16a34a’:’#dc2626’;
+const rows=list.map((item,i)=>{
+const realIdx=influencers.indexOf(item);
+const name=item.name||’—’;
+const gLabel=item.gender===‘m’?’<span style="color:#1a6fa8;font-weight:700;">👨 ذكر</span>’:item.gender===‘f’?’<span style="color:#a21caf;font-weight:700;">👩 أنثى</span>’:’—’;
+const natCell=item.nationality?`<span style="background:#e6f7f1;color:#0a7a55;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:700;">🌍 ${item.nationality}</span>`:’—’;
+const phoneCell=item.phone?`<span onclick="showPhonePopup('${item.phone.replace(/'/g,"\\'")}','${(item.name||item.ig||'').replace(/'/g,"\\'")}',event)" style="color:#0369a1;direction:ltr;display:block;white-space:nowrap;font-size:12px;cursor:pointer;font-weight:600;" title="اضغط للتواصل">📞 ${item.phone}</span>`:’—’;
+if(isApproved){
+const dateStr=item.visitDate?formatDateAr(item.visitDate):’—’;
+const vs=item.visitStatus||’’;
+const doneA=vs===’’?‘background:#f0fdf4;color:#15803d;opacity:1;’
+:vs===‘done’?‘background:#15803d;color:#fff;opacity:1;’
+:‘background:#e5e7eb;color:#9ca3af;opacity:0.45;’;
+const cancA=vs===’’?‘background:#fefce8;color:#ca8a04;opacity:1;’
+:vs===‘cancelled’?‘background:#ca8a04;color:#fff;opacity:1;’
+:‘background:#e5e7eb;color:#9ca3af;opacity:0.45;’;
+const svcLabel=(item.services&&item.services.length)?item.services.map(s=>`<span style="display:inline-block;background:#f3e8ff;color:#7c3aed;border:1px solid #c084fc;border-radius:5px;padding:2px 7px;font-size:11px;margin:1px;">${s}</span>`).join(’ ‘):’—’;
+const cs=item.contentStatus||’’;
+const pubStyle=cs===’’?‘background:#fefce8;color:#ca8a04;opacity:1;’
+:cs===‘published’?‘background:#ca8a04;color:#fff;opacity:1;’
+:‘background:#e5e7eb;color:#9ca3af;opacity:0.45;’;
+const unpubStyle=cs===’’?‘background:#f3e8ff;color:#7c3aed;opacity:1;’
+:cs===‘unpublished’?‘background:#7c3aed;color:#fff;opacity:1;’
+:‘background:#e5e7eb;color:#9ca3af;opacity:0.45;’;
+const rowBg=cs===‘published’?’#fef9c3’:cs===‘unpublished’?’#f3e8ff’:vs===‘done’?’#bbf7d0’:vs===‘cancelled’?’#fee2e2’:(i%2===1?’#f8fafc’:’#fff’);
+const rowBorder=cs===‘published’?‘border-right:4px solid #ca8a04;’:cs===‘unpublished’?‘border-right:4px solid #7c3aed;’:vs===‘done’?‘border-right:4px solid #16a34a;’:vs===‘cancelled’?‘border-right:4px solid #dc2626;’:’’;
+const vsLabel=vs===‘done’?’<br><span style="font-size:10px;color:#16a34a;font-weight:700;">✅ تمت الزيارة</span>’:vs===‘cancelled’?’<br><span style="font-size:10px;color:#dc2626;font-weight:700;">⚠️ ألغيت الزيارة</span>’:’’;
+return `<tr id="rrow_${realIdx}" style="background:${rowBg};${rowBorder}"> <td style="text-align:center;font-weight:900;color:${thBg};width:30px;padding:8px 6px;">${i+1}</td> <td style="font-weight:700;font-size:13px;min-width:100px;cursor:pointer;" onclick="showApptCard(${realIdx})" title="اضغط لعرض تفاصيل المؤثر"><span style="border-bottom:2px dotted #1a6fa8;color:#1a6fa8;">${name}</span>${vsLabel}</td> <td style="min-width:50px;">${gLabel}</td> <td style="min-width:70px;">${natCell}</td> <td style="direction:ltr;min-width:90px;">${phoneCell}</td> <td style="font-size:11px;color:#555;direction:ltr;min-width:80px;">${item.civil||'—'}</td> <td style="min-width:90px;"><div style="display:flex;flex-direction:column;gap:3px;">${buildSocialsHtml(item)}</div></td> <td style="white-space:nowrap;color:${thBg};font-weight:600;min-width:90px;">${dateStr}</td> <td style="min-width:80px;"> <div style="display:flex;align-items:center;gap:5px;min-width:80px;" id="rptSvcBtn_${realIdx}"> <span style="flex:1;font-size:11px;color:${(item.services&&item.services.length)?'#7c3aed':'#9ca3af'};">${svcLabel}</span> <button onclick="openServicePopupFromReport(${realIdx},event)" title="تعديل الخدمة" style="flex-shrink:0;width:24px;height:24px;border-radius:6px;border:1px solid #7c3aed;background:#f3e8ff;color:#7c3aed;font-size:13px;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0;line-height:1;">✏️</button> </div> </td> <td style="min-width:100px;"><div style="display:flex;gap:4px;flex-direction:column;"> <button onclick="setVisitStatus(${realIdx},'done')" style="padding:5px 8px;border-radius:6px;border:1px solid #15803d;font-size:11px;font-weight:700;cursor:pointer;font-family:Tajawal,sans-serif;white-space:nowrap;${doneA}">✅ تمت</button> <button onclick="setVisitStatus(${realIdx},'cancelled')" style="padding:5px 8px;border-radius:6px;border:1px solid #ca8a04;font-size:11px;font-weight:700;cursor:pointer;font-family:Tajawal,sans-serif;white-space:nowrap;${cancA}">⚠️ ألغيت</button> </div></td> <td style="min-width:110px;" id="pubCell_${realIdx}"><div style="display:flex;gap:4px;flex-direction:column;"> <button onclick="setContentStatus(${realIdx},'published')" style="padding:5px 8px;border-radius:6px;border:1px solid #ca8a04;font-size:11px;font-weight:700;cursor:pointer;font-family:Tajawal,sans-serif;white-space:nowrap;${pubStyle}">🌟 تم النشر</button> <button onclick="setContentStatus(${realIdx},'unpublished')" style="padding:5px 8px;border-radius:6px;border:1px solid #7c3aed;font-size:11px;font-weight:700;cursor:pointer;font-family:Tajawal,sans-serif;white-space:nowrap;${unpubStyle}">🟣 لم يتم</button> </div></td> <td style="min-width:150px;border-left:1px solid #e5e7eb;padding:4px;"> ${item.signature ? `<div style="position:relative;">
+<img src="${item.signature}" class="sig-print-img" style="width:140px;height:50px;object-fit:contain;display:block;" />
+<button onclick="clearSignature(${realIdx})" class="no-print" style="position:absolute;top:0;left:0;background:#dc2626;color:#fff;border:none;border-radius:4px;font-size:9px;padding:1px 5px;cursor:pointer;">✕</button>
+</div>`:`<canvas id="sigCanvas_${realIdx}" width="140" height="50"
+class="no-print"
+style="border:1.5px dashed #9ca3af;border-radius:4px;cursor:crosshair;touch-action:none;display:block;"
+onmousedown="startSig(event,${realIdx})"
+ontouchstart="startSig(event,${realIdx})"></canvas>
+<div class="sig-print-line no-print-hide" style="display:none;"></div>
+<div class="no-print" style="display:flex;gap:4px;margin-top:3px;">
+<button onclick="saveSig(${realIdx})" style="flex:1;padding:2px;border:1px solid #059669;background:#f0fdf4;color:#059669;border-radius:4px;font-size:10px;cursor:pointer;font-family:Tajawal,sans-serif;">✓ حفظ</button>
+<button onclick="clearCanvas(${realIdx})" style="flex:1;padding:2px;border:1px solid #9ca3af;background:#f9fafb;color:#555;border-radius:4px;font-size:10px;cursor:pointer;font-family:Tajawal,sans-serif;">مسح</button>
+</div>` } </td> </tr>`;
+} else {
+return `<tr style="background:${i%2===1?'#f8fafc':'#fff'}"> <td style="text-align:center;font-weight:900;color:${thBg};width:30px;">${i+1}</td> <td style="font-weight:700;font-size:13px;">${name}</td><td>${gLabel}</td> <td>${natCell}</td> <td style="direction:ltr;">${phoneCell}</td> <td style="font-size:11px;color:#555;direction:ltr;">${item.civil||'—'}</td> <td><div style="display:flex;flex-direction:column;gap:3px;">${buildSocialsHtml(item)}</div></td> </tr>`;
+}
+}).join(’’);
+const extraH=isApproved?`<th style="background:${thBg};min-width:90px;">موعد الزيارة</th><th style="background:${thBg};min-width:80px;">الخدمة</th><th style="background:${thBg};min-width:100px;">حالة الزيارة</th><th style="background:${thBg};min-width:110px;">حالة النشر</th><th style="background:${thBg};min-width:150px;">توقيع المؤثر</th>`:’’;
+const html=`<div class="report-overlay open" id="reportOverlay" onclick="if(event.target===this)closeReport()"> <div class="report-modal" style="max-width:100%;width:100%;margin:0;border-radius:0;min-height:100vh;"> <div class="report-actions" style="position:sticky;top:0;background:#fff;z-index:10;padding:.5rem 0;border-bottom:1px solid #e5e7eb;"> <button class="report-btn-close" onclick="closeReport()">✕ إغلاق</button> <button class="report-btn-print" style="background:${thBg}" onclick="window.print()">🖨️ طباعة / PDF</button> <button class="report-btn-share" onclick="shareStatusReport('${type}')">📤 مشاركة</button> </div> <div class="report-header"><h2 style="color:${thBg}">${title}</h2> <p>مركز كيور الطبي — الحملة الإعلانية | ${today}</p> <p style="font-weight:700;color:${countColor};margin-top:4px;">الإجمالي: ${list.length} مؤثر</p> </div> <div class="report-table-wrap" style="overflow-x:auto;"><table class="report-table" style="min-width:900px;"><thead><tr> <th style="background:${thBg};width:30px;text-align:center;">#</th> <th style="background:${thBg};min-width:100px;">الاسم</th> <th style="background:${thBg};min-width:50px;">الجنس</th> <th style="background:${thBg};min-width:70px;">الجنسية</th> <th style="background:${thBg};min-width:90px;">الهاتف</th> <th style="background:${thBg};min-width:80px;">الرقم المدني</th> <th style="background:${thBg};min-width:90px;">الصفحات</th>${extraH} </tr></thead><tbody>${rows}</tbody></table></div> <div class="report-footer-note">هذا الكشف سري ومخصص للاستخدام الداخلي — مركز كيور الطبي © 2026</div> </div></div>`;
+const div=document.createElement(‘div’);div.id=‘reportContainer’;div.innerHTML=html;document.body.appendChild(div);
 }
 
-// --- Gender Reports (male / female) ------------------------------
+// — Gender Reports (male / female) ——————————
 function openGenderReport(gender) {
-  const isMale=gender==='m';
-  const list=influencers.filter(i=>i.gender===gender);
-  if(!list.length){showToast(isMale?'⚠️ لا يوجد ذكور!':'⚠️ لا يوجد إناث!','#d97706');return;}
-  const today=new Date().toLocaleDateString('ar-KW',{year:'numeric',month:'long',day:'numeric'});
-  const thBg=isMale?'#1e3a5f':'#4a044e';
-  const emoji=isMale?'👨':'👩';
-  const title=isMale?'كشف المؤثرين الذكور':'كشف المؤثرات الإناث';
-  const rows=list.map((item,i)=>{
-    const stLabel=item.status==='approved'?'<span style="color:#16a34a;font-weight:700;">✅ مقبول</span>':item.status==='rejected'?'<span style="color:#dc2626;font-weight:700;">❌ مرفوض</span>':'<span style="color:#d97706;">⏳ قيد المراجعة</span>';
-    const phoneCell=item.phone?`<span onclick="showPhonePopup('${item.phone.replace(/'/g,"\\'")}','${(item.name||item.ig||'').replace(/'/g,"\\'")}',event)" style="color:#0369a1;direction:ltr;display:block;white-space:nowrap;font-size:12px;cursor:pointer;font-weight:600;" title="اضغط للتواصل">📞 ${item.phone}</span>`:'—';
-    const natCell=item.nationality?`<span style="background:#e6f7f1;color:#0a7a55;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:700;">🌍 ${item.nationality}</span>`:'—';
-    return `<tr style="background:${i%2===1?'#f8fafc':'#fff'}">
-      <td style="text-align:center;font-weight:900;color:${thBg};width:36px;">${i+1}</td>
-      <td style="font-weight:700;font-size:13px;">${item.name||'—'}</td>
-      <td>${natCell}</td>
-      <td style="direction:ltr;">${phoneCell}</td>
-      <td style="font-size:11px;color:#555;direction:ltr;">${item.civil||'—'}</td>
-      <td><div style="display:flex;flex-direction:column;gap:3px;">${buildSocialsHtml(item)}</div></td>
-      <td>${stLabel}</td>
-    </tr>`;
-  }).join('');
-  const html=`<div class="report-overlay open" id="reportOverlay" onclick="if(event.target===this)closeReport()">
-    <div class="report-modal">
-      <div class="report-actions">
-        <button class="report-btn-close" onclick="closeReport()">✕ إغلاق</button>
-        <button class="report-btn-print" style="background:${thBg}" onclick="window.print()">🖨️ طباعة / PDF</button>
-        <button class="report-btn-share" onclick="shareGenderReport('${gender}')">📤 مشاركة</button>
-      </div>
-      <div class="report-header"><h2 style="color:${thBg}">${emoji} ${title}</h2>
-        <p>مركز كيور الطبي — الحملة الإعلانية | ${today}</p>
-        <p style="font-weight:700;color:${thBg};margin-top:4px;">الإجمالي: ${list.length} مؤثر</p>
-      </div>
-      <div class="report-table-wrap"><table class="report-table"><thead><tr>
-        <th style="background:${thBg};width:36px;text-align:center;">#</th>
-        <th style="background:${thBg}">الاسم</th>
-        <th style="background:${thBg}">الجنسية</th>
-        <th style="background:${thBg}">الهاتف</th>
-        <th style="background:${thBg}">الرقم المدني</th><th style="background:${thBg}">الصفحات</th>
-        <th style="background:${thBg}">الحالة</th>
-      </tr></thead><tbody>${rows}</tbody></table></div>
-      <div class="report-footer-note">هذا الكشف سري ومخصص للاستخدام الداخلي — مركز كيور الطبي © 2026</div>
-    </div></div>`;
-  const div=document.createElement('div');div.id='reportContainer';div.innerHTML=html;document.body.appendChild(div);
+const isMale=gender===‘m’;
+const list=influencers.filter(i=>i.gender===gender);
+if(!list.length){showToast(isMale?‘⚠️ لا يوجد ذكور!’:‘⚠️ لا يوجد إناث!’,’#d97706’);return;}
+const today=new Date().toLocaleDateString(‘ar-KW’,{year:‘numeric’,month:‘long’,day:‘numeric’});
+const thBg=isMale?’#1e3a5f’:’#4a044e’;
+const emoji=isMale?‘👨’:‘👩’;
+const title=isMale?‘كشف المؤثرين الذكور’:‘كشف المؤثرات الإناث’;
+const rows=list.map((item,i)=>{
+const stLabel=item.status===‘approved’?’<span style="color:#16a34a;font-weight:700;">✅ مقبول</span>’:item.status===‘rejected’?’<span style="color:#dc2626;font-weight:700;">❌ مرفوض</span>’:’<span style="color:#d97706;">⏳ قيد المراجعة</span>’;
+const phoneCell=item.phone?`<span onclick="showPhonePopup('${item.phone.replace(/'/g,"\\'")}','${(item.name||item.ig||'').replace(/'/g,"\\'")}',event)" style="color:#0369a1;direction:ltr;display:block;white-space:nowrap;font-size:12px;cursor:pointer;font-weight:600;" title="اضغط للتواصل">📞 ${item.phone}</span>`:’—’;
+const natCell=item.nationality?`<span style="background:#e6f7f1;color:#0a7a55;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:700;">🌍 ${item.nationality}</span>`:’—’;
+return `<tr style="background:${i%2===1?'#f8fafc':'#fff'}"> <td style="text-align:center;font-weight:900;color:${thBg};width:36px;">${i+1}</td> <td style="font-weight:700;font-size:13px;">${item.name||'—'}</td> <td>${natCell}</td> <td style="direction:ltr;">${phoneCell}</td> <td style="font-size:11px;color:#555;direction:ltr;">${item.civil||'—'}</td> <td><div style="display:flex;flex-direction:column;gap:3px;">${buildSocialsHtml(item)}</div></td> <td>${stLabel}</td> </tr>`;
+}).join(’’);
+const html=`<div class="report-overlay open" id="reportOverlay" onclick="if(event.target===this)closeReport()"> <div class="report-modal"> <div class="report-actions"> <button class="report-btn-close" onclick="closeReport()">✕ إغلاق</button> <button class="report-btn-print" style="background:${thBg}" onclick="window.print()">🖨️ طباعة / PDF</button> <button class="report-btn-share" onclick="shareGenderReport('${gender}')">📤 مشاركة</button> </div> <div class="report-header"><h2 style="color:${thBg}">${emoji} ${title}</h2> <p>مركز كيور الطبي — الحملة الإعلانية | ${today}</p> <p style="font-weight:700;color:${thBg};margin-top:4px;">الإجمالي: ${list.length} مؤثر</p> </div> <div class="report-table-wrap"><table class="report-table"><thead><tr> <th style="background:${thBg};width:36px;text-align:center;">#</th> <th style="background:${thBg}">الاسم</th> <th style="background:${thBg}">الجنسية</th> <th style="background:${thBg}">الهاتف</th> <th style="background:${thBg}">الرقم المدني</th><th style="background:${thBg}">الصفحات</th> <th style="background:${thBg}">الحالة</th> </tr></thead><tbody>${rows}</tbody></table></div> <div class="report-footer-note">هذا الكشف سري ومخصص للاستخدام الداخلي — مركز كيور الطبي © 2026</div> </div></div>`;
+const div=document.createElement(‘div’);div.id=‘reportContainer’;div.innerHTML=html;document.body.appendChild(div);
 }
 
-// --- Share functions ----------------------------------------------
+// — Share functions –––––––––––––––––––––––
 async function shareStatusReport(type) {
-  logActivity('report', `مشاركة كشف: ${type==='approved'?'المقبولين':'المرفوضين'} — ${getAuth()||''}`);
-  const isApproved=type==='approved';
-  const list=influencers.filter(i=>i.status===type);
-  if(!list.length)return;
-  const today=new Date().toLocaleDateString('ar-KW',{year:'numeric',month:'long',day:'numeric'});
-  const thBg=isApproved?'#0a3d62':'#7f1d1d';
-  const accentColor=isApproved?'#1a6fa8':'#dc2626';
-  const emoji=isApproved?'✅':'❌';
-  const title=isApproved?'كشف المؤثرين المقبولين':'كشف المؤثرين المرفوضين';
-  const rows=list.map((item,i)=>{
-    const gLabel=item.gender==='m'?'👨 ذكر':item.gender==='f'?'👩 أنثى':'—';
-    const natCell=item.nationality?`🌍 ${item.nationality}`:'—';
-    const phoneCell=item.phone?`<a href="tel:${item.phone}" style="color:#0369a1;text-decoration:none;direction:ltr;font-size:12px;">📞 ${item.phone}</a>`:'—';
-    const rb=i%2===1?'#f8fafc':'#fff';
-    if(isApproved){
-      const dateStr=item.visitDate?formatDateAr(item.visitDate):'—';
-      const svcLabel=(item.services&&item.services.length)?item.services.join(' · '):'—';
-      const vsLabel=item.visitStatus==='done'?'✅ تمت':item.visitStatus==='cancelled'?'❌ ألغيت':'—';
-      const pubLabel=item.contentStatus==='published'?'🌟 تم النشر':item.contentStatus==='unpublished'?'🟣 لم يتم':'—';
-      return `<tr style="background:${rb}"><td style="text-align:center;font-weight:900;width:36px;">${i+1}</td><td style="font-weight:700;">${item.name||'—'}</td><td>${gLabel}</td><td>${natCell}</td><td style="direction:ltr;">${phoneCell}</td><td style="font-size:11px;direction:ltr;">${item.civil||'—'}</td><td>${buildSocialsHtml(item)}</td><td style="white-space:nowrap;">${dateStr}</td><td>${svcLabel}</td><td>${vsLabel}</td><td>${pubLabel}</td><td style="min-width:100px;"></td></tr>`;
-    } else {
-      return `<tr style="background:${rb}"><td style="text-align:center;font-weight:900;width:36px;">${i+1}</td><td style="font-weight:700;">${item.name||'—'}</td><td>${gLabel}</td><td>${natCell}</td><td style="direction:ltr;">${phoneCell}</td><td style="font-size:11px;direction:ltr;">${item.civil||'—'}</td><td>${buildSocialsHtml(item)}</td></tr>`;
-    }
-  }).join('');
-  const extraH=isApproved?`<th style="background:${thBg};">موعد الزيارة</th><th style="background:${thBg};">الخدمة</th><th style="background:${thBg};">حالة الزيارة</th><th style="background:${thBg};">حالة النشر</th><th style="background:${thBg};">توقيع المؤثر</th>`:'';
-  const headersHTML=`<th style="background:${thBg};width:36px;text-align:center;">#</th><th style="background:${thBg};">الاسم</th><th style="background:${thBg};">الجنس</th><th style="background:${thBg};">الجنسية</th><th style="background:${thBg};">الهاتف</th><th style="background:${thBg};">الرقم المدني</th><th style="background:${thBg};">الصفحات</th>${extraH}`;
-  const html=buildReportHTMLShell(thBg,accentColor,title,emoji,today,list.length,headersHTML,rows,isApproved);
-  const fileName=isApproved?'كشف المقبولين - مركز كيور الطبي.html':'كشف المرفوضين - مركز كيور الطبي.html';
-  await downloadOrShare(html,fileName);
+logActivity(‘report’, `مشاركة كشف: ${type==='approved'?'المقبولين':'المرفوضين'} — ${getAuth()||''}`);
+const isApproved=type===‘approved’;
+const list=influencers.filter(i=>i.status===type);
+if(!list.length)return;
+const today=new Date().toLocaleDateString(‘ar-KW’,{year:‘numeric’,month:‘long’,day:‘numeric’});
+const thBg=isApproved?’#0a3d62’:’#7f1d1d’;
+const accentColor=isApproved?’#1a6fa8’:’#dc2626’;
+const emoji=isApproved?‘✅’:‘❌’;
+const title=isApproved?‘كشف المؤثرين المقبولين’:‘كشف المؤثرين المرفوضين’;
+const rows=list.map((item,i)=>{
+const gLabel=item.gender===‘m’?‘👨 ذكر’:item.gender===‘f’?‘👩 أنثى’:’—’;
+const natCell=item.nationality?`🌍 ${item.nationality}`:’—’;
+const phoneCell=item.phone?`<a href="tel:${item.phone}" style="color:#0369a1;text-decoration:none;direction:ltr;font-size:12px;">📞 ${item.phone}</a>`:’—’;
+const rb=i%2===1?’#f8fafc’:’#fff’;
+if(isApproved){
+const dateStr=item.visitDate?formatDateAr(item.visitDate):’—’;
+const svcLabel=(item.services&&item.services.length)?item.services.join(’ · ‘):’—’;
+const vsLabel=item.visitStatus===‘done’?‘✅ تمت’:item.visitStatus===‘cancelled’?‘❌ ألغيت’:’—’;
+const pubLabel=item.contentStatus===‘published’?‘🌟 تم النشر’:item.contentStatus===‘unpublished’?‘🟣 لم يتم’:’—’;
+return `<tr style="background:${rb}"><td style="text-align:center;font-weight:900;width:36px;">${i+1}</td><td style="font-weight:700;">${item.name||'—'}</td><td>${gLabel}</td><td>${natCell}</td><td style="direction:ltr;">${phoneCell}</td><td style="font-size:11px;direction:ltr;">${item.civil||'—'}</td><td>${buildSocialsHtml(item)}</td><td style="white-space:nowrap;">${dateStr}</td><td>${svcLabel}</td><td>${vsLabel}</td><td>${pubLabel}</td><td style="min-width:100px;"></td></tr>`;
+} else {
+return `<tr style="background:${rb}"><td style="text-align:center;font-weight:900;width:36px;">${i+1}</td><td style="font-weight:700;">${item.name||'—'}</td><td>${gLabel}</td><td>${natCell}</td><td style="direction:ltr;">${phoneCell}</td><td style="font-size:11px;direction:ltr;">${item.civil||'—'}</td><td>${buildSocialsHtml(item)}</td></tr>`;
+}
+}).join(’’);
+const extraH=isApproved?`<th style="background:${thBg};">موعد الزيارة</th><th style="background:${thBg};">الخدمة</th><th style="background:${thBg};">حالة الزيارة</th><th style="background:${thBg};">حالة النشر</th><th style="background:${thBg};">توقيع المؤثر</th>`:’’;
+const headersHTML=`<th style="background:${thBg};width:36px;text-align:center;">#</th><th style="background:${thBg};">الاسم</th><th style="background:${thBg};">الجنس</th><th style="background:${thBg};">الجنسية</th><th style="background:${thBg};">الهاتف</th><th style="background:${thBg};">الرقم المدني</th><th style="background:${thBg};">الصفحات</th>${extraH}`;
+const html=buildReportHTMLShell(thBg,accentColor,title,emoji,today,list.length,headersHTML,rows,isApproved);
+const fileName=isApproved?‘كشف المقبولين - مركز كيور الطبي.html’:‘كشف المرفوضين - مركز كيور الطبي.html’;
+await downloadOrShare(html,fileName);
 }
 
 async function shareGenderReport(gender) {
-  const isMale=gender==='m';
-  const list=influencers.filter(i=>i.gender===gender);
-  if(!list.length)return;
-  const today=new Date().toLocaleDateString('ar-KW',{year:'numeric',month:'long',day:'numeric'});
-  const thBg=isMale?'#1e3a5f':'#4a044e';
-  const emoji=isMale?'👨':'👩';
-  const title=isMale?'كشف المؤثرين الذكور':'كشف المؤثرات الإناث';
-  const rows=list.map((item,i)=>{
-    const stLabel=item.status==='approved'?'✅ مقبول':item.status==='rejected'?'❌ مرفوض':'⏳ قيد المراجعة';
-    const natCell=item.nationality?`🌍 ${item.nationality}`:'—';
-    const phoneCell=item.phone?`<a href="tel:${item.phone}" style="color:#0369a1;text-decoration:none;direction:ltr;font-size:12px;">📞 ${item.phone}</a>`:'—';
-    return `<tr style="background:${i%2===1?'#f8fafc':'#fff'}"><td style="text-align:center;font-weight:900;width:36px;">${i+1}</td><td style="font-weight:700;">${item.name||'—'}</td><td>${natCell}</td><td style="direction:ltr;">${phoneCell}</td><td style="font-size:11px;direction:ltr;">${item.civil||'—'}</td><td>${buildSocialsHtml(item)}</td><td>${stLabel}</td></tr>`;
-  }).join('');
-  const headersHTML=`<th style="background:${thBg};width:36px;text-align:center;">#</th><th style="background:${thBg};">الاسم</th><th style="background:${thBg};">الجنسية</th><th style="background:${thBg};">الهاتف</th><th style="background:${thBg};">الرقم المدني</th><th style="background:${thBg};">الصفحات</th><th style="background:${thBg};">الحالة</th>`;
-  const html=buildReportHTMLShell(thBg,'#1a6fa8',title,emoji,today,list.length,headersHTML,rows,false);
-  const fileName=isMale?'كشف الذكور - مركز كيور الطبي.html':'كشف الإناث - مركز كيور الطبي.html';
-  await downloadOrShare(html,fileName);
+const isMale=gender===‘m’;
+const list=influencers.filter(i=>i.gender===gender);
+if(!list.length)return;
+const today=new Date().toLocaleDateString(‘ar-KW’,{year:‘numeric’,month:‘long’,day:‘numeric’});
+const thBg=isMale?’#1e3a5f’:’#4a044e’;
+const emoji=isMale?‘👨’:‘👩’;
+const title=isMale?‘كشف المؤثرين الذكور’:‘كشف المؤثرات الإناث’;
+const rows=list.map((item,i)=>{
+const stLabel=item.status===‘approved’?‘✅ مقبول’:item.status===‘rejected’?‘❌ مرفوض’:‘⏳ قيد المراجعة’;
+const natCell=item.nationality?`🌍 ${item.nationality}`:’—’;
+const phoneCell=item.phone?`<a href="tel:${item.phone}" style="color:#0369a1;text-decoration:none;direction:ltr;font-size:12px;">📞 ${item.phone}</a>`:’—’;
+return `<tr style="background:${i%2===1?'#f8fafc':'#fff'}"><td style="text-align:center;font-weight:900;width:36px;">${i+1}</td><td style="font-weight:700;">${item.name||'—'}</td><td>${natCell}</td><td style="direction:ltr;">${phoneCell}</td><td style="font-size:11px;direction:ltr;">${item.civil||'—'}</td><td>${buildSocialsHtml(item)}</td><td>${stLabel}</td></tr>`;
+}).join(’’);
+const headersHTML=`<th style="background:${thBg};width:36px;text-align:center;">#</th><th style="background:${thBg};">الاسم</th><th style="background:${thBg};">الجنسية</th><th style="background:${thBg};">الهاتف</th><th style="background:${thBg};">الرقم المدني</th><th style="background:${thBg};">الصفحات</th><th style="background:${thBg};">الحالة</th>`;
+const html=buildReportHTMLShell(thBg,’#1a6fa8’,title,emoji,today,list.length,headersHTML,rows,false);
+const fileName=isMale?‘كشف الذكور - مركز كيور الطبي.html’:‘كشف الإناث - مركز كيور الطبي.html’;
+await downloadOrShare(html,fileName);
 }
 
 async function downloadOrShare(html,fileName){
-  const blob=new Blob([html],{type:'text/html'});
-  const file=new File([blob],fileName,{type:'text/html'});
-  try{
-    if(navigator.canShare&&navigator.canShare({files:[file]})){await navigator.share({title:fileName,files:[file]});return;}
-    if(navigator.share){await navigator.share({title:fileName});return;}
-    const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=fileName;a.click();URL.revokeObjectURL(a.href);showToast('✅ تم التحميل','#1a6fa8');
-  }catch(e){if(e.name!=='AbortError')showToast('تعذّرت المشاركة','#dc2626');}
+const blob=new Blob([html],{type:‘text/html’});
+const file=new File([blob],fileName,{type:‘text/html’});
+try{
+if(navigator.canShare&&navigator.canShare({files:[file]})){await navigator.share({title:fileName,files:[file]});return;}
+if(navigator.share){await navigator.share({title:fileName});return;}
+const a=document.createElement(‘a’);a.href=URL.createObjectURL(blob);a.download=fileName;a.click();URL.revokeObjectURL(a.href);showToast(‘✅ تم التحميل’,’#1a6fa8’);
+}catch(e){if(e.name!==‘AbortError’)showToast(‘تعذّرت المشاركة’,’#dc2626’);}
 }
 
-// --- Migrations disabled - data is managed directly on Firebase ---
+// — Migrations disabled - data is managed directly on Firebase —
 // Migrations disabled - all data is managed directly on Firebase
 const MIGRATIONS = {};
 
 function runMigrations() {
-  // Disabled - no longer needed
-  return 0;
+// Disabled - no longer needed
+return 0;
 }
 
-// -- Remove duplicates on every load ------------------------------
+// – Remove duplicates on every load ——————————
 function removeDuplicates() {
-  const seenPhones = {}, seenIgs = {}, seenTts = {}, seenSnaps = {}, seenCivils = {};
-  const toRemove = [];
-  influencers.forEach((item, i) => {
-    const ph = normalizePhone(item.phone);
-    const ig = normalizeIg(item.ig);
-    const tt = (item.tt||'').replace('@','').toLowerCase().trim().split('?')[0];
-    const sn = normalizeSnap(item.snap);
-    const cv = (item.civil||'').replace(/\s/g,'').replace(/[٠-٩]/g, d=>'٠١٢٣٤٥٦٧٨٩'.indexOf(d).toString());
-    let isDup = false;
-    if(ph && ph.length>=7 && seenPhones[ph]!==undefined) isDup=true;
-    if(ig && ig.length>2 && seenIgs[ig]!==undefined) isDup=true;
-    if(tt && tt.length>2 && seenTts[tt]!==undefined) isDup=true;
-    if(sn && sn.length>3 && seenSnaps[sn]!==undefined) isDup=true;
-    if(cv && cv.length>=8 && seenCivils[cv]!==undefined) isDup=true;
-    if(isDup){ toRemove.push(i); return; }
-    if(ph && ph.length>=7) seenPhones[ph]=i;
-    if(ig && ig.length>2) seenIgs[ig]=i;
-    if(tt && tt.length>2) seenTts[tt]=i;
-    if(sn && sn.length>3) seenSnaps[sn]=i;
-    if(cv && cv.length>=8) seenCivils[cv]=i;
-  });
-  toRemove.reverse().forEach(i => influencers.splice(i, 1));
-  return toRemove.length;
+const seenPhones = {}, seenIgs = {}, seenTts = {}, seenSnaps = {}, seenCivils = {};
+const toRemove = [];
+influencers.forEach((item, i) => {
+const ph = normalizePhone(item.phone);
+const ig = normalizeIg(item.ig);
+const tt = (item.tt||’’).replace(’@’,’’).toLowerCase().trim().split(’?’)[0];
+const sn = normalizeSnap(item.snap);
+const cv = (item.civil||’’).replace(/\s/g,’’).replace(/[٠-٩]/g, d=>‘٠١٢٣٤٥٦٧٨٩’.indexOf(d).toString());
+let isDup = false;
+if(ph && ph.length>=7 && seenPhones[ph]!==undefined) isDup=true;
+if(ig && ig.length>2 && seenIgs[ig]!==undefined) isDup=true;
+if(tt && tt.length>2 && seenTts[tt]!==undefined) isDup=true;
+if(sn && sn.length>3 && seenSnaps[sn]!==undefined) isDup=true;
+if(cv && cv.length>=8 && seenCivils[cv]!==undefined) isDup=true;
+if(isDup){ toRemove.push(i); return; }
+if(ph && ph.length>=7) seenPhones[ph]=i;
+if(ig && ig.length>2) seenIgs[ig]=i;
+if(tt && tt.length>2) seenTts[tt]=i;
+if(sn && sn.length>3) seenSnaps[sn]=i;
+if(cv && cv.length>=8) seenCivils[cv]=i;
+});
+toRemove.reverse().forEach(i => influencers.splice(i, 1));
+return toRemove.length;
 }
 
-// -- Log all print events ------------------------------------------
+// – Log all print events ——————————————
 const _origPrint = window.print.bind(window);
 window.print = function() {
-  logActivity('report', `طباعة/PDF كشف — ${getAuth()||'غير معروف'}`);
-  _origPrint();
+logActivity(‘report’, `طباعة/PDF كشف — ${getAuth()||'غير معروف'}`);
+_origPrint();
 };
-const LOG_KEY = 'cure_activity_log';
+const LOG_KEY = ‘cure_activity_log’;
 const LOG_ICONS = {
-  'login':'🔑','logout':'🚪','add':'➕','edit':'✏️','delete':'🗑',
-  'approve':'✅','reject':'❌','restore':'↺','done':'🏁',
-  'cancelled':'⚠️','rating':'⭐','notes':'📝','service':'💉',
-  'date':'📅','report':'📋','send_wa':'📲','bulk':'⚡','form':'📋',
+‘login’:‘🔑’,‘logout’:‘🚪’,‘add’:‘➕’,‘edit’:‘✏️’,‘delete’:‘🗑’,
+‘approve’:‘✅’,‘reject’:‘❌’,‘restore’:‘↺’,‘done’:‘🏁’,
+‘cancelled’:‘⚠️’,‘rating’:‘⭐’,‘notes’:‘📝’,‘service’:‘💉’,
+‘date’:‘📅’,‘report’:‘📋’,‘send_wa’:‘📲’,‘bulk’:‘⚡’,‘form’:‘📋’,
 };
-function logActivity(action, details='') {
-  const user = getAuth() || 'غير معروف';
-  const now = new Date();
-  const time = now.toLocaleString('ar-KW', {day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
-  const entry = { user, action, details, time, ts: now.getTime() };
-  const logs = getActivityLogs();
-  logs.unshift(entry);
-  // Keep max 200 entries
-  if(logs.length > 200) logs.splice(200);
-  localStorage.setItem(LOG_KEY, JSON.stringify(logs));
-  // Also save to Firebase
-  fetch(`${DB_URL}/cure_activity_log.json`, {
-    method:'POST',
-    body: JSON.stringify(entry)
-  }).catch(()=>{});
+function logActivity(action, details=’’) {
+const user = getAuth() || ‘غير معروف’;
+const now = new Date();
+const time = now.toLocaleString(‘ar-KW’, {day:‘numeric’,month:‘short’,hour:‘2-digit’,minute:‘2-digit’});
+const entry = { user, action, details, time, ts: now.getTime() };
+const logs = getActivityLogs();
+logs.unshift(entry);
+// Keep max 200 entries
+if(logs.length > 200) logs.splice(200);
+localStorage.setItem(LOG_KEY, JSON.stringify(logs));
+// Also save to Firebase
+fetch(`${DB_URL}/cure_activity_log.json`, {
+method:‘POST’,
+body: JSON.stringify(entry)
+}).catch(()=>{});
 }
 function getActivityLogs() {
-  try { return JSON.parse(localStorage.getItem(LOG_KEY) || '[]'); } catch{ return []; }
+try { return JSON.parse(localStorage.getItem(LOG_KEY) || ‘[]’); } catch{ return []; }
 }
 function openActivityLog() {
-  const logs = getActivityLogs();
-  const list = document.getElementById('activityLogList');
-  if(!logs.length) {
-    list.innerHTML = '<div style="text-align:center;color:#484f58;padding:1rem;">لا يوجد نشاط مسجل بعد</div>';
-  } else {
-    list.innerHTML = logs.map(e => `
-      <div style="display:flex;align-items:flex-start;gap:10px;padding:8px 10px;background:#21262d;border-radius:8px;border-right:3px solid #1a6fa8;">
-        <span style="font-size:18px;flex-shrink:0;">${LOG_ICONS[e.action]||'📌'}</span>
-        <div style="flex:1;">
-          <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;">
-            <span style="font-weight:700;color:#e6edf3;font-size:13px;">${e.details||e.action}</span>
-            <span style="font-size:10px;color:#484f58;white-space:nowrap;">${e.time}</span>
-          </div>
-          <div style="font-size:11px;color:#8b949e;margin-top:2px;">👤 ${e.user}</div>
-        </div>
-      </div>
-    `).join('');
-  }
-  document.getElementById('activityLogOverlay').classList.remove('hidden');
+const logs = getActivityLogs();
+const list = document.getElementById(‘activityLogList’);
+if(!logs.length) {
+list.innerHTML = ‘<div style="text-align:center;color:#484f58;padding:1rem;">لا يوجد نشاط مسجل بعد</div>’;
+} else {
+list.innerHTML = logs.map(e => `<div style="display:flex;align-items:flex-start;gap:10px;padding:8px 10px;background:#21262d;border-radius:8px;border-right:3px solid #1a6fa8;"> <span style="font-size:18px;flex-shrink:0;">${LOG_ICONS[e.action]||'📌'}</span> <div style="flex:1;"> <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;"> <span style="font-weight:700;color:#e6edf3;font-size:13px;">${e.details||e.action}</span> <span style="font-size:10px;color:#484f58;white-space:nowrap;">${e.time}</span> </div> <div style="font-size:11px;color:#8b949e;margin-top:2px;">👤 ${e.user}</div> </div> </div>`).join(’’);
+}
+document.getElementById(‘activityLogOverlay’).classList.remove(‘hidden’);
 }
 function closeActivityLog() {
-  document.getElementById('activityLogOverlay').classList.add('hidden');
+document.getElementById(‘activityLogOverlay’).classList.add(‘hidden’);
 }
 function clearActivityLog() {
-  if(!confirm('هل تريد مسح سجل النشاط كاملاً؟')) return;
-  localStorage.removeItem(LOG_KEY);
-  openActivityLog();
+if(!confirm(‘هل تريد مسح سجل النشاط كاملاً؟’)) return;
+localStorage.removeItem(LOG_KEY);
+openActivityLog();
 }
 window.openActivityLog = openActivityLog;
 window.closeActivityLog = closeActivityLog;
 window.clearActivityLog = clearActivityLog;
 const USERS = {
-  'didi':      'Didi@2211',
-  'elattar89': 'Rio@2211'
+‘didi’:      ‘Didi@2211’,
+‘elattar89’: ‘Rio@2211’
 };
 function togglePassView() {
-  const inp = document.getElementById('loginPass');
-  const btn = document.getElementById('showPassBtn');
-  if(inp.type === 'password') {
-    inp.type = 'text';
-    btn.textContent = '🙈';
-  } else {
-    inp.type = 'password';
-    btn.textContent = '👁';
-  }
+const inp = document.getElementById(‘loginPass’);
+const btn = document.getElementById(‘showPassBtn’);
+if(inp.type === ‘password’) {
+inp.type = ‘text’;
+btn.textContent = ‘🙈’;
+} else {
+inp.type = ‘password’;
+btn.textContent = ‘👁’;
+}
 }
 window.togglePassView = togglePassView;
 function doLogin() {
-  const user = document.getElementById('loginUser').value.trim().toLowerCase();
-  const pass = document.getElementById('loginPass').value;
-  if(USERS[user] && USERS[user] === pass) {
-    setAuth(user);
-    document.getElementById('loginScreen').style.display = 'none';
-    updateWelcome();
-    logActivity('login', `تسجيل دخول: ${user}`);
-    // Remove ?guest=1 from URL if present
-    if(window.location.search.indexOf('guest=1') !== -1) {
-      window.history.replaceState({}, '', window.location.pathname);
-      // Remove guest CSS
-      var gs = document.getElementById('guestStyle');
-      if(gs) gs.textContent = '';
-    }
-    init();
-  } else {
-    document.getElementById('loginError').style.display = 'block';
-    document.getElementById('loginPass').value = '';
-    document.getElementById('loginPass').focus();
-  }
+const user = document.getElementById(‘loginUser’).value.trim().toLowerCase();
+const pass = document.getElementById(‘loginPass’).value;
+if(USERS[user] && USERS[user] === pass) {
+setAuth(user);
+document.getElementById(‘loginScreen’).style.display = ‘none’;
+updateWelcome();
+logActivity(‘login’, `تسجيل دخول: ${user}`);
+// Remove ?guest=1 from URL if present
+if(window.location.search.indexOf(‘guest=1’) !== -1) {
+window.history.replaceState({}, ‘’, window.location.pathname);
+// Remove guest CSS
+var gs = document.getElementById(‘guestStyle’);
+if(gs) gs.textContent = ‘’;
+}
+init();
+} else {
+document.getElementById(‘loginError’).style.display = ‘block’;
+document.getElementById(‘loginPass’).value = ‘’;
+document.getElementById(‘loginPass’).focus();
+}
 }
 function guestLogin() {
-  window.location.href = window.location.pathname + '?guest=1';
+window.location.href = window.location.pathname + ‘?guest=1’;
 }
 window.guestLogin = guestLogin;
 function logout() {
-  logActivity('logout', `تسجيل خروج: ${getAuth()||''}`);
-  clearAuth();
-  // Remove ?guest=1 from URL and reload
-  window.location.href = window.location.pathname;
+logActivity(‘logout’, `تسجيل خروج: ${getAuth()||''}`);
+clearAuth();
+// Remove ?guest=1 from URL and reload
+window.location.href = window.location.pathname;
 }
 window.logout = logout;
 function checkAuth() {
-  if(!getAuth()) {
-    document.getElementById('loginScreen').style.display = 'flex';
-    return false;
-  }
-  document.getElementById('loginScreen').style.display = 'none';
-  return true;
+if(!getAuth()) {
+document.getElementById(‘loginScreen’).style.display = ‘flex’;
+return false;
 }
-document.cookie = 'cure_auth=;path=/;max-age=0;expires=Thu, 01 Jan 1970 00:00:00 GMT';
-localStorage.removeItem('cure_auth_v2');
+document.getElementById(‘loginScreen’).style.display = ‘none’;
+return true;
+}
+document.cookie = ‘cure_auth=;path=/;max-age=0;expires=Thu, 01 Jan 1970 00:00:00 GMT’;
+localStorage.removeItem(‘cure_auth_v2’);
 
 // Clear auth on back navigation (all devices)
-window.addEventListener('pageshow', function(e) {
-  if(e.persisted) {
-    sessionStorage.removeItem('cure_auth');
-    window.location.reload();
-  }
+window.addEventListener(‘pageshow’, function(e) {
+if(e.persisted) {
+sessionStorage.removeItem(‘cure_auth’);
+window.location.reload();
+}
 });
-if(new URLSearchParams(window.location.search).get('guest') === '1') {
-  // Auto-login as guest from URL
-  sessionStorage.setItem('cure_auth', 'guest');
+if(new URLSearchParams(window.location.search).get(‘guest’) === ‘1’) {
+// Auto-login as guest from URL
+sessionStorage.setItem(‘cure_auth’, ‘guest’);
 }
 
 function setAuth(user) {
-  sessionStorage.setItem('cure_auth', user);
-  if(user !== 'guest') localStorage.setItem('cure_admin_auth', user);
+sessionStorage.setItem(‘cure_auth’, user);
+if(user !== ‘guest’) localStorage.setItem(‘cure_admin_auth’, user);
 }
 function getAuth() {
-  return sessionStorage.getItem('cure_auth');
+return sessionStorage.getItem(‘cure_auth’);
 }
-function clearAuth() { sessionStorage.removeItem('cure_auth'); }
-function isGuest() { return getAuth() === 'guest'; }
+function clearAuth() { sessionStorage.removeItem(‘cure_auth’); }
+function isGuest() { return getAuth() === ‘guest’; }
 function updateWelcome() {
-  const user = getAuth() || '';
-  const el = document.getElementById('welcomeMsg');
-  if(el && user) el.textContent = user === 'guest' ? '👤 Guest' : '👋 مرحباً ' + user;
+const user = getAuth() || ‘’;
+const el = document.getElementById(‘welcomeMsg’);
+if(el && user) el.textContent = user === ‘guest’ ? ‘👤 Guest’ : ‘👋 مرحباً ’ + user;
 }
 function openGuestReport() {
-  logActivity('report', 'فتح كشف المقبولين — Guest');
-  const list = influencers.filter(i => i.status === 'approved').sort((a,b)=>{
-    // عندهم موعد أولاً (من الأقدم للأحدث)، ثم بدون موعد (أبجدي)
-    const hasDateA = !!(a.visitDate);
-    const hasDateB = !!(b.visitDate);
-    if(hasDateA && !hasDateB) return -1;
-    if(!hasDateA && hasDateB) return 1;
-    if(hasDateA && hasDateB) return a.visitDate.localeCompare(b.visitDate);
-    // بدون موعد: أبجدي عربي ثم إنجليزي
-    const nameA = (a.name || a.ig || '').trim();
-    const nameB = (b.name || b.ig || '').trim();
-    const isArA = /[\u0600-\u06FF]/.test(nameA.charAt(0));
-    const isArB = /[\u0600-\u06FF]/.test(nameB.charAt(0));
-    if(isArA && !isArB) return -1;
-    if(!isArA && isArB) return 1;
-    return nameA.localeCompare(nameB, isArA ? 'ar' : 'en', {sensitivity:'base'});
-  });
-  const today = new Date().toLocaleDateString('ar-KW', {year:'numeric', month:'long', day:'numeric'});
-  const rows = list.map((item, i) => {
-    const name = item.name || '—';
-    const gLabel = item.gender==='m'?'<span style="color:#1a6fa8;font-weight:700;">👨 ذكر</span>':item.gender==='f'?'<span style="color:#a21caf;font-weight:700;">👩 أنثى</span>':'—';
-    const natCell = item.nationality?`<span style="background:#e6f7f1;color:#0a7a55;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:700;">🌍 ${item.nationality}</span>`:'—';
-    const dateStr = item.visitDate ? formatDateAr(item.visitDate) : '—';
-    const realIdx = influencers.indexOf(item);
-    const svcChecks = item.services && item.services.length
-      ? item.services.map(s => `<span style="display:inline-block;background:#f3e8ff;color:#7c3aed;border:1px solid #c084fc;border-radius:5px;padding:2px 7px;font-size:11px;margin:1px;">${s}</span>`).join(' ')
-      : '—';
-    const isDone = item.visitStatus === 'done';
-    const isCancelled = item.visitStatus === 'cancelled';
-    const rowBg = isDone ? '#bbf7d0' : isCancelled ? '#fef08a' : i%2===1?'#f8fafc':'#fff';
-    const rowStyle = isDone ? `background:${rowBg};border-right:4px solid #16a34a;` : isCancelled ? `background:${rowBg};border-right:4px solid #ca8a04;` : `background:${rowBg};`;
-    return `<tr style="${rowStyle}">
-      <td style="text-align:center;font-weight:900;color:#0a3d62;width:30px;padding:8px 6px;">${i+1}</td>
-      <td style="font-weight:700;font-size:13px;">${name}${isDone?'<br><span style="font-size:10px;color:#16a34a;font-weight:700;">✅ تمت الزيارة</span>':isCancelled?'<br><span style="font-size:10px;color:#ca8a04;font-weight:700;">⚠️ ألغيت الزيارة</span>':''}</td>
-      <td>${gLabel}</td>
-      <td>${natCell}</td>
-      <td style="direction:ltr;font-size:12px;color:#0369a1;font-weight:600;">${item.phone||'—'}</td>
-      <td style="font-size:11px;color:#555;direction:ltr;">${item.civil||'—'}</td>
-      <td style="white-space:nowrap;color:#0a3d62;font-weight:600;">${dateStr}</td>
-      <td style="min-width:110px;">${svcChecks}</td>
-      <td style="min-width:120px;border-left:1px solid #e5e7eb;">
-        <div style="height:40px;border-bottom:1.5px solid #374151;margin:8px 6px 0;position:relative;">
-          <span style="position:absolute;bottom:-16px;right:0;font-size:9px;color:#9ca3af;">التوقيع</span>
-        </div>
-      </td>
-    </tr>`;
-  }).join('');
-  const html = `<div class="report-overlay open" id="reportOverlay" onclick="if(event.target===this)closeReport()">
-    <div class="report-modal" style="max-width:1000px;">
-      <div class="report-actions">
-        <button class="report-btn-close" onclick="closeReport()">✕ إغلاق</button>
-        <button class="report-btn-print" style="background:#0a3d62" onclick="window.print()">🖨️ طباعة / PDF</button>
-        <button class="report-btn-share" onclick="shareGuestReport()">📤 مشاركة</button>
-      </div>
-      <div class="report-header">
-        <h2 style="color:#0a3d62">✅ كشف المؤثرين المقبولين</h2>
-        <p>مركز كيور الطبي — الحملة الإعلانية | ${today}</p>
-        <p style="font-weight:700;color:#16a34a;margin-top:4px;">الإجمالي: ${list.length} مؤثر</p>
-      </div>
-      <div class="report-table-wrap" style="overflow-x:auto;">
-        <table class="report-table" style="min-width:700px;"><thead><tr>
-          <th style="background:#0a3d62;width:30px;text-align:center;">#</th>
-          <th style="background:#0a3d62;">الاسم</th>
-          <th style="background:#0a3d62;">الجنس</th>
-          <th style="background:#0a3d62;">الجنسية</th>
-          <th style="background:#0a3d62;">الهاتف</th>
-          <th style="background:#0a3d62;">الرقم المدني</th>
-          <th style="background:#0a3d62;">موعد الزيارة</th>
-          <th style="background:#0a3d62;">الخدمة</th>
-          <th style="background:#0a3d62;min-width:120px;">توقيع المؤثر</th>
-        </tr></thead><tbody>${rows}</tbody></table>
-      </div>
-      <div class="report-footer-note">هذا الكشف سري ومخصص للاستخدام الداخلي — مركز كيور الطبي © 2026</div>
-    </div>
+logActivity(‘report’, ‘فتح كشف المقبولين — Guest’);
+const list = influencers.filter(i => i.status === ‘approved’).sort((a,b)=>{
+// عندهم موعد أولاً (من الأقدم للأحدث)، ثم بدون موعد (أبجدي)
+const hasDateA = !!(a.visitDate);
+const hasDateB = !!(b.visitDate);
+if(hasDateA && !hasDateB) return -1;
+if(!hasDateA && hasDateB) return 1;
+if(hasDateA && hasDateB) return a.visitDate.localeCompare(b.visitDate);
+// بدون موعد: أبجدي عربي ثم إنجليزي
+const nameA = (a.name || a.ig || ‘’).trim();
+const nameB = (b.name || b.ig || ‘’).trim();
+const isArA = /[\u0600-\u06FF]/.test(nameA.charAt(0));
+const isArB = /[\u0600-\u06FF]/.test(nameB.charAt(0));
+if(isArA && !isArB) return -1;
+if(!isArA && isArB) return 1;
+return nameA.localeCompare(nameB, isArA ? ‘ar’ : ‘en’, {sensitivity:‘base’});
+});
+const today = new Date().toLocaleDateString(‘ar-KW’, {year:‘numeric’, month:‘long’, day:‘numeric’});
+const rows = list.map((item, i) => {
+const name = item.name || ‘—’;
+const gLabel = item.gender===‘m’?’<span style="color:#1a6fa8;font-weight:700;">👨 ذكر</span>’:item.gender===‘f’?’<span style="color:#a21caf;font-weight:700;">👩 أنثى</span>’:’—’;
+const natCell = item.nationality?`<span style="background:#e6f7f1;color:#0a7a55;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:700;">🌍 ${item.nationality}</span>`:’—’;
+const dateStr = item.visitDate ? formatDateAr(item.visitDate) : ‘—’;
+const realIdx = influencers.indexOf(item);
+const svcChecks = item.services && item.services.length
+? item.services.map(s => `<span style="display:inline-block;background:#f3e8ff;color:#7c3aed;border:1px solid #c084fc;border-radius:5px;padding:2px 7px;font-size:11px;margin:1px;">${s}</span>`).join(’ ‘)
+: ‘—’;
+const isDone = item.visitStatus === ‘done’;
+const isCancelled = item.visitStatus === ‘cancelled’;
+const rowBg = isDone ? ‘#bbf7d0’ : isCancelled ? ‘#fef08a’ : i%2===1?’#f8fafc’:’#fff’;
+const rowStyle = isDone ? `background:${rowBg};border-right:4px solid #16a34a;` : isCancelled ? `background:${rowBg};border-right:4px solid #ca8a04;` : `background:${rowBg};`;
+return `<tr style="${rowStyle}"> <td style="text-align:center;font-weight:900;color:#0a3d62;width:30px;padding:8px 6px;">${i+1}</td> <td style="font-weight:700;font-size:13px;">${name}${isDone?'<br><span style="font-size:10px;color:#16a34a;font-weight:700;">✅ تمت الزيارة</span>':isCancelled?'<br><span style="font-size:10px;color:#ca8a04;font-weight:700;">⚠️ ألغيت الزيارة</span>':''}</td> <td>${gLabel}</td> <td>${natCell}</td> <td style="direction:ltr;font-size:12px;color:#0369a1;font-weight:600;">${item.phone||'—'}</td> <td style="font-size:11px;color:#555;direction:ltr;">${item.civil||'—'}</td> <td style="white-space:nowrap;color:#0a3d62;font-weight:600;">${dateStr}</td> <td style="min-width:110px;">${svcChecks}</td> <td style="min-width:120px;border-left:1px solid #e5e7eb;"> <div style="height:40px;border-bottom:1.5px solid #374151;margin:8px 6px 0;position:relative;"> <span style="position:absolute;bottom:-16px;right:0;font-size:9px;color:#9ca3af;">التوقيع</span> </div> </td> </tr>`;
+}).join(’’);
+const html = `<div class="report-overlay open" id="reportOverlay" onclick="if(event.target===this)closeReport()">
+<div class="report-modal" style="max-width:1000px;">
+<div class="report-actions">
+<button class="report-btn-close" onclick="closeReport()">✕ إغلاق</button>
+<button class="report-btn-print" style="background:#0a3d62" onclick="window.print()">🖨️ طباعة / PDF</button>
+<button class="report-btn-share" onclick="shareGuestReport()">📤 مشاركة</button>
+</div>
+<div class="report-header">
+<h2 style="color:#0a3d62">✅ كشف المؤثرين المقبولين</h2>
+<p>مركز كيور الطبي — الحملة الإعلانية | ${today}</p>
+<p style="font-weight:700;color:#16a34a;margin-top:4px;">الإجمالي: ${list.length} مؤثر</p>
+</div>
+<div class="report-table-wrap" style="overflow-x:auto;">
+<table class="report-table" style="min-width:700px;"><thead><tr>
+<th style="background:#0a3d62;width:30px;text-align:center;">#</th>
+<th style="background:#0a3d62;">الاسم</th>
+<th style="background:#0a3d62;">الجنس</th>
+<th style="background:#0a3d62;">الجنسية</th>
+<th style="background:#0a3d62;">الهاتف</th>
+<th style="background:#0a3d62;">الرقم المدني</th>
+<th style="background:#0a3d62;">موعد الزيارة</th>
+<th style="background:#0a3d62;">الخدمة</th>
+<th style="background:#0a3d62;min-width:120px;">توقيع المؤثر</th>
+</tr></thead><tbody>${rows}</tbody></table>
+</div>
+<div class="report-footer-note">هذا الكشف سري ومخصص للاستخدام الداخلي — مركز كيور الطبي © 2026</div>
+</div>
+
   </div>`;
   const div = document.createElement('div'); div.id = 'reportContainer'; div.innerHTML = html;
   document.body.appendChild(div);
@@ -3868,326 +3782,235 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 function guestOpenReport() {
-  if(influencers.length === 0) {
-    showToast('⏳ جاري تحميل البيانات...', '#1a6fa8');
-    tryLoadFirebase().then(function() {
-      influencers.forEach(function(item){ if(item.phone) item.phone = normalizePhone(item.phone); });
-      updateStats();
-      openGuestReadOnlyReport();
-    }).catch(function(){ openGuestReadOnlyReport(); });
-  } else {
-    openGuestReadOnlyReport();
-  }
+if(influencers.length === 0) {
+showToast(‘⏳ جاري تحميل البيانات…’, ‘#1a6fa8’);
+tryLoadFirebase().then(function() {
+influencers.forEach(function(item){ if(item.phone) item.phone = normalizePhone(item.phone); });
+updateStats();
+openGuestReadOnlyReport();
+}).catch(function(){ openGuestReadOnlyReport(); });
+} else {
+openGuestReadOnlyReport();
+}
 }
 
 function openGuestReadOnlyReport() {
-  const guest = isGuest();
-  const thBg = '#0a3d62';
-  const countColor = '#16a34a';
-  let list = influencers.filter(i => i.status === 'approved');
-  list = list.sort((a, b) => {
-    // عندهم موعد أولاً (من الأقدم للأحدث)، ثم بدون موعد (أبجدي)
-    const hasDateA = !!(a.visitDate);
-    const hasDateB = !!(b.visitDate);
-    if(hasDateA && !hasDateB) return -1;
-    if(!hasDateA && hasDateB) return 1;
-    if(hasDateA && hasDateB) return a.visitDate.localeCompare(b.visitDate);
-    // بدون موعد: أبجدي عربي ثم إنجليزي
-    const nameA = (a.name || a.ig || '').trim();
-    const nameB = (b.name || b.ig || '').trim();
-    const isArA = /[\u0600-\u06FF]/.test(nameA.charAt(0));
-    const isArB = /[\u0600-\u06FF]/.test(nameB.charAt(0));
-    if(isArA && !isArB) return -1;
-    if(!isArA && isArB) return 1;
-    return nameA.localeCompare(nameB, isArA ? 'ar' : 'en', {sensitivity:'base'});
-  });
-  if(!list.length){ showToast('⚠️ لا يوجد مقبولين!','#d97706'); return; }
-  const today = new Date().toLocaleDateString('ar-KW',{year:'numeric',month:'long',day:'numeric'});
-  const rows = list.map((item, i) => {
-    const realIdx = influencers.indexOf(item);
-    const name = item.name || '—';
-    const gLabel = item.gender==='m'
-      ? '<span style="color:#1a6fa8;font-weight:700;">👨 ذكر</span>'
-      : item.gender==='f'
-      ? '<span style="color:#a21caf;font-weight:700;">👩 أنثى</span>'
-      : '—';
-    const natCell = item.nationality
-      ? `<span style="background:#e6f7f1;color:#0a7a55;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:700;">🌍 ${item.nationality}</span>`
-      : '—';
-    const phoneCell = guest
-      ? '<span style="color:#9ca3af;font-size:11px;">🔒 مخفي</span>'
-      : item.phone
-      ? `<span onclick="showPhonePopup('${item.phone.replace(/'/g,"\\'")}','${(item.name||item.ig||'').replace(/'/g,"\\'")}',event)" style="color:#0369a1;direction:ltr;display:block;white-space:nowrap;font-size:12px;cursor:pointer;font-weight:600;" title="اضغط للتواصل">📞 ${item.phone}</span>`
-      : '—';
-    const socialsCell = guest
-      ? '<span style="color:#9ca3af;font-size:11px;">🔒 مخفي</span>'
-      : `<div style="display:flex;flex-direction:column;gap:3px;">${buildSocialsHtml(item)}</div>`;
-    const dateStr = item.visitDate ? formatDateAr(item.visitDate) : '—';
-    const vs = item.visitStatus || '';
-    const vsLabel = vs==='done'
-      ? '<br><span style="font-size:10px;color:#16a34a;font-weight:700;">✅ تمت الزيارة</span>'
-      : vs==='cancelled'
-      ? '<br><span style="font-size:10px;color:#dc2626;font-weight:700;">⚠️ ألغيت الزيارة</span>'
-      : '';
-    const svcLabel = (item.services&&item.services.length)
-      ? item.services.map(s=>`<span style="display:inline-block;background:#f3e8ff;color:#7c3aed;border:1px solid #c084fc;border-radius:5px;padding:2px 7px;font-size:11px;margin:1px;">${s}</span>`).join(' ')
-      : '—';
-    const cs = item.contentStatus || '';
-    const hasDate = !!item.visitDate;
-    const rowBg = cs==='published'?'#fef9c3':cs==='unpublished'?'#f3e8ff':vs==='cancelled'?'#fee2e2':vs==='done'?'#86efac':hasDate?'#dcfce7':'#fff';
-    const rowBorder = cs==='published'?'border-right:4px solid #ca8a04;':cs==='unpublished'?'border-right:4px solid #7c3aed;':vs==='cancelled'?'border-right:4px solid #dc2626;':vs==='done'?'border-right:4px solid #16a34a;':hasDate?'border-right:4px solid #16a34a;':'';
-    const doneA = vs===''?'background:#f0fdf4;color:#15803d;opacity:1;'
-      :vs==='done'?'background:#15803d;color:#fff;opacity:1;'
-      :'background:#e5e7eb;color:#9ca3af;opacity:0.45;';
-    const cancA = vs===''?'background:#fefce8;color:#ca8a04;opacity:1;'
-      :vs==='cancelled'?'background:#ca8a04;color:#fff;opacity:1;'
-      :'background:#e5e7eb;color:#9ca3af;opacity:0.45;';
-    const pubA  = cs===''?'background:#fefce8;color:#ca8a04;opacity:1;'
-      :cs==='published'?'background:#ca8a04;color:#fff;opacity:1;'
-      :'background:#e5e7eb;color:#9ca3af;opacity:0.45;';
-    const unpubA= cs===''?'background:#f3e8ff;color:#7c3aed;opacity:1;'
-      :cs==='unpublished'?'background:#7c3aed;color:#fff;opacity:1;'
-      :'background:#e5e7eb;color:#9ca3af;opacity:0.45;';
-    const visitBtns = `<div style="display:flex;gap:4px;flex-direction:column;align-items:center;">
-          <button ${!guest?`onclick="setVisitStatus(${realIdx},'done')"`:''} style="padding:4px 8px;border-radius:6px;border:1px solid #15803d;font-size:11px;font-weight:700;font-family:Tajawal,sans-serif;white-space:nowrap;${guest?'pointer-events:none;cursor:default;':'cursor:pointer;'};width:100%;${doneA}">✅ تمت</button>
-          <button ${!guest?`onclick="setVisitStatus(${realIdx},'cancelled')"`:''} style="padding:4px 8px;border-radius:6px;border:1px solid #ca8a04;font-size:11px;font-weight:700;font-family:Tajawal,sans-serif;white-space:nowrap;${guest?'pointer-events:none;cursor:default;':'cursor:pointer;'};width:100%;${cancA}">⚠️ ألغيت</button>
-        </div>`;
-    const pubBtns = `<div style="display:flex;gap:4px;flex-direction:column;align-items:center;">
-          <button ${!guest?`onclick="setContentStatus(${realIdx},'published')"`:''} style="padding:4px 8px;border-radius:6px;border:1px solid #ca8a04;font-size:11px;font-weight:700;font-family:Tajawal,sans-serif;white-space:nowrap;${guest?'pointer-events:none;cursor:default;':'cursor:pointer;'};width:100%;${pubA}">🌟 تم النشر</button>
-          <button ${!guest?`onclick="setContentStatus(${realIdx},'unpublished')"`:''} style="padding:4px 8px;border-radius:6px;border:1px solid #7c3aed;font-size:11px;font-weight:700;font-family:Tajawal,sans-serif;white-space:nowrap;${guest?'pointer-events:none;cursor:default;':'cursor:pointer;'};width:100%;${unpubA}">🟣 لم يتم</button>
-        </div>`;
-    const sigCell = guest
-      ? (item.signature ? `<img src="${item.signature}" style="width:140px;height:50px;object-fit:contain;display:block;" />` : '—')
-      : item.signature
-      ? `<div style="position:relative;">
-           <img src="${item.signature}" style="width:140px;height:50px;object-fit:contain;display:block;" />
-           <button onclick="clearSignature(${realIdx})" style="position:absolute;top:0;left:0;background:#dc2626;color:#fff;border:none;border-radius:4px;font-size:9px;padding:1px 5px;cursor:pointer;">✕</button>
-         </div>`
-      : `<canvas id="sigCanvas_${realIdx}" width="140" height="50"
-           style="border:1.5px dashed #9ca3af;border-radius:4px;cursor:crosshair;touch-action:none;display:block;"
-           onmousedown="startSig(event,${realIdx})"
-           ontouchstart="startSig(event,${realIdx})"></canvas>
-         <div style="display:flex;gap:4px;margin-top:3px;">
-           <button onclick="saveSig(${realIdx})" style="flex:1;padding:2px;border:1px solid #059669;background:#f0fdf4;color:#059669;border-radius:4px;font-size:10px;cursor:pointer;font-family:Tajawal,sans-serif;">✓ حفظ</button>
-           <button onclick="clearCanvas(${realIdx})" style="flex:1;padding:2px;border:1px solid #9ca3af;background:#f9fafb;color:#555;border-radius:4px;font-size:10px;cursor:pointer;font-family:Tajawal,sans-serif;">مسح</button>
-         </div>`;
-    return `<tr id="rrow_${realIdx}" style="background:${rowBg};${rowBorder}">
-      <td style="text-align:center;font-weight:900;color:${thBg};">${i+1}</td>
-      <td style="font-weight:700;font-size:12px;text-align:right;${!guest?'cursor:pointer;':''}" ${!guest?`onclick="showApptCard(${realIdx})" title="اضغط لعرض تفاصيل المؤثر"`:''}>
-        ${!guest?`<span style="border-bottom:2px dotted #1a6fa8;color:#1a6fa8;">${name}</span>`:name}${vsLabel}</td>
-      <td style="text-align:center;">${gLabel}</td>
-      <td style="text-align:center;">${natCell}</td>
-      <td style="direction:ltr;text-align:center;">${phoneCell}</td>
-      <td style="font-size:11px;color:#555;direction:ltr;text-align:center;">${item.civil||'—'}</td>
-      <td style="text-align:center;">${socialsCell}</td>
-      <td style="text-align:center;">
-        <div style="display:flex;flex-direction:column;align-items:center;gap:4px;">
-          <span style="font-weight:600;color:${thBg};white-space:nowrap;">${dateStr}</span>
-          ${!guest?`<button onclick="openInlineDate(${realIdx},this,event)" style="padding:3px 8px;border-radius:6px;border:1px solid #dc2626;background:#fff;color:#dc2626;font-size:11px;font-weight:700;cursor:pointer;font-family:Tajawal,sans-serif;" title="تعديل الموعد">تعديل</button>`:''}
-        </div>
-      </td>
-      <td style="text-align:center;">
-        <div style="display:flex;flex-direction:column;align-items:center;gap:4px;">
-          <span id="svcDisplay_${realIdx}">${svcLabel}</span>
-          ${!guest?`<button onclick="openInlineSvc(${realIdx},this,event)" style="padding:3px 8px;border-radius:6px;border:1px solid #dc2626;background:#fff;color:#dc2626;font-size:11px;font-weight:700;cursor:pointer;font-family:Tajawal,sans-serif;" title="تعديل الخدمة">تعديل</button>`:''}
-        </div>
-      </td>
-      <td style="text-align:center;">${visitBtns}</td>
-      <td style="text-align:center;">${pubBtns}</td>
-      <td style="text-align:center;padding:4px;">${sigCell}</td>
-    </tr>`;
-  }).join('');
-  const html = `<div class="report-overlay open" id="reportOverlay" onclick="if(event.target===this)closeReport()">
-    <div class="report-modal" style="max-width:100%;width:100%;margin:0;border-radius:0;min-height:100vh;">
-      <div class="report-actions" style="position:sticky;top:0;background:#fff;z-index:10;padding:.5rem 0;border-bottom:1px solid #e5e7eb;">
-        <button class="report-btn-close" onclick="closeReport()">✕ إغلاق</button>
-        <button class="report-btn-print" style="background:${thBg}" onclick="window.print()">🖨️ طباعة / PDF</button>
-        <button class="report-btn-share" onclick="shareStatusReport('approved')">📤 مشاركة</button>
-      </div>
-      <div class="report-header"><h2 style="color:${thBg}">✅ كشف المؤثرين المقبولين</h2>
-        <p>مركز كيور الطبي — الحملة الإعلانية | ${today}</p>
-        <p style="font-weight:700;color:${countColor};margin-top:4px;">الإجمالي: ${list.length} مؤثر</p>
-      </div>
-      <div class="report-table-wrap" style="overflow-x:auto;"><table class="report-table" style="min-width:960px;"><thead><tr>
-        <th style="width:30px;">#</th>
-        <th style="width:110px;text-align:right;">الاسم</th>
-        <th style="width:55px;">الجنس</th>
-        <th style="width:75px;">الجنسية</th>
-        <th style="width:85px;">الهاتف</th>
-        <th style="width:100px;">الرقم المدني</th>
-        <th style="width:80px;">الصفحات</th>
-        <th style="width:100px;">موعد الزيارة</th>
-        <th style="width:85px;">الخدمة</th>
-        <th style="width:100px;">حالة الزيارة</th>
-        <th style="width:105px;">حالة النشر</th>
-        <th style="width:135px;">توقيع المؤثر</th>
-      </tr></thead><tbody>${rows}</tbody></table></div>
-      <div class="report-footer-note">هذا الكشف سري ومخصص للاستخدام الداخلي — مركز كيور الطبي © 2026</div>
-    </div></div>`;
-  const div = document.createElement('div'); div.id = 'reportContainer'; div.innerHTML = html; document.body.appendChild(div);
+const guest = isGuest();
+const thBg = ‘#0a3d62’;
+const countColor = ‘#16a34a’;
+let list = influencers.filter(i => i.status === ‘approved’);
+list = list.sort((a, b) => {
+// عندهم موعد أولاً (من الأقدم للأحدث)، ثم بدون موعد (أبجدي)
+const hasDateA = !!(a.visitDate);
+const hasDateB = !!(b.visitDate);
+if(hasDateA && !hasDateB) return -1;
+if(!hasDateA && hasDateB) return 1;
+if(hasDateA && hasDateB) return a.visitDate.localeCompare(b.visitDate);
+// بدون موعد: أبجدي عربي ثم إنجليزي
+const nameA = (a.name || a.ig || ‘’).trim();
+const nameB = (b.name || b.ig || ‘’).trim();
+const isArA = /[\u0600-\u06FF]/.test(nameA.charAt(0));
+const isArB = /[\u0600-\u06FF]/.test(nameB.charAt(0));
+if(isArA && !isArB) return -1;
+if(!isArA && isArB) return 1;
+return nameA.localeCompare(nameB, isArA ? ‘ar’ : ‘en’, {sensitivity:‘base’});
+});
+if(!list.length){ showToast(‘⚠️ لا يوجد مقبولين!’,’#d97706’); return; }
+const today = new Date().toLocaleDateString(‘ar-KW’,{year:‘numeric’,month:‘long’,day:‘numeric’});
+const rows = list.map((item, i) => {
+const realIdx = influencers.indexOf(item);
+const name = item.name || ‘—’;
+const gLabel = item.gender===‘m’
+? ‘<span style="color:#1a6fa8;font-weight:700;">👨 ذكر</span>’
+: item.gender===‘f’
+? ‘<span style="color:#a21caf;font-weight:700;">👩 أنثى</span>’
+: ‘—’;
+const natCell = item.nationality
+? `<span style="background:#e6f7f1;color:#0a7a55;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:700;">🌍 ${item.nationality}</span>`
+: ‘—’;
+const phoneCell = guest
+? ‘<span style="color:#9ca3af;font-size:11px;">🔒 مخفي</span>’
+: item.phone
+? `<span onclick="showPhonePopup('${item.phone.replace(/'/g,"\\'")}','${(item.name||item.ig||'').replace(/'/g,"\\'")}',event)" style="color:#0369a1;direction:ltr;display:block;white-space:nowrap;font-size:12px;cursor:pointer;font-weight:600;" title="اضغط للتواصل">📞 ${item.phone}</span>`
+: ‘—’;
+const socialsCell = guest
+? ‘<span style="color:#9ca3af;font-size:11px;">🔒 مخفي</span>’
+: `<div style="display:flex;flex-direction:column;gap:3px;">${buildSocialsHtml(item)}</div>`;
+const dateStr = item.visitDate ? formatDateAr(item.visitDate) : ‘—’;
+const vs = item.visitStatus || ‘’;
+const vsLabel = vs===‘done’
+? ‘<br><span style="font-size:10px;color:#16a34a;font-weight:700;">✅ تمت الزيارة</span>’
+: vs===‘cancelled’
+? ‘<br><span style="font-size:10px;color:#dc2626;font-weight:700;">⚠️ ألغيت الزيارة</span>’
+: ‘’;
+const svcLabel = (item.services&&item.services.length)
+? item.services.map(s=>`<span style="display:inline-block;background:#f3e8ff;color:#7c3aed;border:1px solid #c084fc;border-radius:5px;padding:2px 7px;font-size:11px;margin:1px;">${s}</span>`).join(’ ‘)
+: ‘—’;
+const cs = item.contentStatus || ‘’;
+const hasDate = !!item.visitDate;
+const rowBg = cs===‘published’?’#fef9c3’:cs===‘unpublished’?’#f3e8ff’:vs===‘cancelled’?’#fee2e2’:vs===‘done’?’#86efac’:hasDate?’#dcfce7’:’#fff’;
+const rowBorder = cs===‘published’?‘border-right:4px solid #ca8a04;’:cs===‘unpublished’?‘border-right:4px solid #7c3aed;’:vs===‘cancelled’?‘border-right:4px solid #dc2626;’:vs===‘done’?‘border-right:4px solid #16a34a;’:hasDate?‘border-right:4px solid #16a34a;’:’’;
+const doneA = vs===’’?‘background:#f0fdf4;color:#15803d;opacity:1;’
+:vs===‘done’?‘background:#15803d;color:#fff;opacity:1;’
+:‘background:#e5e7eb;color:#9ca3af;opacity:0.45;’;
+const cancA = vs===’’?‘background:#fefce8;color:#ca8a04;opacity:1;’
+:vs===‘cancelled’?‘background:#ca8a04;color:#fff;opacity:1;’
+:‘background:#e5e7eb;color:#9ca3af;opacity:0.45;’;
+const pubA  = cs===’’?‘background:#fefce8;color:#ca8a04;opacity:1;’
+:cs===‘published’?‘background:#ca8a04;color:#fff;opacity:1;’
+:‘background:#e5e7eb;color:#9ca3af;opacity:0.45;’;
+const unpubA= cs===’’?‘background:#f3e8ff;color:#7c3aed;opacity:1;’
+:cs===‘unpublished’?‘background:#7c3aed;color:#fff;opacity:1;’
+:‘background:#e5e7eb;color:#9ca3af;opacity:0.45;’;
+const visitBtns = `<div style="display:flex;gap:4px;flex-direction:column;align-items:center;"> <button ${!guest?`onclick=“setVisitStatus(${realIdx},‘done’)”`:''} style="padding:4px 8px;border-radius:6px;border:1px solid #15803d;font-size:11px;font-weight:700;font-family:Tajawal,sans-serif;white-space:nowrap;${guest?'pointer-events:none;cursor:default;':'cursor:pointer;'};width:100%;${doneA}">✅ تمت</button> <button ${!guest?`onclick=“setVisitStatus(${realIdx},‘cancelled’)”`:''} style="padding:4px 8px;border-radius:6px;border:1px solid #ca8a04;font-size:11px;font-weight:700;font-family:Tajawal,sans-serif;white-space:nowrap;${guest?'pointer-events:none;cursor:default;':'cursor:pointer;'};width:100%;${cancA}">⚠️ ألغيت</button> </div>`;
+const pubBtns = `<div style="display:flex;gap:4px;flex-direction:column;align-items:center;"> <button ${!guest?`onclick=“setContentStatus(${realIdx},‘published’)”`:''} style="padding:4px 8px;border-radius:6px;border:1px solid #ca8a04;font-size:11px;font-weight:700;font-family:Tajawal,sans-serif;white-space:nowrap;${guest?'pointer-events:none;cursor:default;':'cursor:pointer;'};width:100%;${pubA}">🌟 تم النشر</button> <button ${!guest?`onclick=“setContentStatus(${realIdx},‘unpublished’)”`:''} style="padding:4px 8px;border-radius:6px;border:1px solid #7c3aed;font-size:11px;font-weight:700;font-family:Tajawal,sans-serif;white-space:nowrap;${guest?'pointer-events:none;cursor:default;':'cursor:pointer;'};width:100%;${unpubA}">🟣 لم يتم</button> </div>`;
+const sigCell = guest
+? (item.signature ? `<img src="${item.signature}" style="width:140px;height:50px;object-fit:contain;display:block;" />` : ‘—’)
+: item.signature
+? `<div style="position:relative;"> <img src="${item.signature}" style="width:140px;height:50px;object-fit:contain;display:block;" /> <button onclick="clearSignature(${realIdx})" style="position:absolute;top:0;left:0;background:#dc2626;color:#fff;border:none;border-radius:4px;font-size:9px;padding:1px 5px;cursor:pointer;">✕</button> </div>`
+: `<canvas id="sigCanvas_${realIdx}" width="140" height="50" style="border:1.5px dashed #9ca3af;border-radius:4px;cursor:crosshair;touch-action:none;display:block;" onmousedown="startSig(event,${realIdx})" ontouchstart="startSig(event,${realIdx})"></canvas> <div style="display:flex;gap:4px;margin-top:3px;"> <button onclick="saveSig(${realIdx})" style="flex:1;padding:2px;border:1px solid #059669;background:#f0fdf4;color:#059669;border-radius:4px;font-size:10px;cursor:pointer;font-family:Tajawal,sans-serif;">✓ حفظ</button> <button onclick="clearCanvas(${realIdx})" style="flex:1;padding:2px;border:1px solid #9ca3af;background:#f9fafb;color:#555;border-radius:4px;font-size:10px;cursor:pointer;font-family:Tajawal,sans-serif;">مسح</button> </div>`;
+return `<tr id="rrow_${realIdx}" style="background:${rowBg};${rowBorder}"> <td style="text-align:center;font-weight:900;color:${thBg};">${i+1}</td> <td style="font-weight:700;font-size:12px;text-align:right;${!guest?'cursor:pointer;':''}" ${!guest?`onclick=“showApptCard(${realIdx})” title=“اضغط لعرض تفاصيل المؤثر”`:''}> ${!guest?`<span style="border-bottom:2px dotted #1a6fa8;color:#1a6fa8;">${name}</span>`:name}${vsLabel}</td> <td style="text-align:center;">${gLabel}</td> <td style="text-align:center;">${natCell}</td> <td style="direction:ltr;text-align:center;">${phoneCell}</td> <td style="font-size:11px;color:#555;direction:ltr;text-align:center;">${item.civil||'—'}</td> <td style="text-align:center;">${socialsCell}</td> <td style="text-align:center;"> <div style="display:flex;flex-direction:column;align-items:center;gap:4px;"> <span style="font-weight:600;color:${thBg};white-space:nowrap;">${dateStr}</span> ${!guest?`<button onclick="openInlineDate(${realIdx},this,event)" style="padding:3px 8px;border-radius:6px;border:1px solid #dc2626;background:#fff;color:#dc2626;font-size:11px;font-weight:700;cursor:pointer;font-family:Tajawal,sans-serif;" title="تعديل الموعد">تعديل</button>`:''} </div> </td> <td style="text-align:center;"> <div style="display:flex;flex-direction:column;align-items:center;gap:4px;"> <span id="svcDisplay_${realIdx}">${svcLabel}</span> ${!guest?`<button onclick="openInlineSvc(${realIdx},this,event)" style="padding:3px 8px;border-radius:6px;border:1px solid #dc2626;background:#fff;color:#dc2626;font-size:11px;font-weight:700;cursor:pointer;font-family:Tajawal,sans-serif;" title="تعديل الخدمة">تعديل</button>`:''} </div> </td> <td style="text-align:center;">${visitBtns}</td> <td style="text-align:center;">${pubBtns}</td> <td style="text-align:center;padding:4px;">${sigCell}</td> </tr>`;
+}).join(’’);
+const html = `<div class="report-overlay open" id="reportOverlay" onclick="if(event.target===this)closeReport()"> <div class="report-modal" style="max-width:100%;width:100%;margin:0;border-radius:0;min-height:100vh;"> <div class="report-actions" style="position:sticky;top:0;background:#fff;z-index:10;padding:.5rem 0;border-bottom:1px solid #e5e7eb;"> <button class="report-btn-close" onclick="closeReport()">✕ إغلاق</button> <button class="report-btn-print" style="background:${thBg}" onclick="window.print()">🖨️ طباعة / PDF</button> <button class="report-btn-share" onclick="shareStatusReport('approved')">📤 مشاركة</button> </div> <div class="report-header"><h2 style="color:${thBg}">✅ كشف المؤثرين المقبولين</h2> <p>مركز كيور الطبي — الحملة الإعلانية | ${today}</p> <p style="font-weight:700;color:${countColor};margin-top:4px;">الإجمالي: ${list.length} مؤثر</p> </div> <div class="report-table-wrap" style="overflow-x:auto;"><table class="report-table" style="min-width:960px;"><thead><tr> <th style="width:30px;">#</th> <th style="width:110px;text-align:right;">الاسم</th> <th style="width:55px;">الجنس</th> <th style="width:75px;">الجنسية</th> <th style="width:85px;">الهاتف</th> <th style="width:100px;">الرقم المدني</th> <th style="width:80px;">الصفحات</th> <th style="width:100px;">موعد الزيارة</th> <th style="width:85px;">الخدمة</th> <th style="width:100px;">حالة الزيارة</th> <th style="width:105px;">حالة النشر</th> <th style="width:135px;">توقيع المؤثر</th> </tr></thead><tbody>${rows}</tbody></table></div> <div class="report-footer-note">هذا الكشف سري ومخصص للاستخدام الداخلي — مركز كيور الطبي © 2026</div> </div></div>`;
+const div = document.createElement(‘div’); div.id = ‘reportContainer’; div.innerHTML = html; document.body.appendChild(div);
 }
 function guestOpenAppts() {
-  if(influencers.length === 0) {
-    showToast('⏳ جاري تحميل البيانات...', '#1a6fa8');
-    tryLoadFirebase().then(function() {
-      influencers.forEach(function(item){ if(item.phone) item.phone = normalizePhone(item.phone); });
-      updateStats();
-      openApptPanel();
-    }).catch(function(){ openApptPanel(); });
-  } else {
-    openApptPanel();
-  }
+if(influencers.length === 0) {
+showToast(‘⏳ جاري تحميل البيانات…’, ‘#1a6fa8’);
+tryLoadFirebase().then(function() {
+influencers.forEach(function(item){ if(item.phone) item.phone = normalizePhone(item.phone); });
+updateStats();
+openApptPanel();
+}).catch(function(){ openApptPanel(); });
+} else {
+openApptPanel();
+}
 }
 window.guestOpenReport = guestOpenReport;
 window.guestOpenAppts = guestOpenAppts;
 function guestRefresh() {
-  const btn = document.querySelector('#guestBtns button:last-child');
-  if(btn) btn.textContent = '⏳ جاري التحديث...';
-  tryLoadFirebase().then(function(loaded) {
-    if(loaded) {
-      influencers.forEach(function(item){ if(item.phone) item.phone = normalizePhone(item.phone); });
-      updateStats();
-      showToast('✅ تم تحديث البيانات', '#059669');
-    } else {
-      showToast('⚠️ تعذر التحديث — تحقق من الاتصال', '#d97706');
-    }
-    if(btn) btn.textContent = '🔄 تحديث';
-  }).catch(function() {
-    showToast('⚠️ تعذر التحديث', '#d97706');
-    if(btn) btn.textContent = '🔄 تحديث';
-  });
+const btn = document.querySelector(’#guestBtns button:last-child’);
+if(btn) btn.textContent = ‘⏳ جاري التحديث…’;
+tryLoadFirebase().then(function(loaded) {
+if(loaded) {
+influencers.forEach(function(item){ if(item.phone) item.phone = normalizePhone(item.phone); });
+updateStats();
+showToast(‘✅ تم تحديث البيانات’, ‘#059669’);
+} else {
+showToast(‘⚠️ تعذر التحديث — تحقق من الاتصال’, ‘#d97706’);
+}
+if(btn) btn.textContent = ‘🔄 تحديث’;
+}).catch(function() {
+showToast(‘⚠️ تعذر التحديث’, ‘#d97706’);
+if(btn) btn.textContent = ‘🔄 تحديث’;
+});
 }
 window.guestRefresh = guestRefresh;
 function openGuestAppts() {
-  let overlay = document.getElementById('guestApptOverlay');
-  if(!overlay) {
-    document.body.insertAdjacentHTML('beforeend', `
-      <div id="guestApptOverlay" style="position:fixed;inset:0;z-index:3000;background:#0d1117;display:flex;align-items:flex-start;justify-content:center;padding:.5rem;overflow-y:auto;-webkit-overflow-scrolling:touch;height:100%;height:100dvh;" onclick="if(event.target===this)document.getElementById('guestApptOverlay').style.display='none'">
-        <div style="width:100%;max-width:500px;margin:0 auto;padding-bottom:2rem;">
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;padding-bottom:.8rem;border-bottom:1px solid #21262d;position:sticky;top:0;background:#0d1117;z-index:1;padding-top:.5rem;">
-            <div style="font-size:18px;font-weight:900;color:#e6edf3;">📅 مواعيد الزيارات</div>
-            <button onclick="document.getElementById('guestApptOverlay').style.display='none'" style="background:#21262d;border:1px solid #30363d;color:#e6edf3;width:36px;height:36px;border-radius:50%;cursor:pointer;font-size:18px;flex-shrink:0;">✕</button>
-          </div>
-          <div id="guestApptList" style="display:flex;flex-direction:column;gap:12px;"></div>
-        </div>
-      </div>
-    `);
-    overlay = document.getElementById('guestApptOverlay');
-  } else {
-    overlay.style.display = 'flex';
-  }
-  renderGuestView();
+let overlay = document.getElementById(‘guestApptOverlay’);
+if(!overlay) {
+document.body.insertAdjacentHTML(‘beforeend’, `<div id="guestApptOverlay" style="position:fixed;inset:0;z-index:3000;background:#0d1117;display:flex;align-items:flex-start;justify-content:center;padding:.5rem;overflow-y:auto;-webkit-overflow-scrolling:touch;height:100%;height:100dvh;" onclick="if(event.target===this)document.getElementById('guestApptOverlay').style.display='none'"> <div style="width:100%;max-width:500px;margin:0 auto;padding-bottom:2rem;"> <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;padding-bottom:.8rem;border-bottom:1px solid #21262d;position:sticky;top:0;background:#0d1117;z-index:1;padding-top:.5rem;"> <div style="font-size:18px;font-weight:900;color:#e6edf3;">📅 مواعيد الزيارات</div> <button onclick="document.getElementById('guestApptOverlay').style.display='none'" style="background:#21262d;border:1px solid #30363d;color:#e6edf3;width:36px;height:36px;border-radius:50%;cursor:pointer;font-size:18px;flex-shrink:0;">✕</button> </div> <div id="guestApptList" style="display:flex;flex-direction:column;gap:12px;"></div> </div> </div>`);
+overlay = document.getElementById(‘guestApptOverlay’);
+} else {
+overlay.style.display = ‘flex’;
+}
+renderGuestView();
 }
 window.openGuestAppts = openGuestAppts;
 function guestUpdateTime(idx, part, val) {
-  // Guest is view only - no modifications allowed
-  showToast('🔒 عرض فقط — التعديل للأدمن', '#6e7681');
+// Guest is view only - no modifications allowed
+showToast(‘🔒 عرض فقط — التعديل للأدمن’, ‘#6e7681’);
 }
 function guestSetVisitStatus(idx, status) {
-  // Guest is view only - no modifications allowed
-  showToast('🔒 عرض فقط — التعديل للأدمن', '#6e7681');
+// Guest is view only - no modifications allowed
+showToast(‘🔒 عرض فقط — التعديل للأدمن’, ‘#6e7681’);
 }
 window.guestUpdateTime = guestUpdateTime;
 window.guestSetVisitStatus = guestSetVisitStatus;
 function guestToggleService(idx, svc, cb) {
-  // Guest is view only - revert checkbox
-  cb.checked = !cb.checked;
-  showToast('🔒 عرض فقط — التعديل للأدمن', '#6e7681');
+// Guest is view only - revert checkbox
+cb.checked = !cb.checked;
+showToast(‘🔒 عرض فقط — التعديل للأدمن’, ‘#6e7681’);
 }
 window.guestToggleService = guestToggleService;
 window.openGuestReport = openGuestReport;
-function shareGuestReport() { shareStatusReport('approved'); }
+function shareGuestReport() { shareStatusReport(‘approved’); }
 window.shareGuestReport = shareGuestReport;
 function renderGuestView() {
-  const list = document.getElementById('guestApptList');
-  if(!list) return;
-  list.innerHTML = ''; // clear first to prevent duplicates
-  const today = new Date(); today.setHours(0,0,0,0);
-  const withDates = influencers
-    .filter(i => i.visitDate && i.status === 'approved')
-    .sort((a,b) => a.visitDate.localeCompare(b.visitDate));
-  // Hide duplicate: same person + same day
-  const seenNameDate = new Set();
-  const uniqueDates = withDates.filter(item => {
-    const dateOnly = item.visitDate.split('T')[0];
-    const key = (normalizePhone(item.phone) || normalizeIg(item.ig) || item.name || '') + '_' + dateOnly;
-    if(seenNameDate.has(key)) return false;
-    seenNameDate.add(key);
-    return true;
-  });
-  if(!uniqueDates.length) {
-    list.innerHTML = '<div style="text-align:center;color:#484f58;padding:2rem;">لا توجد مواعيد مسجلة</div>';
-    return;
-  }
-  list.innerHTML = uniqueDates.map(item => {
-    const idx = influencers.indexOf(item);
-    const dateOnly = item.visitDate.split('T')[0];
-    const [y,m,d] = dateOnly.split('-');
-    const apptDate = new Date(parseInt(y), parseInt(m)-1, parseInt(d));
-    const isPast = apptDate < today;
-    const isToday = apptDate.getTime() === today.getTime();
-    const timeStr = item.visitDate.includes('T') ? item.visitDate.split('T')[1].replace('AM','ص').replace('PM','م') : '';
-    const vs = item.visitStatus || '';
-    const borderColor = vs==='done'&&item.contentStatus==='published'?'#ca8a04':vs==='done'&&item.contentStatus==='unpublished'?'#7c3aed':vs==='done'?'#16a34a':vs==='cancelled'?'#ca8a04':isToday?'#f59e0b':isPast?'#30363d':'#1a6fa8';
-    const cardBg = vs==='done'&&item.contentStatus==='published'?'background:rgba(202,138,4,0.1);':vs==='done'&&item.contentStatus==='unpublished'?'background:rgba(124,58,237,0.1);':vs==='done'?'background:rgba(22,163,74,0.1);':vs==='cancelled'?'background:rgba(202,138,4,0.1);':'';
-    const dateBadgeBg = vs==='done'&&item.contentStatus==='published'?'#ca8a04':vs==='done'&&item.contentStatus==='unpublished'?'#7c3aed':vs==='done'?'#16a34a':vs==='cancelled'?'#ca8a04':isToday?'#f59e0b':isPast?'#21262d':'#1a6fa8';
-    const name = item.name || item.ig || '—';
-    // Time part
-    const timeParts = item.visitDate.includes('T') ? item.visitDate.split('T')[1] : '';
-    const hh = timeParts ? timeParts.replace('AM','').replace('PM','').split(':')[0] : '09';
-    const mm = timeParts ? timeParts.replace('AM','').replace('PM','').split(':')[1] : '00';
-    const ap = timeParts ? (timeParts.includes('PM')?'PM':'AM') : 'AM';
-    return `<div style="background:#161b22;border:2px solid ${borderColor};border-radius:12px;padding:1rem;${cardBg}">
-      <div style="display:flex;align-items:center;gap:12px;">
-        <div style="background:${dateBadgeBg};border-radius:10px;padding:8px 14px;text-align:center;flex-shrink:0;min-width:52px;">
-          <div style="font-size:20px;font-weight:900;color:#fff;line-height:1;">${parseInt(d)}</div>
-          <div style="font-size:10px;color:rgba(255,255,255,0.8);">${MONTHS_AR[parseInt(m)-1]}</div>
-        </div>
-        <div style="flex:1;">
-          <div style="font-size:15px;font-weight:700;color:#e6edf3;">${name}</div>
-          ${timeStr?`<div style="font-size:12px;color:#8b949e;margin-top:2px;">⏰ ${timeStr}</div>`:''}
-          ${item.services&&item.services.length?`<div style="font-size:12px;color:#c084fc;margin-top:2px;">💉 ${item.services.join(' · ')}</div>`:''}
-          <div style="font-size:12px;margin-top:4px;">${vs==='done'?'<span style="color:#4ade80;font-weight:700;">✅ تمت الزيارة</span>':vs==='cancelled'?'<span style="color:#fbbf24;font-weight:700;">⚠️ ألغيت الزيارة</span>':isToday?'<span style="color:#f59e0b;font-weight:700;">⭐ اليوم</span>':isPast?'<span style="color:#484f58;">انتهى الموعد</span>':'<span style="color:#60a5fa;">🗓 قادم</span>'}</div>
-          ${vs==='done'&&item.contentStatus==='published'?'<div style="margin-top:4px;display:inline-block;background:rgba(202,138,4,0.2);border:1px solid #ca8a04;color:#fbbf24;font-size:11px;font-weight:700;padding:2px 10px;border-radius:20px;">🌟 تم النشر</div>':''}
-          ${vs==='done'&&item.contentStatus==='unpublished'?'<div style="margin-top:4px;display:inline-block;background:rgba(124,58,237,0.2);border:1px solid #7c3aed;color:#c084fc;font-size:11px;font-weight:700;padding:2px 10px;border-radius:20px;">🟣 لم يتم النشر</div>':''}
-        </div>
-      </div>
-    </div>`;
-  }).join('');
+const list = document.getElementById(‘guestApptList’);
+if(!list) return;
+list.innerHTML = ‘’; // clear first to prevent duplicates
+const today = new Date(); today.setHours(0,0,0,0);
+const withDates = influencers
+.filter(i => i.visitDate && i.status === ‘approved’)
+.sort((a,b) => a.visitDate.localeCompare(b.visitDate));
+// Hide duplicate: same person + same day
+const seenNameDate = new Set();
+const uniqueDates = withDates.filter(item => {
+const dateOnly = item.visitDate.split(‘T’)[0];
+const key = (normalizePhone(item.phone) || normalizeIg(item.ig) || item.name || ‘’) + ‘_’ + dateOnly;
+if(seenNameDate.has(key)) return false;
+seenNameDate.add(key);
+return true;
+});
+if(!uniqueDates.length) {
+list.innerHTML = ‘<div style="text-align:center;color:#484f58;padding:2rem;">لا توجد مواعيد مسجلة</div>’;
+return;
+}
+list.innerHTML = uniqueDates.map(item => {
+const idx = influencers.indexOf(item);
+const dateOnly = item.visitDate.split(‘T’)[0];
+const [y,m,d] = dateOnly.split(’-’);
+const apptDate = new Date(parseInt(y), parseInt(m)-1, parseInt(d));
+const isPast = apptDate < today;
+const isToday = apptDate.getTime() === today.getTime();
+const timeStr = item.visitDate.includes(‘T’) ? item.visitDate.split(‘T’)[1].replace(‘AM’,‘ص’).replace(‘PM’,‘م’) : ‘’;
+const vs = item.visitStatus || ‘’;
+const borderColor = vs===‘done’&&item.contentStatus===‘published’?’#ca8a04’:vs===‘done’&&item.contentStatus===‘unpublished’?’#7c3aed’:vs===‘done’?’#16a34a’:vs===‘cancelled’?’#ca8a04’:isToday?’#f59e0b’:isPast?’#30363d’:’#1a6fa8’;
+const cardBg = vs===‘done’&&item.contentStatus===‘published’?‘background:rgba(202,138,4,0.1);’:vs===‘done’&&item.contentStatus===‘unpublished’?‘background:rgba(124,58,237,0.1);’:vs===‘done’?‘background:rgba(22,163,74,0.1);’:vs===‘cancelled’?‘background:rgba(202,138,4,0.1);’:’’;
+const dateBadgeBg = vs===‘done’&&item.contentStatus===‘published’?’#ca8a04’:vs===‘done’&&item.contentStatus===‘unpublished’?’#7c3aed’:vs===‘done’?’#16a34a’:vs===‘cancelled’?’#ca8a04’:isToday?’#f59e0b’:isPast?’#21262d’:’#1a6fa8’;
+const name = item.name || item.ig || ‘—’;
+// Time part
+const timeParts = item.visitDate.includes(‘T’) ? item.visitDate.split(‘T’)[1] : ‘’;
+const hh = timeParts ? timeParts.replace(‘AM’,’’).replace(‘PM’,’’).split(’:’)[0] : ‘09’;
+const mm = timeParts ? timeParts.replace(‘AM’,’’).replace(‘PM’,’’).split(’:’)[1] : ‘00’;
+const ap = timeParts ? (timeParts.includes(‘PM’)?‘PM’:‘AM’) : ‘AM’;
+return `<div style="background:#161b22;border:2px solid ${borderColor};border-radius:12px;padding:1rem;${cardBg}"> <div style="display:flex;align-items:center;gap:12px;"> <div style="background:${dateBadgeBg};border-radius:10px;padding:8px 14px;text-align:center;flex-shrink:0;min-width:52px;"> <div style="font-size:20px;font-weight:900;color:#fff;line-height:1;">${parseInt(d)}</div> <div style="font-size:10px;color:rgba(255,255,255,0.8);">${MONTHS_AR[parseInt(m)-1]}</div> </div> <div style="flex:1;"> <div style="font-size:15px;font-weight:700;color:#e6edf3;">${name}</div> ${timeStr?`<div style="font-size:12px;color:#8b949e;margin-top:2px;">⏰ ${timeStr}</div>`:''} ${item.services&&item.services.length?`<div style="font-size:12px;color:#c084fc;margin-top:2px;">💉 ${item.services.join(’ · ‘)}</div>`:''} <div style="font-size:12px;margin-top:4px;">${vs==='done'?'<span style="color:#4ade80;font-weight:700;">✅ تمت الزيارة</span>':vs==='cancelled'?'<span style="color:#fbbf24;font-weight:700;">⚠️ ألغيت الزيارة</span>':isToday?'<span style="color:#f59e0b;font-weight:700;">⭐ اليوم</span>':isPast?'<span style="color:#484f58;">انتهى الموعد</span>':'<span style="color:#60a5fa;">🗓 قادم</span>'}</div> ${vs==='done'&&item.contentStatus==='published'?'<div style="margin-top:4px;display:inline-block;background:rgba(202,138,4,0.2);border:1px solid #ca8a04;color:#fbbf24;font-size:11px;font-weight:700;padding:2px 10px;border-radius:20px;">🌟 تم النشر</div>':''} ${vs==='done'&&item.contentStatus==='unpublished'?'<div style="margin-top:4px;display:inline-block;background:rgba(124,58,237,0.2);border:1px solid #7c3aed;color:#c084fc;font-size:11px;font-weight:700;padding:2px 10px;border-radius:20px;">🟣 لم يتم النشر</div>':''} </div> </div> </div>`;
+}).join(’’);
 }
 
 // ── Inline Date popup from report ──────────────────────────────────
 function openInlineDate(idx, btn, e) {
-  e.stopPropagation();
-  // Close any existing inline popup
-  const old = document.getElementById('inlineReportPopup');
-  if(old) old.remove();
+e.stopPropagation();
+// Close any existing inline popup
+const old = document.getElementById(‘inlineReportPopup’);
+if(old) old.remove();
 
-  dpTargetIdx = idx;
-  const item = influencers[idx];
-  if(item.visitDate) {
-    const parts = item.visitDate.split('T');
-    const [y,m,d] = parts[0].split('-');
-    dpYear = parseInt(y); dpMonth = parseInt(m)-1;
-    if(parts[1]) {
-      const [hh,mm] = parts[1].replace('AM','').replace('PM','').trim().split(':');
-      document.getElementById('dpHour').value = String(parseInt(hh)||9).padStart(2,'0');
-      document.getElementById('dpMinute').value = mm||'00';
-      document.getElementById('dpAmPm').value = parts[1].includes('PM')?'PM':'AM';
-    }
-  } else {
-    const now = new Date(); dpYear = now.getFullYear(); dpMonth = now.getMonth();
-    document.getElementById('dpHour').value = '09';
-    document.getElementById('dpMinute').value = '00';
-    document.getElementById('dpAmPm').value = 'AM';
-  }
+dpTargetIdx = idx;
+const item = influencers[idx];
+if(item.visitDate) {
+const parts = item.visitDate.split(‘T’);
+const [y,m,d] = parts[0].split(’-’);
+dpYear = parseInt(y); dpMonth = parseInt(m)-1;
+if(parts[1]) {
+const [hh,mm] = parts[1].replace(‘AM’,’’).replace(‘PM’,’’).trim().split(’:’);
+document.getElementById(‘dpHour’).value = String(parseInt(hh)||9).padStart(2,‘0’);
+document.getElementById(‘dpMinute’).value = mm||‘00’;
+document.getElementById(‘dpAmPm’).value = parts[1].includes(‘PM’)?‘PM’:‘AM’;
+}
+} else {
+const now = new Date(); dpYear = now.getFullYear(); dpMonth = now.getMonth();
+document.getElementById(‘dpHour’).value = ‘09’;
+document.getElementById(‘dpMinute’).value = ‘00’;
+document.getElementById(‘dpAmPm’).value = ‘AM’;
+}
 
-  const dpEl = document.getElementById('datePickerPopup');
-  dpEl.classList.add('open');
-  renderDpSelects(); renderDpDays();
-  if(item.visitDate) enableTimeSelects(); else disableTimeSelects();
-  _inlineDateRowIdx = idx;
-  _dpOrigDate = item.visitDate || null; // save original so cancel can restore
+const dpEl = document.getElementById(‘datePickerPopup’);
+dpEl.classList.add(‘open’);
+renderDpSelects(); renderDpDays();
+if(item.visitDate) enableTimeSelects(); else disableTimeSelects();
+_inlineDateRowIdx = idx;
+_dpOrigDate = item.visitDate || null; // save original so cancel can restore
 }
 let _inlineDateRowIdx = null;
 let _dpOrigDate = null;
@@ -4195,41 +4018,41 @@ let _dpOrigDate = null;
 // Patch closeDatePicker to also refresh the report cell
 const _origCloseDp = closeDatePicker;
 closeDatePicker = function() {
-  const idx = _inlineDateRowIdx;
-  _origCloseDp();
-  _inlineDateRowIdx = null;
-  if(idx !== null) {
-    // Update the date cell text in the report table without closing report
-    const row = document.getElementById('rrow_' + idx);
-    if(row) {
-      const td = row.querySelector('td:nth-child(8)');
-      if(td) {
-        const item = influencers[idx];
-        const newDateStr = item.visitDate ? formatDateAr(item.visitDate) : '—';
-        const span = td.querySelector('span');
-        if(span) span.textContent = newDateStr;
-      }
-    }
-  }
+const idx = _inlineDateRowIdx;
+_origCloseDp();
+*inlineDateRowIdx = null;
+if(idx !== null) {
+// Update the date cell text in the report table without closing report
+const row = document.getElementById(’rrow*’ + idx);
+if(row) {
+const td = row.querySelector(‘td:nth-child(8)’);
+if(td) {
+const item = influencers[idx];
+const newDateStr = item.visitDate ? formatDateAr(item.visitDate) : ‘—’;
+const span = td.querySelector(‘span’);
+if(span) span.textContent = newDateStr;
+}
+}
+}
 };
 window.closeDatePicker = closeDatePicker;
 
 // ── Inline Service popup from report ───────────────────────────────
 function openInlineSvc(idx, btn, e) {
-  e.stopPropagation();
-  _svcTargetIdx = idx;
-  _svcFromReport = true;
-  _inlineSvcRowIdx = idx;
-  const item = influencers[idx];
-  const svcPopup = document.getElementById('servicePopup');
-  SERVICES.forEach((svc, i) => {
-    const cb = document.getElementById(SVC_IDS[i]);
-    const opt = svcPopup.querySelectorAll('.service-option')[i];
-    cb.checked = !!(item.services && item.services.includes(svc));
-    opt.classList.toggle('checked', cb.checked);
-  });
-  svcPopup.classList.add('open');
-  _svcOrigServices = item.services ? [...item.services] : [];
+e.stopPropagation();
+_svcTargetIdx = idx;
+_svcFromReport = true;
+_inlineSvcRowIdx = idx;
+const item = influencers[idx];
+const svcPopup = document.getElementById(‘servicePopup’);
+SERVICES.forEach((svc, i) => {
+const cb = document.getElementById(SVC_IDS[i]);
+const opt = svcPopup.querySelectorAll(’.service-option’)[i];
+cb.checked = !!(item.services && item.services.includes(svc));
+opt.classList.toggle(‘checked’, cb.checked);
+});
+svcPopup.classList.add(‘open’);
+_svcOrigServices = item.services ? […item.services] : [];
 }
 let _inlineSvcRowIdx = null;
 let _svcOrigServices = null;
@@ -4237,199 +4060,191 @@ let _svcOrigServices = null;
 // Patch closeServicePopup to refresh svcDisplay in report row
 const _origCloseSvc = closeServicePopup;
 closeServicePopup = function() {
-  const idx = _inlineSvcRowIdx;
-  _origCloseSvc();
-  _inlineSvcRowIdx = null;
-  if(idx !== null) {
-    const item = influencers[idx];
-    const el = document.getElementById('svcDisplay_' + idx);
-    if(el) {
-      el.innerHTML = (item.services && item.services.length)
-        ? item.services.map(s=>`<span style="display:inline-block;background:#f3e8ff;color:#7c3aed;border:1px solid #c084fc;border-radius:5px;padding:2px 7px;font-size:11px;margin:1px;">${s}</span>`).join('')
-        : '—';
-    }
-  }
+const idx = _inlineSvcRowIdx;
+_origCloseSvc();
+*inlineSvcRowIdx = null;
+if(idx !== null) {
+const item = influencers[idx];
+const el = document.getElementById(’svcDisplay*’ + idx);
+if(el) {
+el.innerHTML = (item.services && item.services.length)
+? item.services.map(s=>`<span style="display:inline-block;background:#f3e8ff;color:#7c3aed;border:1px solid #c084fc;border-radius:5px;padding:2px 7px;font-size:11px;margin:1px;">${s}</span>`).join(’’)
+: ‘—’;
+}
+}
 };
 window.closeServicePopup = closeServicePopup;
 
 // ─── Duplicate Review ───────────────────────────────────────────────
 function findAllDuplicates() {
-  const groups = []; // each group = array of indices that are duplicates of each other
-  const visited = new Set();
+const groups = []; // each group = array of indices that are duplicates of each other
+const visited = new Set();
 
-  for(let i = 0; i < influencers.length; i++) {
-    if(visited.has(i)) continue;
-    const a = influencers[i];
-    const nPhone = normalizePhone(a.phone);
-    const nIg    = normalizeIg(a.ig);
-    const nTt    = (a.tt||'').replace('@','').toLowerCase().trim().split('?')[0];
-    const nSnap  = normalizeSnap(a.snap);
-    const nCivil = (a.civil||'').replace(/\s/g,'');
-    const group  = [i];
+for(let i = 0; i < influencers.length; i++) {
+if(visited.has(i)) continue;
+const a = influencers[i];
+const nPhone = normalizePhone(a.phone);
+const nIg    = normalizeIg(a.ig);
+const nTt    = (a.tt||’’).replace(’@’,’’).toLowerCase().trim().split(’?’)[0];
+const nSnap  = normalizeSnap(a.snap);
+const nCivil = (a.civil||’’).replace(/\s/g,’’);
+const group  = [i];
 
-    for(let j = i+1; j < influencers.length; j++) {
-      if(visited.has(j)) continue;
-      const b = influencers[j];
-      const reasons = [];
-      if(nPhone && nPhone.length>=7 && normalizePhone(b.phone)===nPhone) reasons.push('موبايل');
-      if(nIg    && nIg.length>2    && normalizeIg(b.ig)===nIg)           reasons.push('انستاجرام');
-      if(nTt    && nTt.length>2    && (b.tt||'').replace('@','').toLowerCase().trim().split('?')[0]===nTt) reasons.push('تيك توك');
-      if(nSnap  && nSnap.length>3  && normalizeSnap(b.snap)===nSnap)     reasons.push('سناب');
-      if(nCivil && nCivil.length>=8&& (b.civil||'').replace(/\s/g,'')===nCivil) reasons.push('رقم مدني');
-      if(reasons.length > 0) { group.push(j); visited.add(j); }
-    }
+```
+for(let j = i+1; j < influencers.length; j++) {
+  if(visited.has(j)) continue;
+  const b = influencers[j];
+  const reasons = [];
+  if(nPhone && nPhone.length>=7 && normalizePhone(b.phone)===nPhone) reasons.push('موبايل');
+  if(nIg    && nIg.length>2    && normalizeIg(b.ig)===nIg)           reasons.push('انستاجرام');
+  if(nTt    && nTt.length>2    && (b.tt||'').replace('@','').toLowerCase().trim().split('?')[0]===nTt) reasons.push('تيك توك');
+  if(nSnap  && nSnap.length>3  && normalizeSnap(b.snap)===nSnap)     reasons.push('سناب');
+  if(nCivil && nCivil.length>=8&& (b.civil||'').replace(/\s/g,'')===nCivil) reasons.push('رقم مدني');
+  if(reasons.length > 0) { group.push(j); visited.add(j); }
+}
 
-    if(group.length > 1) {
-      visited.add(i);
-      groups.push(group);
-    }
-  }
-  return groups;
+if(group.length > 1) {
+  visited.add(i);
+  groups.push(group);
+}
+```
+
+}
+return groups;
 }
 
 function updateDupReviewBtn() {
-  const groups = findAllDuplicates();
-  const badge = document.getElementById('dupReviewCount');
-  if(!badge) return;
-  if(groups.length > 0) {
-    badge.textContent = groups.length + ' مجموعة';
-    badge.style.display = 'inline';
-  } else {
-    badge.style.display = 'none';
-  }
+const groups = findAllDuplicates();
+const btn = document.getElementById(‘dupReviewBtn’);
+const badge = document.getElementById(‘dupReviewCount’);
+if(!btn) return;
+if(groups.length > 0) {
+btn.style.display = ‘inline-flex’;
+badge.textContent = groups.length + ’ مجموعة’;
+} else {
+btn.style.display = ‘none’;
+}
 }
 
 function openDupReview() {
-  const groups = findAllDuplicates();
-  const summary = document.getElementById('dupReviewSummary');
-  const list    = document.getElementById('dupReviewList');
+const groups = findAllDuplicates();
+const summary = document.getElementById(‘dupReviewSummary’);
+const list    = document.getElementById(‘dupReviewList’);
 
-  if(groups.length === 0) {
-    summary.textContent = '✅ لا توجد تكرارات — القائمة نظيفة';
-    list.innerHTML = '';
-    document.getElementById('dupReviewOverlay').classList.remove('hidden');
-    return;
-  }
+if(groups.length === 0) {
+summary.textContent = ‘✅ لا توجد تكرارات — القائمة نظيفة’;
+list.innerHTML = ‘’;
+document.getElementById(‘dupReviewOverlay’).classList.remove(‘hidden’);
+return;
+}
 
-  summary.innerHTML = `وُجد <b style="color:#fbbf24;">${groups.length}</b> مجموعة تكرار تضم <b style="color:#fbbf24;">${groups.reduce((s,g)=>s+g.length,0)}</b> شخص — اختر لكل مجموعة من تحذف`;
-  list.innerHTML = groups.map((group, gi) => {
-    const items = group.map(idx => ({idx, item: influencers[idx]}));
-    const cardsHTML = items.map(({idx, item}) => {
-      const name = item.name || item.ig || 'مؤثر #'+(idx+1);
-      const statusColor = item.status==='approved'?'#4ade80':item.status==='rejected'?'#f87171':'#8b949e';
-      const statusLabel = item.status==='approved'?'✅ مقبول':item.status==='rejected'?'❌ مرفوض':'⏳ قيد المراجعة';
-      return `<div style="background:#21262d;border:1px solid #30363d;border-radius:10px;padding:.7rem;flex:1;min-width:200px;">
-        <div style="font-weight:700;font-size:13px;margin-bottom:4px;">${name}</div>
-        <div style="font-size:11px;color:#8b949e;margin-bottom:4px;">${item.phone?'📞 '+item.phone:''} ${item.ig?'· '+item.ig:''}</div>
-        <div style="font-size:11px;color:${statusColor};margin-bottom:8px;">${statusLabel}</div>
-        ${item.visitDate?`<div style="font-size:11px;color:#22d3ee;margin-bottom:4px;">📅 ${item.visitDate.split('T')[0]}</div>`:''}
-        ${item.visitStatus==='done'?'<div style="font-size:11px;color:#4ade80;">🏁 تمت الزيارة</div>':''}
-        ${item.visitStatus==='cancelled'?'<div style="font-size:11px;color:#fbbf24;">⚠️ ألغيت</div>':''}
-        <button onclick="deleteDupEntry(${idx},${gi})" style="width:100%;margin-top:8px;padding:6px;border-radius:7px;border:1px solid #dc2626;background:#1a0808;color:#f87171;font-size:12px;cursor:pointer;font-family:Tajawal,sans-serif;font-weight:700;">🗑 حذف هذا</button>
-        <button onclick="keepOnlyThis(${idx},${gi})" style="width:100%;margin-top:4px;padding:6px;border-radius:7px;border:1px solid #059669;background:#0d1f14;color:#4ade80;font-size:12px;cursor:pointer;font-family:Tajawal,sans-serif;font-weight:700;">✅ احتفظ بهذا واحذف الباقين</button>
-      </div>`;
-    }).join('');
-    return `<div id="dupGroup_${gi}" style="border:1px solid #d97706;border-radius:12px;padding:.8rem;background:#1a1200;">
-      <div style="font-size:12px;color:#fbbf24;font-weight:700;margin-bottom:8px;">مجموعة ${gi+1} — ${group.length} أشخاص متشابهون</div>
-      <div style="display:flex;gap:8px;flex-wrap:wrap;">${cardsHTML}</div>
-    </div>`;
-  }).join('');
+summary.innerHTML = `وُجد <b style="color:#fbbf24;">${groups.length}</b> مجموعة تكرار تضم <b style="color:#fbbf24;">${groups.reduce((s,g)=>s+g.length,0)}</b> شخص — اختر لكل مجموعة من تحذف`;
+list.innerHTML = groups.map((group, gi) => {
+const items = group.map(idx => ({idx, item: influencers[idx]}));
+const cardsHTML = items.map(({idx, item}) => {
+const name = item.name || item.ig || ‘مؤثر #’+(idx+1);
+const statusColor = item.status===‘approved’?’#4ade80’:item.status===‘rejected’?’#f87171’:’#8b949e’;
+const statusLabel = item.status===‘approved’?‘✅ مقبول’:item.status===‘rejected’?‘❌ مرفوض’:‘⏳ قيد المراجعة’;
+return `<div style="background:#21262d;border:1px solid #30363d;border-radius:10px;padding:.7rem;flex:1;min-width:200px;"> <div style="font-weight:700;font-size:13px;margin-bottom:4px;">${name}</div> <div style="font-size:11px;color:#8b949e;margin-bottom:4px;">${item.phone?'📞 '+item.phone:''} ${item.ig?'· '+item.ig:''}</div> <div style="font-size:11px;color:${statusColor};margin-bottom:8px;">${statusLabel}</div> ${item.visitDate?`<div style="font-size:11px;color:#22d3ee;margin-bottom:4px;">📅 ${item.visitDate.split(‘T’)[0]}</div>`:''} ${item.visitStatus==='done'?'<div style="font-size:11px;color:#4ade80;">🏁 تمت الزيارة</div>':''} ${item.visitStatus==='cancelled'?'<div style="font-size:11px;color:#fbbf24;">⚠️ ألغيت</div>':''} <button onclick="deleteDupEntry(${idx},${gi})" style="width:100%;margin-top:8px;padding:6px;border-radius:7px;border:1px solid #dc2626;background:#1a0808;color:#f87171;font-size:12px;cursor:pointer;font-family:Tajawal,sans-serif;font-weight:700;">🗑 حذف هذا</button> <button onclick="keepOnlyThis(${idx},${gi})" style="width:100%;margin-top:4px;padding:6px;border-radius:7px;border:1px solid #059669;background:#0d1f14;color:#4ade80;font-size:12px;cursor:pointer;font-family:Tajawal,sans-serif;font-weight:700;">✅ احتفظ بهذا واحذف الباقين</button> </div>`;
+}).join(’’);
+return `<div id="dupGroup_${gi}" style="border:1px solid #d97706;border-radius:12px;padding:.8rem;background:#1a1200;"> <div style="font-size:12px;color:#fbbf24;font-weight:700;margin-bottom:8px;">مجموعة ${gi+1} — ${group.length} أشخاص متشابهون</div> <div style="display:flex;gap:8px;flex-wrap:wrap;">${cardsHTML}</div> </div>`;
+}).join(’’);
 
-  document.getElementById('dupReviewOverlay').classList.remove('hidden');
+document.getElementById(‘dupReviewOverlay’).classList.remove(‘hidden’);
 }
 
 function deleteDupEntry(idx, gi) {
-  if(!confirm('هتحذف هذا الشخص نهائياً؟')) return;
-  const item = influencers[idx];
-  item._deletedAt = Date.now();
-  deletedInfluencers.push(item);
-  influencers.splice(idx, 1);
-  saveFile(); renderGrid(); updateStats(); updateDupReviewBtn();
-  // Refresh the modal
-  closeDupReview();
-  openDupReview();
-  showToast('🗑 تم الحذف', '#dc2626');
+if(!confirm(‘هتحذف هذا الشخص نهائياً؟’)) return;
+const item = influencers[idx];
+item._deletedAt = Date.now();
+deletedInfluencers.push(item);
+influencers.splice(idx, 1);
+saveFile(); renderGrid(); updateStats(); updateDupReviewBtn();
+// Refresh the modal
+closeDupReview();
+openDupReview();
+showToast(‘🗑 تم الحذف’, ‘#dc2626’);
 }
 
 function keepOnlyThis(keepIdx, gi) {
-  const groups = findAllDuplicates();
-  const group  = groups[gi];
-  if(!group) return;
-  if(!confirm('هتحذف ' + (group.length-1) + ' شخص وتحتفظ بواحد بس؟')) return;
-  // Delete all except keepIdx — from highest index to lowest to avoid shifting
-  const toDelete = group.filter(i => i !== keepIdx).sort((a,b)=>b-a);
-  toDelete.forEach(idx => {
-    const item = influencers[idx];
-    item._deletedAt = Date.now();
-    deletedInfluencers.push(item);
-    influencers.splice(idx, 1);
-  });
-  saveFile(); renderGrid(); updateStats(); updateDupReviewBtn();
-  closeDupReview();
-  openDupReview();
-  showToast('✅ تم الاحتفاظ بشخص واحد وحذف الباقين', '#059669');
+const groups = findAllDuplicates();
+const group  = groups[gi];
+if(!group) return;
+if(!confirm(‘هتحذف ’ + (group.length-1) + ’ شخص وتحتفظ بواحد بس؟’)) return;
+// Delete all except keepIdx — from highest index to lowest to avoid shifting
+const toDelete = group.filter(i => i !== keepIdx).sort((a,b)=>b-a);
+toDelete.forEach(idx => {
+const item = influencers[idx];
+item._deletedAt = Date.now();
+deletedInfluencers.push(item);
+influencers.splice(idx, 1);
+});
+saveFile(); renderGrid(); updateStats(); updateDupReviewBtn();
+closeDupReview();
+openDupReview();
+showToast(‘✅ تم الاحتفاظ بشخص واحد وحذف الباقين’, ‘#059669’);
 }
 
 function closeDupReview() {
-  document.getElementById('dupReviewOverlay').classList.add('hidden');
+document.getElementById(‘dupReviewOverlay’).classList.add(‘hidden’);
 }
 window.openDupReview=openDupReview; window.closeDupReview=closeDupReview;
 window.deleteDupEntry=deleteDupEntry; window.keepOnlyThis=keepOnlyThis;
 // ─────────────────────────────────────────────────────────────────────
 
 async function init() {
-  if(!checkAuth()) return;
-  updateWelcome();
-  // Safety: force hide loading after 10 seconds no matter what
-  const safetyTimer = setTimeout(() => {
-    document.getElementById('loadingOverlay').style.display = 'none';
-  }, 10000);
-  try {
-  initNationalitySelects();
-  const loaded = await loadFromStorage();
-  if(!loaded) { showToast('⚠️ تعذر تحميل البيانات — تحقق من الاتصال', '#dc2626'); }
-  influencers.forEach(item => { if(item.phone) item.phone = normalizePhone(item.phone); });
-  // لا نحذف تلقائياً — فقط نكشف عدد المكررات للمدير
-  const removed = 0;
-  document.getElementById('loadingOverlay').style.display = 'none';
-  if(isGuest()) {
-    document.querySelector('.toolbar').style.display = 'none';
-    document.getElementById('grid').style.display = 'none';
-    document.querySelector('.page-footer').style.display = 'none';
-    const fab = document.getElementById('fabBtn'); if(fab) fab.style.display = 'none';
-    document.querySelectorAll('.stat').forEach(s => { s.style.cursor='default'; s.setAttribute('onclick',''); });
-    updateStats();
-    // Guest NEVER saves to Firebase - read only
-    // Poll Firebase every 30s for live updates
-    setInterval(function() {
-      tryLoadFirebase().then(function(loaded) {
-        if(loaded) { updateStats(); }
-      }).catch(function(){});
-    }, 30000);
-    return;
-  }
-  await saveToStorage();
-  renderGrid();
-  updateDupReviewBtn();
-  if(removed > 0) showToast('🧹 تم حذف '+removed+' تكرار تلقائياً', '#ca8a04');
-  // Check missed visits after short delay
-  setTimeout(checkMissedVisits, 800);
-  // Poll Firebase every 30s to sync with other devices
-  setInterval(function() {
-    tryLoadFirebase().then(function(loaded) {
-      if(loaded) { updateStats(); renderGrid(); updateDupReviewBtn(); }
-    }).catch(function(){});
-  }, 30000);
-  } catch(err) {
-    console.error('Init error:', err);
-    document.getElementById('loadingOverlay').style.display = 'none';
-  } finally {
-    clearTimeout(safetyTimer);
-  }
+if(!checkAuth()) return;
+updateWelcome();
+// Safety: force hide loading after 10 seconds no matter what
+const safetyTimer = setTimeout(() => {
+document.getElementById(‘loadingOverlay’).style.display = ‘none’;
+}, 10000);
+try {
+initNationalitySelects();
+const loaded = await loadFromStorage();
+if(!loaded) { showToast(‘⚠️ تعذر تحميل البيانات — تحقق من الاتصال’, ‘#dc2626’); }
+influencers.forEach(item => { if(item.phone) item.phone = normalizePhone(item.phone); });
+// لا نحذف تلقائياً — فقط نكشف عدد المكررات للمدير
+const removed = 0;
+document.getElementById(‘loadingOverlay’).style.display = ‘none’;
+if(isGuest()) {
+document.querySelector(’.toolbar’).style.display = ‘none’;
+document.getElementById(‘grid’).style.display = ‘none’;
+document.querySelector(’.page-footer’).style.display = ‘none’;
+const fab = document.getElementById(‘fabBtn’); if(fab) fab.style.display = ‘none’;
+document.querySelectorAll(’.stat’).forEach(s => { s.style.cursor=‘default’; s.setAttribute(‘onclick’,’’); });
+updateStats();
+// Guest NEVER saves to Firebase - read only
+// Poll Firebase every 30s for live updates
+setInterval(function() {
+tryLoadFirebase().then(function(loaded) {
+if(loaded) { updateStats(); }
+}).catch(function(){});
+}, 30000);
+return;
+}
+await saveToStorage();
+renderGrid();
+updateDupReviewBtn();
+if(removed > 0) showToast(‘🧹 تم حذف ‘+removed+’ تكرار تلقائياً’, ‘#ca8a04’);
+// Check missed visits after short delay
+setTimeout(checkMissedVisits, 800);
+// Poll Firebase every 30s to sync with other devices
+setInterval(function() {
+tryLoadFirebase().then(function(loaded) {
+if(loaded) { updateStats(); renderGrid(); updateDupReviewBtn(); }
+}).catch(function(){});
+}, 30000);
+} catch(err) {
+console.error(‘Init error:’, err);
+document.getElementById(‘loadingOverlay’).style.display = ‘none’;
+} finally {
+clearTimeout(safetyTimer);
+}
 }
 init();
 
-// --- Globals ------------------------------------------------------
+// — Globals ——————————————————
 window.deleteInfluencer=deleteInfluencer; window.cancelDelete=cancelDelete; window.confirmDelete=confirmDelete;
 window.restoreInfluencer=restoreInfluencer; window.permanentDelete=permanentDelete;
 window.cancelPermDelete=cancelPermDelete; window.executePermDelete=executePermDelete; window.executePermanentDelete=executePermanentDelete;
@@ -4460,5 +4275,6 @@ window.setVisitStatus=setVisitStatus;
 window.setContentStatus=setContentStatus;
 window.shareStatusReport=shareStatusReport; window.shareGenderReport=shareGenderReport;
 </script>
+
 </body>
 </html>
