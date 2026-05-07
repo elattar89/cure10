@@ -641,6 +641,7 @@ body{font-family:'Tajawal',sans-serif;direction:rtl;background:#0d1117;color:#e6
     <div id="dupSingleBody"></div>
     <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:1rem;">
       <button class="modal-cancel" onclick="dupSingleSkip()">⏭ تخطي</button>
+      <button class="modal-save" style="background:#1a6fa8;" onclick="dupSinglePreview()">🔍 معاينة الموجود</button>
       <button class="modal-save" style="background:#059669;" onclick="dupSingleApplySelected()">✅ تطبيق المحدد</button>
       <button class="modal-save" style="background:#d97706;" onclick="dupSingleAddAnyway()">➕ إضافة كشخص جديد</button>
     </div>
@@ -1214,24 +1215,34 @@ function renderGrid() {
   }
 
   // -- Normal view -----------------------------------------------
-  // Sort: pending (newest first) → cancelled → approved (newest first) → rejected
+  // Sort: جديد (autoAdded في 48 ساعة) → قيد المراجعة → مقبولين → مرفوضين
+  const _now48 = Date.now() - (48 * 60 * 60 * 1000);
   const sorted = [...influencers].map((item,idx)=>({item,idx})).sort((a,b)=>{
     const order = i => {
-      if(!i.status||i.status==='pending') return 0;
-      if(i.status==='approved'&&i.visitStatus==='cancelled') return 1;
-      if(i.status==='approved'&&i.visitStatus==='done') return 2;
-      if(i.status==='approved') return 3;
-      if(i.status==='rejected') return 4;
-      return 5;
+      const isNewAuto = i.autoAdded && i.addedAt && i.addedAt > _now48;
+      if(isNewAuto) return 0;
+      if(!i.status||i.status==='pending') return 1;
+      if(i.status==='approved'&&i.visitStatus==='cancelled') return 2;
+      if(i.status==='approved'&&i.visitStatus==='done') return 3;
+      if(i.status==='approved') return 4;
+      if(i.status==='rejected') return 5;
+      return 6;
     };
     const oa=order(a.item), ob=order(b.item);
     if(oa!==ob) return oa-ob;
-    // Within approved-with-date group: sort by date
-    if(oa===3&&a.item.visitDate&&b.item.visitDate) return a.item.visitDate.localeCompare(b.item.visitDate);
-    // Within same group: newest first (by addedAt or index reversed)
-    const ta = a.item.addedAt||0, tb = b.item.addedAt||0;
-    if(ta&&tb) return tb-ta;
-    return b.idx-a.idx;
+    // الجدد: الأحدث أولاً
+    if(oa===0) {
+      const ta=a.item.addedAt||0, tb=b.item.addedAt||0;
+      return tb-ta;
+    }
+    // باقي المجموعات: ترتيب أبجدي — العربي أولاً ثم الإنجليزي
+    const nameA = (getDisplayName(a.item,a.idx)||'').trim();
+    const nameB = (getDisplayName(b.item,b.idx)||'').trim();
+    const isArabic = s => /[؀-ۿ]/.test(s.charAt(0));
+    const arA = isArabic(nameA), arB = isArabic(nameB);
+    if(arA && !arB) return -1;
+    if(!arA && arB) return 1;
+    return nameA.localeCompare(nameB, arA?'ar':'en', {sensitivity:'base'});
   });
   sorted.forEach(({item,idx})=>{
     const name=getDisplayName(item,idx);
@@ -1280,8 +1291,16 @@ function renderGrid() {
     // Badge "جديد" - اتضاف في آخر 48 ساعة
     const now48 = Date.now() - (48 * 60 * 60 * 1000);
     const isNew = item.addedAt && item.addedAt > now48;
+    // الكرت الأزرق: فقط لو اتضاف تلقائياً (من فورم/bulk) وفي خلال 48 ساعة
+    const isNewAutoBlue = isNew && item.autoAdded;
     const isUnpublished = item.visitStatus==='done' && item.contentStatus==='unpublished';
-    const cardBorderStyle = item.visitStatus==='cancelled'?'border-color:#ca8a04;background:rgba(202,138,4,0.08);':isPublished?'border-color:#ca8a04;background:rgba(202,138,4,0.07);':isUnpublished?'border-color:#7c3aed;background:rgba(124,58,237,0.07);':'';
+    const cardBorderStyle = isNewAutoBlue && !item.status || isNewAutoBlue && item.status==='pending'
+      ? 'border-color:#3b82f6;background:rgba(37,99,235,0.10);'
+      : isNewAutoBlue && item.status==='approved'
+      ? 'border-color:#3b82f6;background:rgba(37,99,235,0.10);'
+      : isNewAutoBlue && item.status==='rejected'
+      ? 'border-color:#3b82f6;background:rgba(37,99,235,0.10);'
+      : item.visitStatus==='cancelled'?'border-color:#ca8a04;background:rgba(202,138,4,0.08);':isPublished?'border-color:#ca8a04;background:rgba(202,138,4,0.07);':isUnpublished?'border-color:#7c3aed;background:rgba(124,58,237,0.07);':'';
     html+=`<div class="card ${item.status||'pending'}" data-idx="${idx}" style="${cardBorderStyle}">
       ${item.visitStatus==='cancelled'?`<div style="background:#ca8a04;color:#000;font-size:11px;font-weight:700;padding:3px 10px;border-radius:6px;margin-bottom:.5rem;display:inline-block;">⚠️ تم إلغاء الموعد</div>`:''}
       ${isPublished?`<div style="background:rgba(202,138,4,0.15);border:1px solid #ca8a04;color:#fbbf24;font-size:11px;font-weight:700;padding:3px 10px;border-radius:6px;margin-bottom:.5rem;display:inline-block;">🌟 تم نشر المحتوى</div>`:''}
@@ -1292,6 +1311,7 @@ function renderGrid() {
         <div class="card-info">
           <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
             <div class="card-name">${name}</div>
+            ${isNew?`<span style="background:rgba(37,99,235,0.25);border:1px solid #3b82f6;color:#93c5fd;font-size:10px;font-weight:900;padding:1px 7px;border-radius:20px;">✨ جديد</span>`:''}
             ${item.visitStatus==='done'?`<div style="display:flex;gap:1px;">${[1,2,3,4,5].map(s=>`<span onclick="setVisitRating(${idx},${s})" style="cursor:pointer;font-size:16px;line-height:1;color:${(item.visitRating||0)>=s?'#f59e0b':'#30363d'};transition:.15s;">★</span>`).join('')}</div>`:''}
           </div>
           ${item.phone?`<div class="card-phone" onclick="showPhonePopup('${item.phone}','${(item.name||item.ig||'').replace(/'/g,"\\'")}',event)" style="cursor:pointer;color:#e6edf3;font-weight:600;" title="اضغط للتواصل">📞 ${item.phone}</div>`:''}
@@ -1883,7 +1903,7 @@ function confirmBulkAdd() {
   if(parsed.length===0) { showToast('⚠️ لم يتم استخراج أي بيانات', '#d97706'); return; }
   _bulkClean=[];_bulkPending=[];
   parsed.forEach(item=>{const dup=findDuplicate(item);if(dup)_bulkPending.push({item,dup});else _bulkClean.push(item);});
-  if(_bulkPending.length===0){_bulkClean.forEach(i=>{if(!i.addedAt)i.addedAt=Date.now();});influencers.push(..._bulkClean);closeBulkModal();renderGrid();saveFile();showToast('✅ تم إضافة '+_bulkClean.length+' مؤثر بنجاح!','#059669');return;}
+  if(_bulkPending.length===0){_bulkClean.forEach(i=>{if(!i.addedAt)i.addedAt=Date.now(); i.autoAdded=true;});influencers.push(..._bulkClean);closeBulkModal();renderGrid();saveFile();showToast('✅ تم إضافة '+_bulkClean.length+' مؤثر بنجاح!','#059669');return;}
   closeBulkModal();_bulkDecisions={};renderBulkDupModal();document.getElementById('dupBulkOverlay').classList.remove('hidden');
 }
 function renderBulkDupModal() {
@@ -1929,6 +1949,7 @@ function renderBulkDupModal() {
         <button onclick="setBulkDecision(${i},'update',this)" style="flex:2;padding:7px;border-radius:8px;border:1px solid #059669;background:#0d1f14;color:#4ade80;font-size:12px;font-weight:700;cursor:pointer;font-family:Tajawal,sans-serif;">🔄 تطبيق المحدد</button>
         <button onclick="setBulkDecision(${i},'add',this)" style="flex:2;padding:7px;border-radius:8px;border:1px solid #d97706;background:#2d1f0a;color:#fbbf24;font-size:12px;font-weight:700;cursor:pointer;font-family:Tajawal,sans-serif;">➕ إضافة كجديد</button>
         <button onclick="setBulkDecision(${i},'skip',this)" style="flex:1;padding:7px;border-radius:8px;border:1px solid #30363d;background:#21262d;color:#8b949e;font-size:12px;cursor:pointer;font-family:Tajawal,sans-serif;">⏭ تخطي</button>
+        <button onclick="previewBulkDupExisting(${entry.dup.idx})" style="flex:1;padding:7px;border-radius:8px;border:1px solid #1a6fa8;background:#1e3a5f;color:#60a5fa;font-size:12px;cursor:pointer;font-family:Tajawal,sans-serif;">🔍 معاينة</button>
       </div>
     </div>`;
   }).join('');
@@ -1964,12 +1985,18 @@ function applyBulkDecisions(){
       updated++;
     } else skipped++;
   });
-  _bulkClean.forEach(i=>{if(!i.addedAt)i.addedAt=Date.now();}); influencers.push(..._bulkClean); added+=_bulkClean.length;
+  _bulkClean.forEach(i=>{if(!i.addedAt)i.addedAt=Date.now(); i.autoAdded=true;}); influencers.push(..._bulkClean); added+=_bulkClean.length;
   document.getElementById('dupBulkOverlay').classList.add('hidden');
   renderGrid(); saveFile();
   showToast('✅ '+added+' أُضيف · 🔄 '+updated+' حُدّث · ⏭ '+skipped+' تخطّي','#059669');
 }
 function closeDupBulk(){document.getElementById('dupBulkOverlay').classList.add('hidden');}
+
+function previewBulkDupExisting(idx) {
+  // يفتح كارد المؤثر الموجود مسبقاً من داخل modal التكرارات
+  showApptCard(idx);
+}
+window.previewBulkDupExisting = previewBulkDupExisting;
 
 function showSingleDupWarning(newItem, dup) {
   _pendingSingleItem = newItem;
@@ -2050,6 +2077,13 @@ function dupSingleAddAnyway() {
   document.getElementById('dupSingleOverlay').classList.add('hidden');
   _pendingSingleItem = null;
 }
+function dupSinglePreview() {
+  // فتح كرت الشخص الموجود مسبقاً بدون إغلاق modal التكرار
+  if(_pendingSingleDupIdx === null) return;
+  // نعرض كارد الموجود في الـ apptCardOverlay
+  showApptCard(_pendingSingleDupIdx);
+}
+window.dupSinglePreview = dupSinglePreview;
 function dupSingleUpdate() { dupSingleApplySelected(); } // backward compat
 
 function sendWhatsApp(idx) {
@@ -2352,7 +2386,7 @@ function confirmFormImport() {
     _formImportItem = null;
     document.getElementById('formImportOverlay').classList.add('hidden');
     if(_bulkPending.length === 0) {
-      _bulkClean.forEach(i=>{ if(!i.addedAt) i.addedAt=Date.now(); });
+      _bulkClean.forEach(i=>{ if(!i.addedAt) i.addedAt=Date.now(); i.autoAdded=true; });
       influencers.push(..._bulkClean);
       renderGrid(); saveFile();
       showToast('✅ تم إضافة ' + _bulkClean.length + ' مؤثر بنجاح!', '#059669');
@@ -2369,6 +2403,8 @@ function confirmFormImport() {
   document.getElementById('formImportOverlay').classList.add('hidden');
   _formImportItem=null;
   if(dup){ showSingleDupWarning(itemToAdd,dup); return; }
+  if(!itemToAdd.addedAt) itemToAdd.addedAt=Date.now();
+  itemToAdd.autoAdded=true;
   influencers.push(itemToAdd);
   renderGrid(); saveFile();
   showToast('✅ تم إضافة المؤثر من الفورم','#059669');
@@ -3216,16 +3252,20 @@ function openStatusReport(type) {
   // Sort approved: done → cancelled → has date → no date
   if(isApproved) {
     list = list.sort((a,b)=>{
-      const order = i => {
-        if(i.visitStatus==='done') return 0;
-        if(i.visitStatus==='cancelled') return 1;
-        if(i.visitDate) return 2;
-        return 3;
-      };
-      const oa=order(a), ob=order(b);
-      if(oa!==ob) return oa-ob;
-      if(oa===2&&a.visitDate&&b.visitDate) return a.visitDate.localeCompare(b.visitDate);
-      return 0;
+    // عندهم موعد أولاً (من الأقدم للأحدث)، ثم بدون موعد (أبجدي)
+    const hasDateA = !!(a.visitDate);
+    const hasDateB = !!(b.visitDate);
+    if(hasDateA && !hasDateB) return -1;
+    if(!hasDateA && hasDateB) return 1;
+    if(hasDateA && hasDateB) return a.visitDate.localeCompare(b.visitDate);
+    // بدون موعد: أبجدي عربي ثم إنجليزي
+    const nameA = (a.name || a.ig || '').trim();
+    const nameB = (b.name || b.ig || '').trim();
+    const isArA = /[\u0600-\u06FF]/.test(nameA.charAt(0));
+    const isArB = /[\u0600-\u06FF]/.test(nameB.charAt(0));
+    if(isArA && !isArB) return -1;
+    if(!isArA && isArB) return 1;
+    return nameA.localeCompare(nameB, isArA ? 'ar' : 'en', {sensitivity:'base'});
     });
   }
   logActivity('report', `فتح كشف: ${type==='approved'?'المقبولين':'المرفوضين'} — Admin`);
@@ -3638,16 +3678,20 @@ function updateWelcome() {
 function openGuestReport() {
   logActivity('report', 'فتح كشف المقبولين — Guest');
   const list = influencers.filter(i => i.status === 'approved').sort((a,b)=>{
-    const order = i => {
-      if(i.visitStatus==='done') return 0;
-      if(i.visitStatus==='cancelled') return 1;
-      if(i.visitDate) return 2;
-      return 3;
-    };
-    const oa=order(a), ob=order(b);
-    if(oa!==ob) return oa-ob;
-    if(oa===2&&a.visitDate&&b.visitDate) return a.visitDate.localeCompare(b.visitDate);
-    return 0;
+    // عندهم موعد أولاً (من الأقدم للأحدث)، ثم بدون موعد (أبجدي)
+    const hasDateA = !!(a.visitDate);
+    const hasDateB = !!(b.visitDate);
+    if(hasDateA && !hasDateB) return -1;
+    if(!hasDateA && hasDateB) return 1;
+    if(hasDateA && hasDateB) return a.visitDate.localeCompare(b.visitDate);
+    // بدون موعد: أبجدي عربي ثم إنجليزي
+    const nameA = (a.name || a.ig || '').trim();
+    const nameB = (b.name || b.ig || '').trim();
+    const isArA = /[\u0600-\u06FF]/.test(nameA.charAt(0));
+    const isArB = /[\u0600-\u06FF]/.test(nameB.charAt(0));
+    if(isArA && !isArB) return -1;
+    if(!isArA && isArB) return 1;
+    return nameA.localeCompare(nameB, isArA ? 'ar' : 'en', {sensitivity:'base'});
   });
   const today = new Date().toLocaleDateString('ar-KW', {year:'numeric', month:'long', day:'numeric'});
   const rows = list.map((item, i) => {
@@ -3739,16 +3783,20 @@ function openGuestReadOnlyReport() {
   const countColor = '#16a34a';
   let list = influencers.filter(i => i.status === 'approved');
   list = list.sort((a, b) => {
-    const order = i => {
-      if(i.visitStatus==='done') return 0;
-      if(i.visitStatus==='cancelled') return 1;
-      if(i.visitDate) return 2;
-      return 3;
-    };
-    const oa=order(a), ob=order(b);
-    if(oa!==ob) return oa-ob;
-    if(oa===2&&a.visitDate&&b.visitDate) return a.visitDate.localeCompare(b.visitDate);
-    return 0;
+    // عندهم موعد أولاً (من الأقدم للأحدث)، ثم بدون موعد (أبجدي)
+    const hasDateA = !!(a.visitDate);
+    const hasDateB = !!(b.visitDate);
+    if(hasDateA && !hasDateB) return -1;
+    if(!hasDateA && hasDateB) return 1;
+    if(hasDateA && hasDateB) return a.visitDate.localeCompare(b.visitDate);
+    // بدون موعد: أبجدي عربي ثم إنجليزي
+    const nameA = (a.name || a.ig || '').trim();
+    const nameB = (b.name || b.ig || '').trim();
+    const isArA = /[\u0600-\u06FF]/.test(nameA.charAt(0));
+    const isArB = /[\u0600-\u06FF]/.test(nameB.charAt(0));
+    if(isArA && !isArB) return -1;
+    if(!isArA && isArB) return 1;
+    return nameA.localeCompare(nameB, isArA ? 'ar' : 'en', {sensitivity:'base'});
   });
   if(!list.length){ showToast('⚠️ لا يوجد مقبولين!','#d97706'); return; }
   const today = new Date().toLocaleDateString('ar-KW',{year:'numeric',month:'long',day:'numeric'});
