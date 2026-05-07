@@ -1272,10 +1272,6 @@ function renderGrid() {
   }
 
   // -- Normal view -----------------------------------------------
-  // Build set of duplicate indices for badge display
-  const _dupIdxSet = new Set();
-  findAllDuplicates().forEach(group => group.forEach(i => _dupIdxSet.add(i)));
-
   // Sort: جديد (autoAdded في 48 ساعة) → قيد المراجعة → مقبولين → مرفوضين
   const _now48 = Date.now() - (48 * 60 * 60 * 1000);
   const sorted = [...influencers].map((item,idx)=>({item,idx})).sort((a,b)=>{
@@ -1368,8 +1364,8 @@ function renderGrid() {
       ${isPublished?`<div style="background:rgba(202,138,4,0.15);border:1px solid #ca8a04;color:#fbbf24;font-size:11px;font-weight:700;padding:3px 10px;border-radius:6px;margin-bottom:.5rem;display:inline-block;">🌟 تم نشر المحتوى</div>`:''}
       ${isUnpublished?`<div style="background:rgba(124,58,237,0.15);border:1px solid #7c3aed;color:#c084fc;font-size:11px;font-weight:700;padding:3px 10px;border-radius:6px;margin-bottom:.5rem;display:inline-block;">🟣 لم يتم نشر المحتوى</div>`:''}
       ${isNew?`<div style="background:rgba(37,99,235,0.2);border:1px solid #3b82f6;color:#93c5fd;font-size:11px;font-weight:700;padding:3px 10px;border-radius:6px;margin-bottom:.5rem;display:inline-block;">🆕 جديد</div>`:''}
-      ${_dupIdxSet && _dupIdxSet.has(idx)?`<div style="background:rgba(220,38,38,0.15);border:1px solid #dc2626;color:#f87171;font-size:11px;font-weight:700;padding:3px 10px;border-radius:6px;margin-bottom:.5rem;display:inline-block;" onclick="openDupReview()">⚠️ سجل مكرر — اضغط للمراجعة</div>`:''}
       <div class="card-top">
+        <div class="avatar" style="background:${color}">${initial}</div>
         <div class="card-info">
           <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
             <div class="card-name">${name}</div>
@@ -1766,40 +1762,21 @@ function closeEditModal(){ document.getElementById('editModalOverlay').classList
 function saveEditInfluencer() {
   if(_editIdx===null) return;
   const item=influencers[_editIdx];
-  // Build temp object to check for duplicates BEFORE saving
-  const tempItem = {
-    name: document.getElementById('eName').value.trim(),
-    phone: document.getElementById('ePhone').value.trim(),
-    civil: document.getElementById('eCivil').value.trim(),
-    ig: (function(){ const r=document.getElementById('eIg').value.trim(); return r.includes('instagram.com/')?'@'+r.split('instagram.com/').pop().replace('/','').split('?')[0]:r; })(),
-    tt: (function(){ const r=document.getElementById('eTt').value.trim(); return r.includes('tiktok.com/@')?'@'+r.split('tiktok.com/@').pop().split('?')[0]:r; })(),
-    snap: document.getElementById('eSnap').value.trim()
-  };
-  // Temporarily remove current item from list to avoid self-match
-  const removed = influencers.splice(_editIdx, 1)[0];
-  const dup = findDuplicate(tempItem);
-  influencers.splice(_editIdx, 0, removed); // restore
-  if(dup) {
-    const dupName = dup.item.name || dup.item.ig || 'مؤثر آخر';
-    const reasons = dup.reasons.join(' + ');
-    if(!confirm(`⚠️ تحذير: هذا التعديل سيخلق تكراراً مع "${dupName}" (تطابق في: ${reasons})\n\nهل تريد الحفظ رغم ذلك؟`)) return;
-  }
-  // Apply changes
-  item.name=tempItem.name;
-  item.phone=tempItem.phone;
-  item.civil=tempItem.civil;
+  item.name=document.getElementById('eName').value.trim();
+  item.phone=document.getElementById('ePhone').value.trim();
+  item.civil=document.getElementById('eCivil').value.trim();
   item.nationality=document.getElementById('eNationality').value;
   item.gender=document.getElementById('eGenderM').dataset.selected==='1'?'m':document.getElementById('eGenderF').dataset.selected==='1'?'f':'';
   const igRaw=document.getElementById('eIg').value.trim();
   const ttRaw=document.getElementById('eTt').value.trim();
-  item.ig=tempItem.ig;
+  item.ig=igRaw.includes('instagram.com/')?'@'+igRaw.split('instagram.com/').pop().replace('/','').split('?')[0]:igRaw;
   item.ig_url=igRaw.startsWith('http')?igRaw:(igRaw?'https://www.instagram.com/'+igRaw.replace('@',''):'');
-  item.tt=tempItem.tt;
+  item.tt=ttRaw.includes('tiktok.com/@')?'@'+ttRaw.split('tiktok.com/@').pop().split('?')[0]:ttRaw;
   item.tt_url=ttRaw.startsWith('http')?ttRaw:(ttRaw?'https://www.tiktok.com/'+item.tt:'');
-  item.snap=tempItem.snap;
+  item.snap=document.getElementById('eSnap').value.trim();
   item.wasUpdated = true;
   const savedIdx=_editIdx;
-  closeEditModal(); renderGrid(); saveFile(); updateDupReviewBtn();
+  closeEditModal(); renderGrid(); saveFile();
   logActivity('edit', `تعديل بيانات: ${item.name||item.ig||'مؤثر'}`);
   showToast('✅ تم حفظ التعديلات','#1a6fa8');
   // Refresh appt card if open
@@ -4336,26 +4313,72 @@ function openDupReview() {
   }
 
   summary.innerHTML = `وُجد <b style="color:#fbbf24;">${groups.length}</b> مجموعة تكرار تضم <b style="color:#fbbf24;">${groups.reduce((s,g)=>s+g.length,0)}</b> شخص — اختر لكل مجموعة من تحذف`;
+
+  // Find which fields differ between items in a group
+  function getDiffFields(items) {
+    const fields = ['phone','civil','ig','tt','snap','nationality','gender','name','status','visitDate','visitStatus','services'];
+    const diffs = new Set();
+    for(let a=0;a<items.length;a++) {
+      for(let b=a+1;b<items.length;b++) {
+        fields.forEach(f => {
+          if((items[a].item[f]||'') !== (items[b].item[f]||'')) diffs.add(f);
+        });
+      }
+    }
+    return diffs;
+  }
+
   list.innerHTML = groups.map((group, gi) => {
     const items = group.map(idx => ({idx, item: influencers[idx]}));
+    const diffFields = getDiffFields(items);
+
     const cardsHTML = items.map(({idx, item}) => {
       const name = item.name || item.ig || 'مؤثر #'+(idx+1);
       const statusColor = item.status==='approved'?'#4ade80':item.status==='rejected'?'#f87171':'#8b949e';
+      const statusBg    = item.status==='approved'?'rgba(74,222,128,0.1)':item.status==='rejected'?'rgba(248,113,113,0.1)':'rgba(139,148,158,0.1)';
       const statusLabel = item.status==='approved'?'✅ مقبول':item.status==='rejected'?'❌ مرفوض':'⏳ قيد المراجعة';
-      return `<div style="background:#21262d;border:1px solid #30363d;border-radius:10px;padding:.7rem;flex:1;min-width:200px;">
-        <div style="font-weight:700;font-size:13px;margin-bottom:4px;">${name}</div>
-        <div style="font-size:11px;color:#8b949e;margin-bottom:4px;">${item.phone?'📞 '+item.phone:''} ${item.ig?'· '+item.ig:''}</div>
-        <div style="font-size:11px;color:${statusColor};margin-bottom:8px;">${statusLabel}</div>
-        ${item.visitDate?`<div style="font-size:11px;color:#22d3ee;margin-bottom:4px;">📅 ${item.visitDate.split('T')[0]}</div>`:''}
-        ${item.visitStatus==='done'?'<div style="font-size:11px;color:#4ade80;">🏁 تمت الزيارة</div>':''}
-        ${item.visitStatus==='cancelled'?'<div style="font-size:11px;color:#fbbf24;">⚠️ ألغيت</div>':''}
-        <button onclick="deleteDupEntry(${idx},${gi})" style="width:100%;margin-top:8px;padding:6px;border-radius:7px;border:1px solid #dc2626;background:#1a0808;color:#f87171;font-size:12px;cursor:pointer;font-family:Tajawal,sans-serif;font-weight:700;">🗑 حذف هذا</button>
-        <button onclick="keepOnlyThis(${idx},${gi})" style="width:100%;margin-top:4px;padding:6px;border-radius:7px;border:1px solid #059669;background:#0d1f14;color:#4ade80;font-size:12px;cursor:pointer;font-family:Tajawal,sans-serif;font-weight:700;">✅ احتفظ بهذا واحذف الباقين</button>
+      const genderLabel = item.gender==='m'?'👨 ذكر':item.gender==='f'?'👩 أنثى':'';
+      const diff = f => diffFields.has(f) ? 'border:1px solid #d97706;background:#1f1600;' : '';
+
+      // Build detail rows — highlight fields that differ between duplicates
+      const rows = [
+        item.phone    ? `<div style="font-size:12px;padding:4px 7px;border-radius:6px;margin-bottom:3px;${diff('phone')}color:#e6edf3;">📞 ${item.phone}</div>` : '',
+        item.civil    ? `<div style="font-size:12px;padding:4px 7px;border-radius:6px;margin-bottom:3px;${diff('civil')}color:#e6edf3;">🪪 ${item.civil}</div>` : '<div style="font-size:11px;color:#484f58;padding:4px 7px;margin-bottom:3px;">🪪 لا يوجد رقم مدني</div>',
+        genderLabel   ? `<div style="font-size:12px;padding:4px 7px;border-radius:6px;margin-bottom:3px;${diff('gender')}color:#e6edf3;">${genderLabel}</div>` : '',
+        item.nationality ? `<div style="font-size:12px;padding:4px 7px;border-radius:6px;margin-bottom:3px;${diff('nationality')}color:#0e9a6e;">🌍 ${item.nationality}</div>` : '',
+        item.ig       ? `<div style="font-size:12px;padding:4px 7px;border-radius:6px;margin-bottom:3px;${diff('ig')}color:#e6edf3;">📸 ${item.ig}</div>` : '<div style="font-size:11px;color:#484f58;padding:4px 7px;margin-bottom:3px;">📸 لا يوجد انستاجرام</div>',
+        item.tt       ? `<div style="font-size:12px;padding:4px 7px;border-radius:6px;margin-bottom:3px;${diff('tt')}color:#e6edf3;">🎵 ${item.tt}</div>` : '',
+        item.snap     ? `<div style="font-size:12px;padding:4px 7px;border-radius:6px;margin-bottom:3px;${diff('snap')}color:#e6edf3;">👻 ${item.snap}</div>` : '',
+        item.services && item.services.length ? `<div style="font-size:12px;padding:4px 7px;border-radius:6px;margin-bottom:3px;${diff('services')}color:#c084fc;">💉 ${item.services.join('، ')}</div>` : '',
+        item.visitDate ? `<div style="font-size:12px;padding:4px 7px;border-radius:6px;margin-bottom:3px;${diff('visitDate')}color:#22d3ee;">📅 ${item.visitDate.split('T')[0]}</div>` : '',
+        item.visitStatus==='done'     ? '<div style="font-size:11px;color:#4ade80;padding:4px 7px;">🏁 تمت الزيارة</div>' : '',
+        item.visitStatus==='cancelled'? '<div style="font-size:11px;color:#fbbf24;padding:4px 7px;">⚠️ ألغيت الزيارة</div>' : '',
+        item.notes    ? `<div style="font-size:11px;color:#fbbf24;padding:4px 7px;border-radius:6px;${diff('notes')}background:#1a1400;">📝 ${item.notes}</div>` : '',
+      ].filter(Boolean).join('');
+
+      return `<div style="background:#161b22;border:1px solid ${item.status==='approved'?'#16a34a':item.status==='rejected'?'#dc2626':'#30363d'};border-radius:12px;padding:.9rem;flex:1;min-width:240px;display:flex;flex-direction:column;gap:4px;">
+        <!-- Header -->
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+          <div style="font-weight:900;font-size:14px;color:#e6edf3;">${name}</div>
+          <span style="font-size:10px;font-weight:700;padding:3px 9px;border-radius:20px;background:${statusBg};color:${statusColor};border:1px solid ${statusColor};">${statusLabel}</span>
+        </div>
+        <!-- Details -->
+        <div style="background:#0d1117;border-radius:8px;padding:.5rem;margin-bottom:6px;">
+          ${rows || '<div style="color:#484f58;font-size:11px;">لا توجد تفاصيل</div>'}
+        </div>
+        ${diffFields.size > 0 ? `<div style="font-size:10px;color:#d97706;margin-bottom:4px;">🟡 الحقول المختلفة بين النسخ المكررة مُحاطة بإطار برتقالي</div>` : ''}
+        <!-- Actions -->
+        <button onclick="deleteDupEntry(${idx},${gi})" style="width:100%;padding:7px;border-radius:8px;border:1px solid #dc2626;background:#1a0808;color:#f87171;font-size:12px;cursor:pointer;font-family:Tajawal,sans-serif;font-weight:700;margin-top:auto;">🗑 حذف هذا</button>
+        <button onclick="keepOnlyThis(${idx},${gi})" style="width:100%;padding:7px;border-radius:8px;border:1px solid #059669;background:#0d1f14;color:#4ade80;font-size:13px;cursor:pointer;font-family:Tajawal,sans-serif;font-weight:700;margin-top:4px;">✅ احتفظ بهذا واحذف الباقين</button>
       </div>`;
     }).join('');
-    return `<div id="dupGroup_${gi}" style="border:1px solid #d97706;border-radius:12px;padding:.8rem;background:#1a1200;">
-      <div style="font-size:12px;color:#fbbf24;font-weight:700;margin-bottom:8px;">مجموعة ${gi+1} — ${group.length} أشخاص متشابهون</div>
-      <div style="display:flex;gap:8px;flex-wrap:wrap;">${cardsHTML}</div>
+
+    return `<div id="dupGroup_${gi}" style="border:1px solid #d97706;border-radius:14px;padding:1rem;background:#110e00;margin-bottom:8px;">
+      <div style="font-size:13px;color:#fbbf24;font-weight:900;margin-bottom:10px;display:flex;align-items:center;gap:6px;">
+        ⚠️ مجموعة ${gi+1} — ${group.length} أشخاص متشابهون
+        ${diffFields.size > 0 ? `<span style="font-size:10px;font-weight:400;color:#8b949e;">(${diffFields.size} حقل مختلف)</span>` : '<span style="font-size:10px;color:#f87171;">تطابق تام!</span>'}
+      </div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;">${cardsHTML}</div>
     </div>`;
   }).join('');
 
@@ -4436,19 +4459,6 @@ async function init() {
   renderGrid();
   updateDupReviewBtn();
   if(removed > 0) showToast('🧹 تم حذف '+removed+' تكرار تلقائياً', '#ca8a04');
-  // ⚠️ إشعار تلقائي إذا في تكرارات موجودة عند التحميل
-  setTimeout(function() {
-    const dupGroups = findAllDuplicates();
-    if(dupGroups.length > 0) {
-      const totalDups = dupGroups.reduce((s, g) => s + g.length, 0);
-      const names = dupGroups.slice(0,3).map(g => influencers[g[0]].name || influencers[g[0]].ig || '؟').join('، ');
-      const banner = document.createElement('div');
-      banner.id = 'dupWarningBanner';
-      banner.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:9998;background:linear-gradient(135deg,#92400e,#b45309);color:#fff;padding:10px 16px;font-family:Tajawal,sans-serif;font-size:13px;font-weight:700;display:flex;align-items:center;justify-content:space-between;gap:10px;box-shadow:0 4px 20px rgba(0,0,0,.5);direction:rtl;';
-      banner.innerHTML = '<span>⚠️ يوجد <b>'+totalDups+' سجل</b> مكرر في '+dupGroups.length+' مجموعة — ('+names+(dupGroups.length>3?'...':'')+')</span><div style="display:flex;gap:8px;"><button onclick="openDupReview();document.getElementById(\'dupWarningBanner\').remove();" style="background:#fff;color:#92400e;border:none;border-radius:7px;padding:5px 12px;font-size:12px;font-weight:900;cursor:pointer;font-family:Tajawal,sans-serif;">مراجعة الآن</button><button onclick="document.getElementById(\'dupWarningBanner\').remove()" style="background:rgba(255,255,255,0.2);color:#fff;border:none;border-radius:7px;padding:5px 10px;font-size:14px;cursor:pointer;">✕</button></div>';
-      document.body.prepend(banner);
-    }
-  }, 1200);
   // Check missed visits after short delay
   setTimeout(checkMissedVisits, 800);
   // Poll Firebase every 30s to sync with other devices
