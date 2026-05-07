@@ -443,6 +443,21 @@ body{font-family:'Tajawal',sans-serif;direction:rtl;background:#0d1117;color:#e6
 
 <div class="grid" id="grid"></div>
 
+<!-- Duplicate Review Modal -->
+<div class="modal-overlay hidden" id="dupReviewOverlay" onclick="if(event.target===this)closeDupReview()">
+  <div class="modal" style="max-width:640px;max-height:90vh;overflow-y:auto;">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;">
+      <h3 style="margin:0;">🔍 مراجعة المكررين</h3>
+      <button onclick="closeDupReview()" style="background:#21262d;border:1px solid #30363d;color:#e6edf3;width:32px;height:32px;border-radius:50%;cursor:pointer;font-size:16px;">✕</button>
+    </div>
+    <div id="dupReviewSummary" style="background:#2d1f0e;border:1px solid #d97706;border-radius:8px;padding:.6rem .8rem;font-size:12px;color:#fbbf24;margin-bottom:.8rem;"></div>
+    <div id="dupReviewList" style="display:flex;flex-direction:column;gap:12px;"></div>
+    <div class="modal-actions" style="margin-top:1rem;">
+      <button class="modal-cancel" onclick="closeDupReview()">إغلاق</button>
+    </div>
+  </div>
+</div>
+
 <div class="page-footer">
   <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-bottom:.8rem;">
     <button class="add-bottom-btn" onclick="openModal()">➕ إضافة مؤثر جديد</button>
@@ -450,6 +465,7 @@ body{font-family:'Tajawal',sans-serif;direction:rtl;background:#0d1117;color:#e6
     <button class="save-bottom-btn" id="manualSaveBtn" onclick="manualSave()">💾 حفظ يدوي</button>
     <button class="add-bottom-btn" onclick="openActivityLog()" style="background:linear-gradient(135deg,#1e3a5f,#1a6fa8);">📋 سجل النشاط</button>
     <button class="add-bottom-btn" onclick="openRecovery()" style="background:linear-gradient(135deg,#7f1d1d,#dc2626);">🚨 حالات الطوارئ</button>
+    <button class="add-bottom-btn" id="dupReviewBtn" onclick="openDupReview()" style="background:linear-gradient(135deg,#7c2d12,#ea580c);display:none;">🔍 مراجعة المكررين <span id="dupReviewCount" style="background:#fff;color:#ea580c;border-radius:10px;padding:1px 7px;font-size:11px;margin-right:4px;font-weight:900;"></span></button>
   </div>
   <div>مركز كيور الطبي © 2026 — جميع الحقوق محفوظة</div>
 </div>
@@ -4236,6 +4252,132 @@ closeServicePopup = function() {
 };
 window.closeServicePopup = closeServicePopup;
 
+// ─── Duplicate Review ───────────────────────────────────────────────
+function findAllDuplicates() {
+  const groups = []; // each group = array of indices that are duplicates of each other
+  const visited = new Set();
+
+  for(let i = 0; i < influencers.length; i++) {
+    if(visited.has(i)) continue;
+    const a = influencers[i];
+    const nPhone = normalizePhone(a.phone);
+    const nIg    = normalizeIg(a.ig);
+    const nTt    = (a.tt||'').replace('@','').toLowerCase().trim().split('?')[0];
+    const nSnap  = normalizeSnap(a.snap);
+    const nCivil = (a.civil||'').replace(/\s/g,'');
+    const group  = [i];
+
+    for(let j = i+1; j < influencers.length; j++) {
+      if(visited.has(j)) continue;
+      const b = influencers[j];
+      const reasons = [];
+      if(nPhone && nPhone.length>=7 && normalizePhone(b.phone)===nPhone) reasons.push('موبايل');
+      if(nIg    && nIg.length>2    && normalizeIg(b.ig)===nIg)           reasons.push('انستاجرام');
+      if(nTt    && nTt.length>2    && (b.tt||'').replace('@','').toLowerCase().trim().split('?')[0]===nTt) reasons.push('تيك توك');
+      if(nSnap  && nSnap.length>3  && normalizeSnap(b.snap)===nSnap)     reasons.push('سناب');
+      if(nCivil && nCivil.length>=8&& (b.civil||'').replace(/\s/g,'')===nCivil) reasons.push('رقم مدني');
+      if(reasons.length > 0) { group.push(j); visited.add(j); }
+    }
+
+    if(group.length > 1) {
+      visited.add(i);
+      groups.push(group);
+    }
+  }
+  return groups;
+}
+
+function updateDupReviewBtn() {
+  const groups = findAllDuplicates();
+  const btn = document.getElementById('dupReviewBtn');
+  const badge = document.getElementById('dupReviewCount');
+  if(!btn) return;
+  if(groups.length > 0) {
+    btn.style.display = 'inline-flex';
+    badge.textContent = groups.length + ' مجموعة';
+  } else {
+    btn.style.display = 'none';
+  }
+}
+
+function openDupReview() {
+  const groups = findAllDuplicates();
+  const summary = document.getElementById('dupReviewSummary');
+  const list    = document.getElementById('dupReviewList');
+
+  if(groups.length === 0) {
+    summary.textContent = '✅ لا توجد تكرارات — القائمة نظيفة';
+    list.innerHTML = '';
+    document.getElementById('dupReviewOverlay').classList.remove('hidden');
+    return;
+  }
+
+  summary.innerHTML = `وُجد <b style="color:#fbbf24;">${groups.length}</b> مجموعة تكرار تضم <b style="color:#fbbf24;">${groups.reduce((s,g)=>s+g.length,0)}</b> شخص — اختر لكل مجموعة من تحذف`;
+  list.innerHTML = groups.map((group, gi) => {
+    const items = group.map(idx => ({idx, item: influencers[idx]}));
+    const cardsHTML = items.map(({idx, item}) => {
+      const name = item.name || item.ig || 'مؤثر #'+(idx+1);
+      const statusColor = item.status==='approved'?'#4ade80':item.status==='rejected'?'#f87171':'#8b949e';
+      const statusLabel = item.status==='approved'?'✅ مقبول':item.status==='rejected'?'❌ مرفوض':'⏳ قيد المراجعة';
+      return `<div style="background:#21262d;border:1px solid #30363d;border-radius:10px;padding:.7rem;flex:1;min-width:200px;">
+        <div style="font-weight:700;font-size:13px;margin-bottom:4px;">${name}</div>
+        <div style="font-size:11px;color:#8b949e;margin-bottom:4px;">${item.phone?'📞 '+item.phone:''} ${item.ig?'· '+item.ig:''}</div>
+        <div style="font-size:11px;color:${statusColor};margin-bottom:8px;">${statusLabel}</div>
+        ${item.visitDate?`<div style="font-size:11px;color:#22d3ee;margin-bottom:4px;">📅 ${item.visitDate.split('T')[0]}</div>`:''}
+        ${item.visitStatus==='done'?'<div style="font-size:11px;color:#4ade80;">🏁 تمت الزيارة</div>':''}
+        ${item.visitStatus==='cancelled'?'<div style="font-size:11px;color:#fbbf24;">⚠️ ألغيت</div>':''}
+        <button onclick="deleteDupEntry(${idx},${gi})" style="width:100%;margin-top:8px;padding:6px;border-radius:7px;border:1px solid #dc2626;background:#1a0808;color:#f87171;font-size:12px;cursor:pointer;font-family:Tajawal,sans-serif;font-weight:700;">🗑 حذف هذا</button>
+        <button onclick="keepOnlyThis(${idx},${gi})" style="width:100%;margin-top:4px;padding:6px;border-radius:7px;border:1px solid #059669;background:#0d1f14;color:#4ade80;font-size:12px;cursor:pointer;font-family:Tajawal,sans-serif;font-weight:700;">✅ احتفظ بهذا واحذف الباقين</button>
+      </div>`;
+    }).join('');
+    return `<div id="dupGroup_${gi}" style="border:1px solid #d97706;border-radius:12px;padding:.8rem;background:#1a1200;">
+      <div style="font-size:12px;color:#fbbf24;font-weight:700;margin-bottom:8px;">مجموعة ${gi+1} — ${group.length} أشخاص متشابهون</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;">${cardsHTML}</div>
+    </div>`;
+  }).join('');
+
+  document.getElementById('dupReviewOverlay').classList.remove('hidden');
+}
+
+function deleteDupEntry(idx, gi) {
+  if(!confirm('هتحذف هذا الشخص نهائياً؟')) return;
+  const item = influencers[idx];
+  item._deletedAt = Date.now();
+  deletedInfluencers.push(item);
+  influencers.splice(idx, 1);
+  saveFile(); renderGrid(); updateStats(); updateDupReviewBtn();
+  // Refresh the modal
+  closeDupReview();
+  openDupReview();
+  showToast('🗑 تم الحذف', '#dc2626');
+}
+
+function keepOnlyThis(keepIdx, gi) {
+  const groups = findAllDuplicates();
+  const group  = groups[gi];
+  if(!group) return;
+  if(!confirm('هتحذف ' + (group.length-1) + ' شخص وتحتفظ بواحد بس؟')) return;
+  // Delete all except keepIdx — from highest index to lowest to avoid shifting
+  const toDelete = group.filter(i => i !== keepIdx).sort((a,b)=>b-a);
+  toDelete.forEach(idx => {
+    const item = influencers[idx];
+    item._deletedAt = Date.now();
+    deletedInfluencers.push(item);
+    influencers.splice(idx, 1);
+  });
+  saveFile(); renderGrid(); updateStats(); updateDupReviewBtn();
+  closeDupReview();
+  openDupReview();
+  showToast('✅ تم الاحتفاظ بشخص واحد وحذف الباقين', '#059669');
+}
+
+function closeDupReview() {
+  document.getElementById('dupReviewOverlay').classList.add('hidden');
+}
+window.openDupReview=openDupReview; window.closeDupReview=closeDupReview;
+window.deleteDupEntry=deleteDupEntry; window.keepOnlyThis=keepOnlyThis;
+// ─────────────────────────────────────────────────────────────────────
+
 async function init() {
   if(!checkAuth()) return;
   updateWelcome();
@@ -4269,13 +4411,14 @@ async function init() {
   }
   await saveToStorage();
   renderGrid();
+  updateDupReviewBtn();
   if(removed > 0) showToast('🧹 تم حذف '+removed+' تكرار تلقائياً', '#ca8a04');
   // Check missed visits after short delay
   setTimeout(checkMissedVisits, 800);
   // Poll Firebase every 30s to sync with other devices
   setInterval(function() {
     tryLoadFirebase().then(function(loaded) {
-      if(loaded) { updateStats(); renderGrid(); }
+      if(loaded) { updateStats(); renderGrid(); updateDupReviewBtn(); }
     }).catch(function(){});
   }, 30000);
   } catch(err) {
