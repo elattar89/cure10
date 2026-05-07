@@ -1170,7 +1170,7 @@ function setFilter(f, btn) {
 function setFilterFromStat(f) {
   currentFilter=f;
   document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));
-  const map={ig:'fb-ig',tt:'fb-tt',snap:'fb-snap',all3:'fb-all3',male:'fb-male',female:'fb-female',approved:'fb-approved',rejected:'fb-rejected',visited:'visitedBtn',cancelled:'cancelledBtn'};
+  const map={all:'fb-all',ig:'fb-ig',tt:'fb-tt',snap:'fb-snap',all3:'fb-all3',male:'fb-male',female:'fb-female',approved:'fb-approved',rejected:'fb-rejected',visited:'visitedBtn',cancelled:'cancelledBtn'};
   const el=document.getElementById(map[f]); if(el) el.classList.add('active');
   updateReportBtn(f);
   renderGrid();
@@ -1273,34 +1273,99 @@ function renderGrid() {
   }
 
   // -- Normal view -----------------------------------------------
-  // Sort: جديد (autoAdded في 48 ساعة) → قيد المراجعة → مقبولين → مرفوضين
+  // ترتيب الإجمالي:
+  // 0 = جدد (آخر 48 ساعة) — الأحدث أولاً
+  // 1 = قيد المراجعة (pending) — أبجدي
+  // 2 = مقبولين تمت زيارتهم (done) — أبجدي
+  // 3 = مقبولين ولهم موعد — أبجدي
+  // 4 = مقبولين وليس لهم موعد — أبجدي
+  // 5 = مقبولين ملغي موعدهم (cancelled) — أبجدي
+  // 6 = مرفوضين — أبجدي
+  // المكرر يظهر دائماً بعد أصله مباشرةً بغض النظر عن حالة الأصل
   const _now48 = Date.now() - (48 * 60 * 60 * 1000);
-  const sorted = [...influencers].map((item,idx)=>({item,idx})).sort((a,b)=>{
-    const order = i => {
-      const isNewAuto = i.autoAdded && i.addedAt && i.addedAt > _now48 && !i.wasUpdated;
-      if(isNewAuto) return 0;
-      if(!i.status||i.status==='pending'||i.status==='duplicate_pending') return 1;
-      if(i.status==='approved'&&i.visitStatus==='cancelled') return 2;
-      if(i.status==='approved'&&i.visitStatus==='done') return 3;
-      if(i.status==='approved') return 4;
-      if(i.status==='rejected') return 5;
-      return 6;
-    };
-    const oa=order(a.item), ob=order(b.item);
-    if(oa!==ob) return oa-ob;
-    // الجدد: الأحدث أولاً
-    if(oa===0) {
-      const ta=a.item.addedAt||0, tb=b.item.addedAt||0;
-      return tb-ta;
+
+  function getDupOriginalIdx(dupItem) {
+    const nPhone = normalizePhone(dupItem.phone);
+    const nIg = normalizeIg(dupItem.ig);
+    const nTt = (dupItem.tt||'').replace('@','').toLowerCase().trim().split('?')[0];
+    const nCivil = (dupItem.civil||'').replace(/[\s\u200e\u200f]/g,'').replace(/[٠-٩]/g,d=>'٠١٢٣٤٥٦٧٨٩'.indexOf(d).toString());
+    for(let i=0;i<influencers.length;i++){
+      const ex=influencers[i];
+      if(ex===dupItem||ex.status==='duplicate_pending') continue;
+      const xPhone=normalizePhone(ex.phone), xIg=normalizeIg(ex.ig);
+      const xTt=(ex.tt||'').replace('@','').toLowerCase().trim().split('?')[0];
+      const xCivil=(ex.civil||'').replace(/[\s\u200e\u200f]/g,'').replace(/[٠-٩]/g,d=>'٠١٢٣٤٥٦٧٨٩'.indexOf(d).toString());
+      if((nPhone&&nPhone.length>=7&&nPhone===xPhone)||(nIg&&nIg.length>2&&nIg===xIg)||(nTt&&nTt.length>2&&nTt===xTt)||(nCivil&&nCivil.length>=6&&nCivil===xCivil))
+        return i;
     }
-    // باقي المجموعات: ترتيب أبجدي — العربي أولاً ثم الإنجليزي
-    const nameA = (getDisplayName(a.item,a.idx)||'').trim();
-    const nameB = (getDisplayName(b.item,b.idx)||'').trim();
+    return -1;
+  }
+
+  // ترتيب الأصول بناءً على حالتهم
+  function getOrder(item) {
+    const isNew = item.addedAt && item.addedAt > _now48 && !item.wasUpdated;
+    if(isNew) return 0;
+    if(!item.status||item.status==='pending') return 1;
+    if(item.status==='approved'&&item.visitStatus==='done') return 2;
+    if(item.status==='approved'&&item.visitDate&&item.visitStatus!=='cancelled') return 3;
+    if(item.status==='approved'&&!item.visitDate) return 4;
+    if(item.status==='approved'&&item.visitStatus==='cancelled') return 5;
+    if(item.status==='rejected') return 6;
+    return 7;
+  }
+  // للمكرر: استخدم ترتيب الأصل
+  function getEffectiveOrder(item) {
+    if(item.status==='duplicate_pending') {
+      const oIdx = getDupOriginalIdx(item);
+      if(oIdx >= 0) return getOrder(influencers[oIdx]);
+      return 1;
+    }
+    return getOrder(item);
+  }
+  // للمكرر: استخدم اسم الأصل للأبجدي
+  function getEffectiveSortName(item, idx) {
+    if(item.status==='duplicate_pending') {
+      const oIdx = getDupOriginalIdx(item);
+      if(oIdx >= 0) return (getDisplayName(influencers[oIdx], oIdx)||'').trim();
+    }
+    return (getDisplayName(item, idx)||'').trim();
+  }
+  // للمكرر: الـ anchor index هو idx الأصل
+  function getAnchorIdx(item, idx) {
+    if(item.status==='duplicate_pending') {
+      const oIdx = getDupOriginalIdx(item);
+      return oIdx >= 0 ? oIdx : idx;
+    }
+    return idx;
+  }
+
+  const sorted = [...influencers].map((item,idx)=>({item,idx})).sort((a,b)=>{
+    const oa = getEffectiveOrder(a.item);
+    const ob = getEffectiveOrder(b.item);
+
+    if(oa !== ob) return oa - ob;
+
+    // الجدد: الأحدث أولاً
+    if(oa === 0) return (b.item.addedAt||0) - (a.item.addedAt||0);
+
+    // الأصل يسبق مكرره مباشرةً — بغض النظر عن المجموعة
+    if(b.item.status==='duplicate_pending' && getAnchorIdx(b.item,b.idx)===a.idx) return -1;
+    if(a.item.status==='duplicate_pending' && getAnchorIdx(a.item,a.idx)===b.idx) return 1;
+
+    // ترتيب أبجدي (للمكرر يُستخدم اسم أصله)
+    const nameA = getEffectiveSortName(a.item, a.idx);
+    const nameB = getEffectiveSortName(b.item, b.idx);
     const isArabic = s => /[؀-ۿ]/.test(s.charAt(0));
     const arA = isArabic(nameA), arB = isArabic(nameB);
     if(arA && !arB) return -1;
     if(!arA && arB) return 1;
-    return nameA.localeCompare(nameB, arA?'ar':'en', {sensitivity:'base'});
+    const cmp = nameA.localeCompare(nameB, arA?'ar':'en', {sensitivity:'base'});
+    if(cmp !== 0) return cmp;
+
+    // نفس الاسم: الأصل قبل المكرر
+    if(a.item.status!=='duplicate_pending' && b.item.status==='duplicate_pending') return -1;
+    if(a.item.status==='duplicate_pending' && b.item.status!=='duplicate_pending') return 1;
+    return 0;
   });
   sorted.forEach(({item,idx})=>{
     const name=getDisplayName(item,idx);
@@ -1359,8 +1424,25 @@ function renderGrid() {
       ? 'border-color:#3b82f6;background:rgba(37,99,235,0.10);'
       : isNewAutoBlue && item.status==='rejected'
       ? 'border-color:#3b82f6;background:rgba(37,99,235,0.10);'
+      : item.status==='duplicate_pending'
+      ? 'border-color:#c026d3;background:rgba(192,38,211,0.08);'
       : item.visitStatus==='cancelled'?'border-color:#ca8a04;background:rgba(202,138,4,0.08);':isPublished?'border-color:#ca8a04;background:rgba(202,138,4,0.07);':isUnpublished?'border-color:#7c3aed;background:rgba(124,58,237,0.07);':'';
-    html+=`<div class="card ${item.status||'pending'}" data-idx="${idx}" style="${cardBorderStyle}">
+    // هل هذا الكارد "أصل" لأحد المكررين؟
+    const isDupOriginal = item.status!=='duplicate_pending' && influencers.some(x=>x.status==='duplicate_pending' && (() => {
+      const nPhone=normalizePhone(item.phone), nIg=normalizeIg(item.ig);
+      const nTt=(item.tt||'').replace('@','').toLowerCase().trim().split('?')[0];
+      const nCivil=(item.civil||'').replace(/[\s\u200e\u200f]/g,'').replace(/[٠-٩]/g,d=>'٠١٢٣٤٥٦٧٨٩'.indexOf(d).toString());
+      const xPhone=normalizePhone(x.phone), xIg=normalizeIg(x.ig);
+      const xTt=(x.tt||'').replace('@','').toLowerCase().trim().split('?')[0];
+      const xCivil=(x.civil||'').replace(/[\s\u200e\u200f]/g,'').replace(/[٠-٩]/g,d=>'٠١٢٣٤٥٦٧٨٩'.indexOf(d).toString());
+      return (nPhone&&nPhone.length>=7&&nPhone===xPhone)||(nIg&&nIg.length>2&&nIg===xIg)||(nTt&&nTt.length>2&&nTt===xTt)||(nCivil&&nCivil.length>=6&&nCivil===xCivil);
+    })());
+    // الأصل يحتفظ بلونه الطبيعي تماماً — فقط يظهر عليه badge
+    // المكرر يحتفظ بلونه البنفسجي المميز
+    const finalCardStyle = cardBorderStyle;
+    html+=`<div class="card ${item.status||'pending'}" data-idx="${idx}" style="${finalCardStyle}">
+      ${isDupOriginal?`<div style="background:rgba(192,38,211,0.15);border:1px solid #c026d3;color:#e879f9;font-size:11px;font-weight:700;padding:3px 10px;border-radius:6px;margin-bottom:.5rem;display:inline-block;">📁 الأصل</div>`:''}
+      ${item.status==='duplicate_pending'?`<div style="background:rgba(192,38,211,0.2);border:1px solid #c026d3;color:#e879f9;font-size:11px;font-weight:700;padding:3px 10px;border-radius:6px;margin-bottom:.5rem;display:inline-block;">🔁 مكرر</div>`:''}
       ${item.visitStatus==='cancelled'?`<div style="background:#ca8a04;color:#000;font-size:11px;font-weight:700;padding:3px 10px;border-radius:6px;margin-bottom:.5rem;display:inline-block;">⚠️ تم إلغاء الموعد</div>`:''}
       ${isPublished?`<div style="background:rgba(202,138,4,0.15);border:1px solid #ca8a04;color:#fbbf24;font-size:11px;font-weight:700;padding:3px 10px;border-radius:6px;margin-bottom:.5rem;display:inline-block;">🌟 تم نشر المحتوى</div>`:''}
       ${isUnpublished?`<div style="background:rgba(124,58,237,0.15);border:1px solid #7c3aed;color:#c084fc;font-size:11px;font-weight:700;padding:3px 10px;border-radius:6px;margin-bottom:.5rem;display:inline-block;">🟣 لم يتم نشر المحتوى</div>`:''}
@@ -4354,61 +4436,85 @@ function _dupReviewGroupHTML(group, gi) {
     {key:'phone',      label:'الموبايل'},
     {key:'civil',      label:'م. مدني'},
     {key:'nationality',label:'الجنسية'},
-    {key:'gender',     label:'الجنس',    fmt: v=>v==='m'?'ذكر':v==='f'?'أنثى':v},
+    {key:'gender',     label:'الجنس', fmt: v=>v==='m'?'ذكر':v==='f'?'أنثى':v},
     {key:'ig',         label:'انستاجرام'},
     {key:'tt',         label:'تيك توك'},
     {key:'snap',       label:'سناب'},
   ];
-  // الأصل = أول عنصر، المكرر = ثاني عنصر (أو لو أكثر نعرض أول اثنين)
   const primaryIdx   = group[0];
   const secondaryIdx = group[1] !== undefined ? group[1] : group[0];
-  const ex  = influencers[primaryIdx];   // الموجود (الأصل)
-  const dup = group[1] !== undefined ? influencers[secondaryIdx] : null; // المكرر
+  const ex  = influencers[primaryIdx];
+  const dup = group[1] !== undefined ? influencers[secondaryIdx] : null;
 
   const statusLabel = s => s==='approved'?'✅ مقبول':s==='rejected'?'❌ مرفوض':s==='duplicate_pending'?'🔁 مكرر':'⏳ قيد المراجعة';
   const statusColor = s => s==='approved'?'#4ade80':s==='rejected'?'#f87171':s==='duplicate_pending'?'#fb923c':'#8b949e';
-
   const reasons = group._reasons || [];
 
   let compareHTML = '';
   if(dup) {
+    // ── بناء صفوف المقارنة ──
+    // كل حقل قابل للتعديل بغض النظر عن isDiff — المستخدم يختار بنفسه
     const rowsHTML = FIELDS.map(f => {
-      const fmt = f.fmt || (v=>v);
+      const fmt    = f.fmt || (v=>v);
       const oldVal = fmt(ex[f.key]||'');
       const newVal = fmt(dup[f.key]||'');
-      const isDiff  = oldVal !== newVal;
-      const hasNew  = !!newVal;
-      const checked = hasNew && isDiff ? 'checked' : '';
+      const isDiff = oldVal !== newVal;
+      const hasNew = !!newVal;
+      // افتراضي: شيّك لو القيمة الجديدة موجودة ومختلفة — لكن المستخدم يقدر يغير
+      const checked  = (hasNew && isDiff) ? 'checked' : '';
       const newClass = hasNew ? 'dup-field-new' : 'dup-field-new empty';
-      return `<div class="dup-field-row">
+      const rowHighlight = isDiff && hasNew ? 'background:rgba(251,146,60,0.06);border-radius:8px;' : '';
+      return `<div class="dup-field-row" style="${rowHighlight}">
         <div class="dup-field-label">${f.label}</div>
         <div class="dup-field-old">${oldVal||'—'}</div>
         <div class="${newClass}" style="${isDiff&&hasNew?'border-color:#fb923c;background:#1a1000;':''}">${newVal||'—'}</div>
-        <input type="checkbox" class="dup-check" id="drchk_${gi}_${f.key}" ${checked} ${!hasNew||!isDiff?'disabled':''}>
+        <input type="checkbox" class="dup-check" id="drchk_${gi}_${f.key}" ${checked}>
       </div>`;
     }).join('');
+
+    // زر "تحديد الكل" و"إلغاء الكل"
+    const selectBtns = `<div style="display:flex;gap:6px;margin-bottom:6px;">
+      <button onclick="drSelectAll(${gi},'check')" style="padding:4px 10px;border-radius:6px;border:1px solid #30363d;background:#21262d;color:#e6edf3;font-size:11px;cursor:pointer;font-family:Tajawal,sans-serif;">☑ تحديد الكل</button>
+      <button onclick="drSelectAll(${gi},'uncheck')" style="padding:4px 10px;border-radius:6px;border:1px solid #30363d;background:#21262d;color:#8b949e;font-size:11px;cursor:pointer;font-family:Tajawal,sans-serif;">☐ إلغاء الكل</button>
+    </div>`;
 
     compareHTML = `
       <div class="dup-col-headers">
         <div class="dup-col-h"></div>
         <div class="dup-col-h" style="color:#8b949e;">📁 الأصل (الموجود)</div>
-        <div class="dup-col-h" style="color:#fb923c;">🔁 المكرر (جديد)</div>
-        <div class="dup-col-h"></div>
+        <div class="dup-col-h" style="color:#fb923c;">🔁 المكرر</div>
+        <div class="dup-col-h" style="color:#6e7681;font-size:9px;">خذ من المكرر؟</div>
       </div>
       ${rowsHTML}
-      <div style="display:flex;gap:6px;margin-top:10px;flex-wrap:wrap;">
-        <button onclick="drApplySelected(${gi},${primaryIdx},${secondaryIdx})" style="flex:1;padding:7px 10px;border-radius:8px;border:1px solid #1a6fa8;background:#0d1a2a;color:#60a5fa;font-size:12px;cursor:pointer;font-family:Tajawal,sans-serif;font-weight:700;">✅ تطبيق المحدد على الأصل وحذف المكرر</button>
-        <button onclick="drDeleteDup(${secondaryIdx},${gi})" style="flex:1;padding:7px 10px;border-radius:8px;border:1px solid #dc2626;background:#1a0808;color:#f87171;font-size:12px;cursor:pointer;font-family:Tajawal,sans-serif;font-weight:700;">🗑 احذف المكرر</button>
-        <button onclick="drKeepDup(${primaryIdx},${secondaryIdx},${gi})" style="flex:1;padding:7px 10px;border-radius:8px;border:1px solid #d97706;background:#1a1000;color:#fbbf24;font-size:12px;cursor:pointer;font-family:Tajawal,sans-serif;font-weight:700;">🔄 احتفظ بالمكرر واحذف الأصل</button>
-        <button onclick="drMergeKeepBoth(${primaryIdx},${secondaryIdx},${gi})" style="padding:7px 10px;border-radius:8px;border:1px solid #30363d;background:#21262d;color:#8b949e;font-size:12px;cursor:pointer;font-family:Tajawal,sans-serif;">تجاهل</button>
+      <div style="margin-top:10px;">
+        ${selectBtns}
+        <div style="display:flex;gap:6px;flex-wrap:wrap;">
+          <button onclick="drApplySelected(${gi},${primaryIdx},${secondaryIdx})" style="flex:1;padding:8px 10px;border-radius:8px;border:1px solid #1a6fa8;background:#0d1a2a;color:#60a5fa;font-size:12px;cursor:pointer;font-family:Tajawal,sans-serif;font-weight:700;">✅ تطبيق المحدد على الأصل وحذف المكرر</button>
+          <button onclick="drDeleteDup(${secondaryIdx},${gi})" style="flex:1;padding:8px 10px;border-radius:8px;border:1px solid #dc2626;background:#1a0808;color:#f87171;font-size:12px;cursor:pointer;font-family:Tajawal,sans-serif;font-weight:700;">🗑 احذف المكرر</button>
+          <button onclick="drKeepDup(${primaryIdx},${secondaryIdx},${gi})" style="flex:1;padding:8px 10px;border-radius:8px;border:1px solid #d97706;background:#1a1000;color:#fbbf24;font-size:12px;cursor:pointer;font-family:Tajawal,sans-serif;font-weight:700;">🔄 احتفظ بالمكرر واحذف الأصل</button>
+          <button onclick="drMergeKeepBoth(${primaryIdx},${secondaryIdx},${gi})" style="padding:8px 10px;border-radius:8px;border:1px solid #30363d;background:#21262d;color:#8b949e;font-size:12px;cursor:pointer;font-family:Tajawal,sans-serif;">تجاهل</button>
+        </div>
       </div>`;
   } else {
-    // مكرر بدون أصل واضح
+    // مكرر بدون أصل — نعرض بياناته بالكامل ونطلب قرار
+    const infoRows = FIELDS.map(f => {
+      const fmt = f.fmt||(v=>v);
+      const val = fmt(ex[f.key]||'');
+      if(!val) return '';
+      return `<div style="display:flex;gap:8px;align-items:center;padding:4px 0;font-size:12px;">
+        <span style="color:#6e7681;width:80px;flex-shrink:0;">${f.label}</span>
+        <span style="color:#e6edf3;">${val}</span>
+      </div>`;
+    }).filter(Boolean).join('');
+
     compareHTML = `
-      <div style="font-size:12px;color:#fb923c;margin-bottom:8px;">⚠️ هذا الشخص مصنف كمكرر لكن لم يُعثر على أصله — اختر الإجراء</div>
-      <div style="display:flex;gap:6px;margin-top:8px;flex-wrap:wrap;">
-        <button onclick="drConvertToPending(${primaryIdx},${gi})" style="flex:1;padding:7px;border-radius:8px;border:1px solid #059669;background:#0d1f14;color:#4ade80;font-size:12px;cursor:pointer;font-family:Tajawal,sans-serif;font-weight:700;">✅ حوّله لقيد المراجعة</button>
-        <button onclick="drDeleteDup(${primaryIdx},${gi})" style="flex:1;padding:7px;border-radius:8px;border:1px solid #dc2626;background:#1a0808;color:#f87171;font-size:12px;cursor:pointer;font-family:Tajawal,sans-serif;font-weight:700;">🗑 احذف</button>
+      <div style="background:#1a1200;border:1px solid #d97706;border-radius:8px;padding:10px;margin-bottom:10px;">
+        ${infoRows}
+      </div>
+      <div style="font-size:12px;color:#fb923c;margin-bottom:8px;">⚠️ هذا الشخص مصنف كمكرر لكن لم يُعثر على أصله في القائمة — اختر الإجراء</div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;">
+        <button onclick="drConvertToPending(${primaryIdx},${gi})" style="flex:1;padding:8px;border-radius:8px;border:1px solid #059669;background:#0d1f14;color:#4ade80;font-size:12px;cursor:pointer;font-family:Tajawal,sans-serif;font-weight:700;">✅ حوّله لقيد المراجعة</button>
+        <button onclick="drDeleteDup(${primaryIdx},${gi})" style="flex:1;padding:8px;border-radius:8px;border:1px solid #dc2626;background:#1a0808;color:#f87171;font-size:12px;cursor:pointer;font-family:Tajawal,sans-serif;font-weight:700;">🗑 احذف</button>
       </div>`;
   }
 
@@ -4431,6 +4537,16 @@ function _dupReviewGroupHTML(group, gi) {
     ${compareHTML}
   </div>`;
 }
+
+// تحديد/إلغاء كل checkboxes مجموعة
+function drSelectAll(gi, mode) {
+  const KEYS = ['name','phone','civil','nationality','gender','ig','tt','snap'];
+  KEYS.forEach(key => {
+    const cb = document.getElementById(`drchk_${gi}_${key}`);
+    if(cb) cb.checked = (mode === 'check');
+  });
+}
+window.drSelectAll = drSelectAll;
 
 function openDupReview() {
   const groups = findAllDuplicates();
