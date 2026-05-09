@@ -434,7 +434,7 @@ body{font-family:'Tajawal',sans-serif;direction:rtl;background:#0d1117;color:#e6
       </div>
     </div>
   </div>
-  <button class="filter-btn" onclick="openGuestReadOnlyReport()" style="white-space:nowrap;border-color:#16a34a;color:#4ade80;">✅ كشف المقبولين</button>
+  <button id="guestReportToolbarBtn" class="filter-btn" onclick="openGuestReadOnlyReport()" style="white-space:nowrap;border-color:#16a34a;color:#4ade80;">✅ كشف المقبولين</button>
   <button class="filter-btn" onclick="openApptPanel()" style="white-space:nowrap;border-color:#0891b2;color:#22d3ee;">📅 مواعيد</button>
   <button class="filter-btn" id="fb-deleted" onclick="setFilter('deleted',this)" style="display:none;white-space:nowrap;border-color:#6b2020;color:#f87171;flex-shrink:0;">✕ المحذوفين <span id="deletedBadge" style="display:none;background:#dc2626;color:#fff;border-radius:10px;padding:1px 6px;font-size:10px;margin-right:2px;">0</span></button>
   <button id="visitedBtn" style="display:none;padding:7px 14px;border-radius:9px;border:1px solid #059669;font-size:13px;cursor:pointer;font-family:Tajawal,sans-serif;white-space:nowrap;font-weight:700;background:#0d1f14;color:#34d399;transition:.15s;" onclick="setFilter('visited',this)">🏁 اكتملت الزيارة</button>
@@ -1139,9 +1139,11 @@ function updateReportBtn(f) {
   const btn=document.getElementById('reportBtn'); if(!btn) return;
   const vBtn=document.getElementById('visitedBtn');
   const cBtn=document.getElementById('cancelledBtn');
+  const grb=document.getElementById('guestReportToolbarBtn');
   const showSub=(f==='approved');
   if(vBtn) vBtn.style.display=showSub?'block':'none';
   if(cBtn) cBtn.style.display=showSub?'block':'none';
+  if(grb) grb.style.display=(f==='approved'||f==='visited')?'none':'';
   if(REPORT_FILTERS.includes(f)){
     btn.style.display='block'; btn.textContent=REPORT_LABELS[f];
     const colors={approved:'#1e5c2d',rejected:'#5c1e1e',male:'#1e3a5f',female:'#4a044e',visited:'#1e5c2d'};
@@ -1166,6 +1168,7 @@ function setFilter(f, btn) {
   const nm=document.getElementById('natMenu');if(nm)nm.style.display='none';
   const dm=document.getElementById('dlctMenu');if(dm)dm.style.display='none';
   updateReportBtn(f); renderGrid();
+  const grb=document.getElementById('guestReportToolbarBtn'); if(grb) grb.style.display=(f==='approved'||f==='visited')?'none':'';
 }
 function setFilterFromStat(f) {
   currentFilter=f;
@@ -1174,6 +1177,7 @@ function setFilterFromStat(f) {
   const el=document.getElementById(map[f]); if(el) el.classList.add('active');
   updateReportBtn(f);
   renderGrid();
+  const grb=document.getElementById('guestReportToolbarBtn'); if(grb) grb.style.display=(f==='approved'||f==='visited')?'none':'';
   setTimeout(()=>{ document.getElementById('grid').scrollIntoView({behavior:'smooth',block:'start'}); },100);
 }
 
@@ -3377,6 +3381,8 @@ function setContentStatus(idx, status) {
   influencers[idx].contentStatus = status;
   saveFile(); renderGrid();
   showToast(status==='published'?'🌟 تم تسجيل نشر المحتوى':'🟣 تم تسجيل عدم نشر المحتوى', status==='published'?'#ca8a04':'#7c3aed');
+  const apptOverlay=document.getElementById('apptPanelOverlay');
+  if(apptOverlay&&apptOverlay.classList.contains('open')) openApptPanel();
   // Update report row if open
   const row=document.getElementById('rrow_'+idx);
   if(row){
@@ -3404,6 +3410,8 @@ function setVisitStatus(realIdx,status){
   saveFile(); updateStats();
   logActivity(status==='done'?'done':'cancelled',
     `${status==='done'?'تمت الزيارة':'ألغيت الزيارة'}: ${name}`);
+  const apptOverlay=document.getElementById('apptPanelOverlay');
+  if(apptOverlay&&apptOverlay.classList.contains('open')) openApptPanel();
   const row=document.getElementById('rrow_'+realIdx);
   if(row){
     const vs=item.visitStatus||'';
