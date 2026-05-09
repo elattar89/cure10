@@ -4726,16 +4726,27 @@ async function init() {
       const names = dupGroups.slice(0,2).map(g => influencers[g[0]] ? (influencers[g[0]].name||influencers[g[0]].ig||'؟') : '؟').join('، ');
       const banner = document.createElement('div');
       banner.id = 'dupWarningBanner';
-      banner.style.cssText = 'width:100%;background:rgba(0,0,0,0.25);border:1px solid rgba(255,255,255,0.1);border-radius:12px;color:#fff;padding:10px 16px;font-family:Tajawal,sans-serif;font-size:13px;font-weight:700;display:flex;align-items:center;justify-content:center;gap:10px;direction:rtl;flex-wrap:wrap;text-align:center;margin-top:1rem;position:relative;z-index:1;';
-      const infoHTML =
-        (newCount > 0 ? `<span style="background:rgba(59,130,246,0.25);border:1px solid #3b82f6;color:#93c5fd;padding:2px 10px;border-radius:20px;font-size:12px;">🆕 ${newCount} جديد</span>` : '') +
-        (dupGroups.length > 0 ? `<span style="background:rgba(234,88,12,0.25);border:1px solid #ea580c;color:#fb923c;padding:2px 10px;border-radius:20px;font-size:12px;">🔁 ${dupCount} مكرر في ${dupGroups.length} مجموعة${names?' — '+names+(dupGroups.length>2?'...':''):''}</span>` : '');
-      banner.innerHTML =
-        `<div style="display:flex;align-items:center;justify-content:center;gap:8px;flex-wrap:wrap;">${infoHTML}</div>` +
-        `<div style="display:flex;gap:8px;flex-shrink:0;">` +
-        (dupGroups.length > 0 ? `<button onclick="openDupReview();document.getElementById('dupWarningBanner').remove();" style="background:linear-gradient(135deg,#7c2d12,#ea580c);color:#fff;border:none;border-radius:7px;padding:5px 12px;font-size:12px;font-weight:900;cursor:pointer;font-family:Tajawal,sans-serif;">🔍 مراجعة المكررين</button>` : '') +
-        `<button onclick="document.getElementById('dupWarningBanner').remove()" style="background:rgba(255,255,255,0.1);color:#fff;border:1px solid rgba(255,255,255,0.2);border-radius:7px;padding:5px 10px;font-size:14px;cursor:pointer;">✕</button>` +
-        `</div>`;
+      banner.style.cssText = 'width:100%;display:flex;gap:10px;direction:rtl;margin-top:1rem;position:relative;z-index:1;font-family:Tajawal,sans-serif;';
+      const newCard = newCount > 0
+        ? `<div style="flex:1;display:flex;align-items:center;gap:12px;padding:12px 16px;border-radius:10px;background:rgba(59,130,246,0.15);border:1px solid rgba(59,130,246,0.4);cursor:pointer;" onclick="setFilterFromStat('new');document.querySelector('.toolbar')&&document.querySelector('.toolbar').scrollIntoView({behavior:'smooth'});">
+            <span style="font-size:20px;">🆕</span>
+            <div>
+              <div style="font-size:22px;font-weight:900;color:#93c5fd;line-height:1;">${newCount}</div>
+              <div style="font-size:11px;color:rgba(255,255,255,0.6);margin-top:2px;">جديد في آخر 48 ساعة</div>
+            </div>
+          </div>`
+        : '';
+      const dupCard = dupGroups.length > 0
+        ? `<div style="flex:1;display:flex;align-items:center;gap:12px;padding:12px 16px;border-radius:10px;background:rgba(234,88,12,0.15);border:1px solid rgba(234,88,12,0.4);cursor:pointer;" onclick="openDupReview();">
+            <span style="font-size:20px;">🔁</span>
+            <div style="flex:1;">
+              <div style="font-size:22px;font-weight:900;color:#fb923c;line-height:1;">${dupCount}</div>
+              <div style="font-size:11px;color:rgba(255,255,255,0.6);margin-top:2px;">مكررين — اضغط للمراجعة</div>
+            </div>
+          </div>`
+        : '';
+      const closeBtn = `<button onclick="document.getElementById('dupWarningBanner').remove()" style="background:rgba(255,255,255,0.08);color:rgba(255,255,255,0.6);border:1px solid rgba(255,255,255,0.15);border-radius:8px;padding:0 10px;font-size:16px;cursor:pointer;align-self:stretch;flex-shrink:0;">✕</button>`;
+      banner.innerHTML = newCard + dupCard + closeBtn;
       document.querySelector('.header').appendChild(banner);
     }
   }, 1500);
