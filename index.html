@@ -977,8 +977,14 @@ function saveFile() { saveToStorage(); }
 function migrateDialects() {
   let changed = false;
   influencers.forEach(item => {
-    if((!item.dialects || item.dialects.length === 0) && item.nationality) {
+    const currentDialects = item.dialects || [];
+    const isOnlyForeign = currentDialects.length === 1 && currentDialects[0] === 'أجنبي';
+    const isEmpty = currentDialects.length === 0;
+    if((isEmpty || isOnlyForeign) && item.nationality) {
       const d = getAutoDialect(item.nationality);
+      if(d && d !== 'أجنبي') { item.dialects = [d]; changed = true; }
+    } else if(isEmpty) {
+      const d = getAutoDialect(item.nationality || '');
       if(d) { item.dialects = [d]; changed = true; }
     }
   });
