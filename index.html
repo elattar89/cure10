@@ -1193,10 +1193,10 @@ function setFilterFromStat(f) {
 
 // -- Nationality groups --------------------------------------------
 const NAT_GROUPS = {
-  kuwait:  ['كويتي','كويتية','بدون','غير محدد الجنسية'],
-  gulf:    ['سعودي','سعودية','إماراتي','إماراتية','بحريني','بحرينية','قطري','قطرية','عماني','عمانية','عراقي','عراقية','يمني','يمنية'],
-  egypt:   ['مصري','مصرية'],
-  sham:    ['سوري','سورية','لبناني','لبنانية','أردني','أردنية','فلسطيني','فلسطينية'],
+  kuwait:  ['كويتي','كويتية','بدون','غير محدد الجنسية','الكويت','Kuwait'],
+  gulf:    ['سعودي','سعودية','إماراتي','إماراتية','بحريني','بحرينية','قطري','قطرية','عماني','عمانية','عراقي','عراقية','يمني','يمنية','السعودية','الإمارات','البحرين','قطر','عمان','العراق','اليمن'],
+  egypt:   ['مصري','مصرية','مصر','Egypt'],
+  sham:    ['سوري','سورية','لبناني','لبنانية','أردني','أردنية','فلسطيني','فلسطينية','سوريا','لبنان','الأردن','فلسطين'],
   foreign: []
 };
 
@@ -1799,6 +1799,7 @@ function selectGender(prefix,val) {
 function openModal(){ document.getElementById('addModalOverlay').classList.remove('hidden'); }
 function closeModal(){ document.getElementById('addModalOverlay').classList.add('hidden'); }
 function getAutoDialect(nationality) {
+  console.log('nationality value:', JSON.stringify(nationality));
   if(!nationality) return 'كويتي';
   if(NAT_GROUPS.kuwait.includes(nationality)) return 'كويتي';
   if(NAT_GROUPS.egypt.includes(nationality)) return 'مصري';
