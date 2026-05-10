@@ -1788,6 +1788,14 @@ function selectGender(prefix,val) {
 
 function openModal(){ document.getElementById('addModalOverlay').classList.remove('hidden'); }
 function closeModal(){ document.getElementById('addModalOverlay').classList.add('hidden'); }
+function getAutoDialect(nationality) {
+  if(!nationality) return '';
+  if(NAT_GROUPS.kuwait.includes(nationality)) return 'كويتي';
+  if(NAT_GROUPS.egypt.includes(nationality)) return 'مصري';
+  if(NAT_GROUPS.gulf.includes(nationality)) return 'خليجي';
+  if(NAT_GROUPS.sham.includes(nationality)) return 'شامي';
+  return 'أجنبي';
+}
 function addInfluencer() {
   const name=document.getElementById('mName').value.trim();
   const phone=document.getElementById('mPhone').value.trim();
@@ -1808,7 +1816,8 @@ function addInfluencer() {
   if(ttRaw.includes('tiktok.com/@')) {
     ttHandle = '@' + ttRaw.split('tiktok.com/@').pop().split('?')[0];
   }
-  const newItem={name,phone,civil,nationality,gender,ig:igHandle,ig_url:igRaw.startsWith('http')?igRaw:(igRaw?'https://www.instagram.com/'+igRaw.replace('@',''):''),tt:ttHandle,tt_url:ttRaw.startsWith('http')?ttRaw:(ttRaw?'https://www.tiktok.com/'+ttHandle:''),snap,status:'pending',visitDate:''};
+  const autoDialect=getAutoDialect(nationality);
+  const newItem={name,phone,civil,nationality,gender,ig:igHandle,ig_url:igRaw.startsWith('http')?igRaw:(igRaw?'https://www.instagram.com/'+igRaw.replace('@',''):''),tt:ttHandle,tt_url:ttRaw.startsWith('http')?ttRaw:(ttRaw?'https://www.tiktok.com/'+ttHandle:''),snap,status:'pending',visitDate:'',dialects:autoDialect?[autoDialect]:[]};
   const dup=findDuplicate(newItem);
   if(dup){closeModal();showSingleDupWarning(newItem,dup);return;}
   newItem.addedAt=Date.now();influencers.push(newItem); closeModal();
