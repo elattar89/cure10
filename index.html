@@ -1193,7 +1193,7 @@ function setFilterFromStat(f) {
 
 // -- Nationality groups --------------------------------------------
 const NAT_GROUPS = {
-  kuwait:  ['كويتي','كويتية','بدون'],
+  kuwait:  ['كويتي','كويتية','بدون','غير محدد الجنسية'],
   gulf:    ['سعودي','سعودية','إماراتي','إماراتية','بحريني','بحرينية','قطري','قطرية','عماني','عمانية','عراقي','عراقية','يمني','يمنية'],
   egypt:   ['مصري','مصرية'],
   sham:    ['سوري','سورية','لبناني','لبنانية','أردني','أردنية','فلسطيني','فلسطينية'],
@@ -1799,7 +1799,7 @@ function selectGender(prefix,val) {
 function openModal(){ document.getElementById('addModalOverlay').classList.remove('hidden'); }
 function closeModal(){ document.getElementById('addModalOverlay').classList.add('hidden'); }
 function getAutoDialect(nationality) {
-  if(!nationality) return '';
+  if(!nationality) return 'كويتي';
   if(NAT_GROUPS.kuwait.includes(nationality)) return 'كويتي';
   if(NAT_GROUPS.egypt.includes(nationality)) return 'مصري';
   if(NAT_GROUPS.gulf.includes(nationality)) return 'خليجي';
