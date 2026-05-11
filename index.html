@@ -930,8 +930,12 @@ async function tryLoadFirebase() {
                   if(h3) h3.textContent = '⚠️ تسجيلات جديدة من الفورم — بعضها مكرر';
                 }
               }
-              // Also sync back any fields updated remotely by other admins (non-destructive)
-              // but keep local status/visitStatus etc. protected
+              // Sync updates from remote for existing influencers
+              parsed.forEach(remote => {
+                const rKey = [remote.phone||'', remote.ig||'', remote.tt||'', remote.snap||'', remote.civil||'', remote.name||''].join('|');
+                const local = influencers.find(i => [i.phone||'', i.ig||'', i.tt||'', i.snap||'', i.civil||'', i.name||''].join('|') === rKey);
+                if(local) Object.assign(local, remote);
+              });
             } else {
               // First load — no local data yet
               influencers = parsed;
@@ -4744,7 +4748,6 @@ async function init() {
     }, 30000);
     return;
   }
-  await saveToStorage();
   migrateDialects();
   renderGrid();
   updateDupReviewBtn();
