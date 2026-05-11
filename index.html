@@ -117,7 +117,7 @@ body{font-family:'Tajawal',sans-serif;direction:rtl;background:#0d1117;color:#e6
 .service-option:hover{background:#21262d;}
 .service-option.checked{background:#1a1040;color:#c084fc;}
 .service-option input[type=checkbox]{width:18px;height:18px;cursor:pointer;accent-color:#7c3aed;flex-shrink:0;}
-.date-picker-popup{position:fixed;inset:0;z-index:4000;background:rgba(0,0,0,.6);display:none;align-items:center;justify-content:center;} .date-picker-popup.open{display:flex;} .date-picker-inner{background:#1c2128;border:1px solid #30363d;border-radius:16px;padding:.8rem;box-shadow:0 8px 32px rgba(0,0,0,.5);width:295px;} .date-picker-header{position:relative;}
+.date-picker-popup{position:fixed;inset:0;z-index:4000;background:rgba(0,0,0,.6);display:none;align-items:center;justify-content:center;} .date-picker-popup.open{display:flex;} .date-picker-inner{background:#1c2128;border:1px solid #30363d;border-radius:16px;padding:1.2rem .8rem .8rem;box-shadow:0 8px 32px rgba(0,0,0,.5);width:310px;position:relative;overflow:visible;} .date-picker-header{position:relative;padding-top:10px;}
 
 .date-picker-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:.5rem;}
 .dp-nav-btn{background:none;border:1px solid #30363d;color:#e6edf3;border-radius:7px;width:28px;height:28px;cursor:pointer;font-size:16px;}
@@ -683,7 +683,6 @@ body{font-family:'Tajawal',sans-serif;direction:rtl;background:#0d1117;color:#e6
     <button class="dp-nav-btn" onclick="dpNavigate(-1)">›</button>
     <span id="dpMonthYear"></span>
     <button class="dp-nav-btn" onclick="dpNavigate(1)">‹</button>
-    <button onclick="cancelDatePicker()" style="position:absolute;top:8px;left:8px;width:22px;height:22px;border-radius:50%;border:none;background:#dc2626;color:#fff;font-size:13px;font-weight:900;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0;line-height:1;" title="إلغاء">✕</button>
   </div>
   <div class="dp-month-year-select">
     <select id="dpMonthSelect" onchange="dpGoToSelected()"></select>
@@ -714,6 +713,7 @@ body{font-family:'Tajawal',sans-serif;direction:rtl;background:#0d1117;color:#e6
   </div>
   <button class="dp-close-btn" onclick="closeDatePicker()">تأكيد ✓</button>
   <button class="dp-clear-btn" onclick="clearVisitDate()">مسح التاريخ 🗑</button>
+  <button onclick="cancelDatePicker()" style="width:100%;margin-top:.4rem;padding:7px;border-radius:8px;background:#374151;border:none;color:#9ca3af;font-family:Tajawal,sans-serif;cursor:pointer;font-size:13px;">إغلاق ✕</button>
 </div></div>
 
 <!-- Appointments Panel -->
@@ -3237,10 +3237,14 @@ function closeDatePicker(){
       showToast('✅ تم تجديد الموعد — رجع للمقبولين','#059669');
     }
     const savedIdx=dpTargetIdx;
-    renderGrid();saveFile(savedIdx);
+    document.getElementById('datePickerPopup').classList.remove('open');
+    dpTargetIdx=null;
+    renderGrid();
+    saveFile(savedIdx);
+  } else {
+    document.getElementById('datePickerPopup').classList.remove('open');
+    dpTargetIdx=null;
   }
-  document.getElementById('datePickerPopup').classList.remove('open');
-  dpTargetIdx=null;
 }
 function cancelDatePicker(){
   // Just close — restore original date (no save, no renderGrid)
@@ -4376,6 +4380,7 @@ let _dpOrigDate = null;
 const _origCloseDp = closeDatePicker;
 closeDatePicker = function() {
   const idx = _inlineDateRowIdx;
+  const savedDpIdx = dpTargetIdx;
   _origCloseDp();
   _inlineDateRowIdx = null;
   if(idx !== null) {
@@ -4390,6 +4395,8 @@ closeDatePicker = function() {
         if(span) span.textContent = newDateStr;
       }
     }
+    // make sure merge-save fires with correct idx
+    saveFile(idx);
   }
 };
 window.closeDatePicker = closeDatePicker;
@@ -4784,7 +4791,7 @@ async function init() {
       tryLoadFirebase().then(function(loaded) {
         if(loaded) { updateStats(); }
       }).catch(function(){});
-    }, 30000);
+    }, 10000);
     return;
   }
   migrateDialects();
@@ -4832,7 +4839,7 @@ async function init() {
     tryLoadFirebase().then(function(loaded) {
       if(loaded) { updateStats(); renderGrid(); updateDupReviewBtn(); }
     }).catch(function(){});
-  }, 30000);
+  }, 10000);
   } catch(err) {
     console.error('Init error:', err);
     document.getElementById('loadingOverlay').style.display = 'none';
