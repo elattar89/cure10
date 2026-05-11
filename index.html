@@ -3446,7 +3446,7 @@ function openReportFromBtn(){
   if(currentFilter==='approved'||currentFilter==='rejected'||currentFilter==='visited'||currentFilter==='cancelled')openStatusReport('approved');
   else if(currentFilter==='male'||currentFilter==='female')openGenderReport(currentFilter==='male'?'m':'f');
 }
-function closeReport(){const c=document.getElementById('reportContainer');if(c)c.remove();const b=document.getElementById('dupWarningBanner');if(b)b.style.display='';}
+function closeReport(){const c=document.getElementById('reportContainer');if(c){c.style.display='none';setTimeout(()=>{if(c.parentNode)c.remove();},300);}const b=document.getElementById('dupWarningBanner');if(b)b.style.display='';}
 function _hideBannerForReport(){const b=document.getElementById('dupWarningBanner');if(b)b.style.display='none';}
 function closeReportIfBg(e){if(e.target.id==='reportOverlay')closeReport();}
 
