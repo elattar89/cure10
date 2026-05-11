@@ -836,7 +836,6 @@ async function saveToStorage() {
       method: 'PUT', headers: {'Content-Type':'application/json'},
       body: JSON.stringify({ data: JSON.stringify(influencers) })
     });
-    // Save deleted list too
     await fetch(`${DB_URL}/${DB_DELETED_PATH}.json`, {
       method: 'PUT', headers: {'Content-Type':'application/json'},
       body: JSON.stringify({ data: JSON.stringify(deletedInfluencers) })
@@ -844,6 +843,42 @@ async function saveToStorage() {
     if (res.ok) { showSaveIndicator(); return; }
   } catch(e) {}
   showSaveIndicator();
+}
+
+// حفظ مؤثر واحد فقط بدون المساس بالباقين — يمنع race condition
+async function saveOneToFirebase(idx) {
+  if(idx === undefined || idx === null || !influencers[idx]) return saveToStorage();
+  try { localStorage.setItem(LS_KEY, JSON.stringify(influencers)); } catch(e) {}
+  try {
+    // جيب البيانات الحالية من Firebase أولاً
+    const res = await Promise.race([
+      fetch(`${DB_URL}/${DB_PATH}.json`, { method:'GET', headers:{'Accept':'application/json'}, mode:'cors' }),
+      new Promise((_,rej) => setTimeout(() => rej(new Error('timeout')), 5000))
+    ]);
+    if(res && res.ok) {
+      const val = await res.json();
+      let remote = [];
+      if(val && val.data) { try { remote = JSON.parse(val.data); } catch(e) {} }
+      if(!Array.isArray(remote)) remote = [];
+      // ابحث عن المؤثر في Firebase وحدّثه
+      const local = influencers[idx];
+      const key = [local.phone||'', local.ig||'', local.tt||'', local.snap||'', local.civil||'', local.name||''].join('|');
+      let found = false;
+      remote = remote.map(r => {
+        const rKey = [r.phone||'', r.ig||'', r.tt||'', r.snap||'', r.civil||'', r.name||''].join('|');
+        if(rKey === key) { found = true; return {...r, ...local}; }
+        return r;
+      });
+      if(!found) remote.push(local);
+      await fetch(`${DB_URL}/${DB_PATH}.json`, {
+        method:'PUT', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ data: JSON.stringify(remote) })
+      });
+      showSaveIndicator(); return;
+    }
+  } catch(e) {}
+  // fallback للحفظ الكامل
+  saveToStorage();
 }
 async function loadFromStorage() {
   // Always load from Firebase first (most up-to-date)
@@ -977,7 +1012,10 @@ function showSaveIndicator() {
     setTimeout(() => { openGuestReadOnlyReport(); }, 300);
   }
 }
-function saveFile() { saveToStorage(); }
+function saveFile(idx) { 
+  if(idx !== undefined && idx !== null) saveOneToFirebase(idx);
+  else saveToStorage(); 
+}
 function migrateDialects() {
   let changed = false;
   influencers.forEach(item => {
@@ -1606,7 +1644,7 @@ window.startSig=startSig; window.saveSig=saveSig; window.clearCanvas=clearCanvas
 function setStatus(idx,status){
   const item=influencers[idx];
   const name=getDisplayName(item,idx);
-  influencers[idx].status=status; renderGrid(); saveFile();
+  influencers[idx].status=status; renderGrid(); saveFile(idx);
   logActivity(status==='approved'?'approve':status==='rejected'?'reject':'restore',
     `${status==='approved'?'قبول':status==='rejected'?'رفض':'إعادة'}: ${name}`);
   refreshApptCardIfOpen(idx);
@@ -3055,7 +3093,7 @@ function toggleServiceById(svc, cb) {
       </div>`;
     }
   }
-  saveFile();
+  saveFile(_svcTargetIdx);
   refreshApptCardIfOpen(_svcTargetIdx);
 }
 function toggleService(e, svc) { toggleServiceById(svc, document.getElementById(SVC_IDS[SERVICES.indexOf(svc)])); }
@@ -3198,7 +3236,8 @@ function closeDatePicker(){
       influencers[dpTargetIdx].visitStatus='';
       showToast('✅ تم تجديد الموعد — رجع للمقبولين','#059669');
     }
-    renderGrid();saveFile();
+    const savedIdx=dpTargetIdx;
+    renderGrid();saveFile(savedIdx);
   }
   document.getElementById('datePickerPopup').classList.remove('open');
   dpTargetIdx=null;
@@ -3221,7 +3260,7 @@ function cancelDatePicker(){
 }
 window.cancelDatePicker=cancelDatePicker;
 function clearVisitDate(){
-  if(dpTargetIdx!==null){influencers[dpTargetIdx].visitDate='';document.getElementById('datePickerPopup').classList.remove('open');dpTargetIdx=null;renderGrid();saveFile();}
+  if(dpTargetIdx!==null){const savedIdx=dpTargetIdx;influencers[savedIdx].visitDate='';document.getElementById('datePickerPopup').classList.remove('open');dpTargetIdx=null;renderGrid();saveFile(savedIdx);}
 }
 function dpNavigate(dir){dpMonth+=dir;if(dpMonth>11){dpMonth=0;dpYear++;}if(dpMonth<0){dpMonth=11;dpYear--;}renderDpSelects();renderDpDays();}
 function renderDpSelects(){
@@ -3409,7 +3448,7 @@ function closeReportIfBg(e){if(e.target.id==='reportOverlay')closeReport();}
 
 function setContentStatus(idx, status) {
   influencers[idx].contentStatus = status;
-  saveFile(); renderGrid();
+  saveFile(idx); renderGrid();
   showToast(status==='published'?'🌟 تم تسجيل نشر المحتوى':'🟣 تم تسجيل عدم نشر المحتوى', status==='published'?'#ca8a04':'#7c3aed');
   const apptOverlay=document.getElementById('apptPanelOverlay');
   if(apptOverlay&&apptOverlay.classList.contains('open')) openApptPanel();
@@ -3437,7 +3476,7 @@ function setVisitStatus(realIdx,status){
   const item=influencers[realIdx];if(!item)return;
   const name=getDisplayName(item,realIdx);
   item.visitStatus=(item.visitStatus===status)?'':status;
-  saveFile(); updateStats();
+  saveFile(realIdx); updateStats();
   logActivity(status==='done'?'done':'cancelled',
     `${status==='done'?'تمت الزيارة':'ألغيت الزيارة'}: ${name}`);
   const apptOverlay=document.getElementById('apptPanelOverlay');
