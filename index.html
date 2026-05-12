@@ -3456,7 +3456,8 @@ function openReportFromBtn(){
   if(currentFilter==='approved'||currentFilter==='rejected'||currentFilter==='visited'||currentFilter==='cancelled')openStatusReport('approved');
   else if(currentFilter==='male'||currentFilter==='female')openGenderReport(currentFilter==='male'?'m':'f');
 }
-function closeReport(){const c=document.getElementById('reportContainer');if(c){c.style.display='none';setTimeout(()=>{if(c.parentNode)c.remove();},300);}const b=document.getElementById('dupWarningBanner');if(b)b.style.display='';}
+let _closingReport=false;
+function closeReport(){if(_closingReport)return;_closingReport=true;const c=document.getElementById('reportContainer');if(c){c.style.display='none';setTimeout(()=>{if(c.parentNode)c.remove();_closingReport=false;},300);}else{_closingReport=false;}const b=document.getElementById('dupWarningBanner');if(b)b.style.display='';}
 function _hideBannerForReport(){const b=document.getElementById('dupWarningBanner');if(b)b.style.display='none';}
 function closeReportIfBg(e){if(e.target.id==='reportOverlay')closeReport();}
 
