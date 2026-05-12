@@ -1482,7 +1482,7 @@ function renderGrid() {
     // الكرت الأزرق: فقط لو اتضاف تلقائياً (من فورم/bulk) وفي خلال 48 ساعة
     const isNewAutoBlue = isNew && item.autoAdded;
     const isUnpublished = item.visitStatus==='done' && item.contentStatus==='unpublished';
-    const cardBorderStyle = isNewAutoBlue && item.status==='rejected'
+    const cardBorderStyle = item.status==='rejected'
       ? 'border-color:#dc2626;background:rgba(220,38,38,0.10);'
       : isNewAutoBlue && item.status==='approved' && item.visitStatus==='done'
       ? 'border-color:#166534;background:rgba(22,101,52,0.15);'
