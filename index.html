@@ -1317,7 +1317,7 @@ function renderGrid() {
           <div class="card-info">
             <div class="card-name" style="color:#9ca3af;">${name}</div>
             ${item.phone?`<div class="card-phone" onclick="showPhonePopup('${item.phone}','${(item.name||item.ig||'').replace(/'/g,"\\'")}',event)" style="cursor:pointer;">📞 ${item.phone}</div>`:''}
-            ${item.nationality?`<div class="nationality-badge">🌍 ${item.nationality}</div>`:''}
+            ${item.nationality?`<div class="nationality-badge">🌍 ${displayNationality(item.nationality)}</div>`:''}
             ${item.gender?`<span class="gender-badge ${item.gender}">${item.gender==='m'?'👨 ذكر':'👩 أنثى'}</span>`:''}
           </div>
         </div>
@@ -1482,15 +1482,19 @@ function renderGrid() {
     // الكرت الأزرق: فقط لو اتضاف تلقائياً (من فورم/bulk) وفي خلال 48 ساعة
     const isNewAutoBlue = isNew && item.autoAdded;
     const isUnpublished = item.visitStatus==='done' && item.contentStatus==='unpublished';
-    const cardBorderStyle = isNewAutoBlue && !item.status || isNewAutoBlue && item.status==='pending'
-      ? 'border-color:#3b82f6;background:rgba(37,99,235,0.10);'
+    const cardBorderStyle = isNewAutoBlue && item.status==='rejected'
+      ? 'border-color:#dc2626;background:rgba(220,38,38,0.10);'
+      : isNewAutoBlue && item.status==='approved' && item.visitStatus==='done'
+      ? 'border-color:#166534;background:rgba(22,101,52,0.15);'
       : isNewAutoBlue && item.status==='approved'
-      ? 'border-color:#3b82f6;background:rgba(37,99,235,0.10);'
-      : isNewAutoBlue && item.status==='rejected'
+      ? 'border-color:#16a34a;background:rgba(22,163,74,0.10);'
+      : isNewAutoBlue && item.visitStatus==='cancelled'
+      ? 'border-color:#ca8a04;background:rgba(202,138,4,0.08);'
+      : isNewAutoBlue && (!item.status || item.status==='pending')
       ? 'border-color:#3b82f6;background:rgba(37,99,235,0.10);'
       : item.status==='duplicate_pending'
-      ? 'border-color:#c026d3;background:rgba(192,38,211,0.08);'
-      : item.visitStatus==='cancelled'?'border-color:#ca8a04;background:rgba(202,138,4,0.08);':isPublished?'border-color:#ca8a04;background:rgba(202,138,4,0.07);':isUnpublished?'border-color:#7c3aed;background:rgba(124,58,237,0.07);':'';
+      ? 'border-color:#ec4899;background:rgba(236,72,153,0.08);'
+      : item.visitStatus==='cancelled'?'border-color:#ca8a04;background:rgba(202,138,4,0.08);':isPublished?'border-color:#ca8a04;background:rgba(202,138,4,0.07);':isUnpublished?'border-color:#7c3aed;background:rgba(124,58,237,0.07);':'border-color:rgba(255,255,255,0.25);';
     // هل هذا الكارد "أصل" لأحد المكررين؟
     const isDupOriginal = item.status!=='duplicate_pending' && influencers.some(x=>x.status==='duplicate_pending' && (() => {
       const nPhone=normalizePhone(item.phone), nIg=normalizeIg(item.ig);
@@ -1505,8 +1509,8 @@ function renderGrid() {
     // المكرر يحتفظ بلونه البنفسجي المميز
     const finalCardStyle = cardBorderStyle;
     html+=`<div class="card ${item.status||'pending'}" data-idx="${idx}" style="${finalCardStyle}">
-      ${isDupOriginal?`<div style="background:rgba(192,38,211,0.15);border:1px solid #c026d3;color:#e879f9;font-size:11px;font-weight:700;padding:3px 10px;border-radius:6px;margin-bottom:.5rem;display:inline-block;">📁 الأصل</div>`:''}
-      ${item.status==='duplicate_pending'?`<div style="background:rgba(192,38,211,0.2);border:1px solid #c026d3;color:#e879f9;font-size:11px;font-weight:700;padding:3px 10px;border-radius:6px;margin-bottom:.5rem;display:inline-block;">🔁 مكرر</div>`:''}
+      ${isDupOriginal?`<div style="background:rgba(236,72,153,0.15);border:1px solid #ec4899;color:#fbcfe8;font-size:11px;font-weight:700;padding:3px 10px;border-radius:6px;margin-bottom:.5rem;display:inline-block;">📁 الأصل</div>`:''}
+      ${item.status==='duplicate_pending'?`<div style="background:rgba(236,72,153,0.2);border:1px solid #ec4899;color:#fbcfe8;font-size:11px;font-weight:700;padding:3px 10px;border-radius:6px;margin-bottom:.5rem;display:inline-block;">🔁 مكرر</div>`:''}
       ${item.visitStatus==='cancelled'?`<div style="background:#ca8a04;color:#000;font-size:11px;font-weight:700;padding:3px 10px;border-radius:6px;margin-bottom:.5rem;display:inline-block;">⚠️ تم إلغاء الموعد</div>`:''}
       ${isPublished?`<div style="background:rgba(202,138,4,0.15);border:1px solid #ca8a04;color:#fbbf24;font-size:11px;font-weight:700;padding:3px 10px;border-radius:6px;margin-bottom:.5rem;display:inline-block;">🌟 تم نشر المحتوى</div>`:''}
       ${isUnpublished?`<div style="background:rgba(124,58,237,0.15);border:1px solid #7c3aed;color:#c084fc;font-size:11px;font-weight:700;padding:3px 10px;border-radius:6px;margin-bottom:.5rem;display:inline-block;">🟣 لم يتم نشر المحتوى</div>`:''}
@@ -1521,7 +1525,7 @@ function renderGrid() {
           </div>
           ${item.phone?`<div class="card-phone" onclick="showPhonePopup('${item.phone}','${(item.name||item.ig||'').replace(/'/g,"\\'")}',event)" style="cursor:pointer;color:#e6edf3;font-weight:600;" title="اضغط للتواصل">📞 ${item.phone}</div>`:''}
           ${item.civil?`<div class="civil-badge">🪪 ${item.civil}</div>`:''}
-          ${item.nationality?`<div class="nationality-badge">🌍 ${item.nationality}</div>`:''}
+          ${item.nationality?`<div class="nationality-badge">🌍 ${displayNationality(item.nationality)}</div>`:''}
           ${item.gender?`<span class="gender-badge ${item.gender}">${item.gender==='m'?'👨 ذكر':'👩 أنثى'}</span>`:''}
         </div>
         <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex-shrink:0;">
@@ -1848,8 +1852,12 @@ function selectGender(prefix,val) {
 
 function openModal(){ document.getElementById('addModalOverlay').classList.remove('hidden'); }
 function closeModal(){ document.getElementById('addModalOverlay').classList.add('hidden'); }
+function displayNationality(nat) {
+  if(!nat) return "";
+  const map = {"مصر":"مصري","الكويت":"كويتي","السعودية":"سعودي","الإمارات":"إماراتي","البحرين":"بحريني","قطر":"قطري","عمان":"عماني","العراق":"عراقي","اليمن":"يمني","سوريا":"سوري","لبنان":"لبناني","الأردن":"أردني","فلسطين":"فلسطيني","مصر":"مصري","السودان":"سوداني","ليبيا":"ليبي","تونس":"تونسي","المغرب":"مغربي","الجزائر":"جزائري","باكستان":"باكستاني","الهند":"هندي","تركيا":"تركي","إيران":"إيراني","أفغانستان":"أفغاني","إثيوبيا":"إثيوبي","كينيا":"كيني"};
+  return map[nat] || nat;
+}
 function getAutoDialect(nationality) {
-  console.log('nationality value:', JSON.stringify(nationality));
   if(!nationality) return 'كويتي';
   if(NAT_GROUPS.kuwait.includes(nationality)) return 'كويتي';
   if(NAT_GROUPS.egypt.includes(nationality)) return 'مصري';
@@ -2426,7 +2434,7 @@ function parseFormImport() {
         <div style="font-weight:700;color:${dup?'#fbbf24':'#4ade80'};font-size:12px;margin-bottom:4px;">
           ${dup?'⚠️ موجود مسبقاً':'✅'} ${idx+1}. ${item.name||'—'}
           ${item.gender==='m'?'<span style="color:#60a5fa;font-size:11px;"> · ذكر</span>':item.gender==='f'?'<span style="color:#f0abfc;font-size:11px;"> · أنثى</span>':''}
-          ${item.nationality?`<span style="color:#0e9a6e;font-size:11px;"> · ${item.nationality}</span>`:''}
+          ${item.nationality?`<span style="color:#0e9a6e;font-size:11px;"> · ${displayNationality(item.nationality)}</span>`:''}
         </div>
         <div style="font-size:11px;color:#8b949e;display:flex;flex-wrap:wrap;gap:8px;">
           ${item.phone?`<span>📞 ${item.phone}</span>`:'<span style="color:#f87171;">📞 —</span>'}
@@ -2566,7 +2574,7 @@ function parseFormImport() {
       ${item.gender?`<div>${item.gender==='f'?'👩 أنثى':'👨 ذكر'}</div>`:''}
       ${item.civil?`<div>🪪 <b>الرقم المدني:</b> ${item.civil}</div>`:''}
       ${item.phone?`<div>📞 <b>الموبايل:</b> ${item.phone}</div>`:'<div style="color:#f87171;">⚠️ لم يتم العثور على رقم الموبايل</div>'}
-      ${item.nationality?`<div>🌍 <b>الجنسية:</b> ${item.nationality}</div>`:''}
+      ${item.nationality?`<div>🌍 <b>الجنسية:</b> ${displayNationality(item.nationality)}</div>`:''}
       ${item.ig?`<div>📸 <b>انستاجرام:</b> ${item.ig}</div>`:''}
       ${item.tt?`<div>🎵 <b>تيك توك:</b> ${item.tt}</div>`:''}
       ${item.snap?`<div>👻 <b>سناب:</b> ✓</div>`:''}
@@ -2580,7 +2588,7 @@ function parseFormImport() {
         <div style="font-weight:700;color:${dup?'#fbbf24':'#4ade80'};font-size:12px;margin-bottom:4px;">
           ${dup?'⚠️ موجود مسبقاً':'✅'} ${idx+1}. ${item.name||'—'}
           ${item.gender==='m'?'<span style="color:#60a5fa;font-size:11px;"> · ذكر</span>':item.gender==='f'?'<span style="color:#f0abfc;font-size:11px;"> · أنثى</span>':''}
-          ${item.nationality?`<span style="color:#0e9a6e;font-size:11px;"> · ${item.nationality}</span>`:''}
+          ${item.nationality?`<span style="color:#0e9a6e;font-size:11px;"> · ${displayNationality(item.nationality)}</span>`:''}
         </div>
         <div style="font-size:11px;color:#8b949e;display:flex;flex-wrap:wrap;gap:8px;">
           ${item.phone?`<span>📞 ${item.phone}</span>`:'<span style="color:#f87171;">📞 —</span>'}
@@ -3395,7 +3403,7 @@ function showApptCard(idx) {
         </div>
         ${item.phone?`<div class="card-phone" onclick="showPhonePopup('${item.phone}','${(item.name||item.ig||'').replace(/'/g,"\\'")}',event)" style="cursor:pointer;color:#e6edf3;font-weight:600;" title="اضغط للتواصل">📞 ${item.phone}</div>`:''}
         ${item.civil?`<div class="civil-badge">🪪 ${item.civil}</div>`:''}
-        ${item.nationality?`<div class="nationality-badge">🌍 ${item.nationality}</div>`:''}
+        ${item.nationality?`<div class="nationality-badge">🌍 ${displayNationality(item.nationality)}</div>`:''}
         ${item.gender?`<span class="gender-badge ${item.gender}">${item.gender==='m'?'👨 ذكر':'👩 أنثى'}</span>`:''}
       </div>
       <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex-shrink:0;">
@@ -3566,7 +3574,7 @@ function openStatusReport(type) {
     const realIdx=influencers.indexOf(item);
     const name=item.name||'—';
     const gLabel=item.gender==='m'?'<span style="color:#1a6fa8;font-weight:700;">👨 ذكر</span>':item.gender==='f'?'<span style="color:#a21caf;font-weight:700;">👩 أنثى</span>':'—';
-    const natCell=item.nationality?`<span style="background:#e6f7f1;color:#0a7a55;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:700;">🌍 ${item.nationality}</span>`:'—';
+    const natCell=item.nationality?`<span style="background:#e6f7f1;color:#0a7a55;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:700;">🌍 ${displayNationality(item.nationality)}</span>`:'—';
     const phoneCell=item.phone?`<span onclick="showPhonePopup('${item.phone.replace(/'/g,"\\'")}','${(item.name||item.ig||'').replace(/'/g,"\\'")}',event)" style="color:#0369a1;direction:ltr;display:block;white-space:nowrap;font-size:12px;cursor:pointer;font-weight:600;" title="اضغط للتواصل">📞 ${item.phone}</span>`:'—';
     if(isApproved){
       const dateStr=item.visitDate?formatDateAr(item.visitDate):'—';
@@ -3679,7 +3687,7 @@ function openGenderReport(gender) {
   const rows=list.map((item,i)=>{
     const stLabel=item.status==='approved'?'<span style="color:#16a34a;font-weight:700;">✅ مقبول</span>':item.status==='rejected'?'<span style="color:#dc2626;font-weight:700;">❌ مرفوض</span>':'<span style="color:#d97706;">⏳ قيد المراجعة</span>';
     const phoneCell=item.phone?`<span onclick="showPhonePopup('${item.phone.replace(/'/g,"\\'")}','${(item.name||item.ig||'').replace(/'/g,"\\'")}',event)" style="color:#0369a1;direction:ltr;display:block;white-space:nowrap;font-size:12px;cursor:pointer;font-weight:600;" title="اضغط للتواصل">📞 ${item.phone}</span>`:'—';
-    const natCell=item.nationality?`<span style="background:#e6f7f1;color:#0a7a55;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:700;">🌍 ${item.nationality}</span>`:'—';
+    const natCell=item.nationality?`<span style="background:#e6f7f1;color:#0a7a55;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:700;">🌍 ${displayNationality(item.nationality)}</span>`:'—';
     return `<tr style="background:${i%2===1?'#f8fafc':'#fff'}">
       <td style="text-align:center;font-weight:900;color:${thBg};width:36px;">${i+1}</td>
       <td style="font-weight:700;font-size:13px;">${item.name||'—'}</td>
@@ -3727,7 +3735,7 @@ async function shareStatusReport(type) {
   const title=isApproved?'كشف المؤثرين المقبولين':'كشف المؤثرين المرفوضين';
   const rows=list.map((item,i)=>{
     const gLabel=item.gender==='m'?'👨 ذكر':item.gender==='f'?'👩 أنثى':'—';
-    const natCell=item.nationality?`🌍 ${item.nationality}`:'—';
+    const natCell=item.nationality?`🌍 ${displayNationality(item.nationality)}`:'—';
     const phoneCell=item.phone?`<a href="tel:${item.phone}" style="color:#0369a1;text-decoration:none;direction:ltr;font-size:12px;">📞 ${item.phone}</a>`:'—';
     const rb=i%2===1?'#f8fafc':'#fff';
     if(isApproved){
@@ -3757,7 +3765,7 @@ async function shareGenderReport(gender) {
   const title=isMale?'كشف المؤثرين الذكور':'كشف المؤثرات الإناث';
   const rows=list.map((item,i)=>{
     const stLabel=item.status==='approved'?'✅ مقبول':item.status==='rejected'?'❌ مرفوض':item.status==='duplicate_pending'?'🔁 مكرر':'⏳ قيد المراجعة';
-    const natCell=item.nationality?`🌍 ${item.nationality}`:'—';
+    const natCell=item.nationality?`🌍 ${displayNationality(item.nationality)}`:'—';
     const phoneCell=item.phone?`<a href="tel:${item.phone}" style="color:#0369a1;text-decoration:none;direction:ltr;font-size:12px;">📞 ${item.phone}</a>`:'—';
     return `<tr style="background:${i%2===1?'#f8fafc':'#fff'}"><td style="text-align:center;font-weight:900;width:36px;">${i+1}</td><td style="font-weight:700;">${item.name||'—'}</td><td>${natCell}</td><td style="direction:ltr;">${phoneCell}</td><td style="font-size:11px;direction:ltr;">${item.civil||'—'}</td><td>${buildSocialsHtml(item)}</td><td>${stLabel}</td></tr>`;
   }).join('');
@@ -3986,7 +3994,7 @@ function openGuestReport() {
   const rows = list.map((item, i) => {
     const name = item.name || '—';
     const gLabel = item.gender==='m'?'<span style="color:#1a6fa8;font-weight:700;">👨 ذكر</span>':item.gender==='f'?'<span style="color:#a21caf;font-weight:700;">👩 أنثى</span>':'—';
-    const natCell = item.nationality?`<span style="background:#e6f7f1;color:#0a7a55;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:700;">🌍 ${item.nationality}</span>`:'—';
+    const natCell = item.nationality?`<span style="background:#e6f7f1;color:#0a7a55;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:700;">🌍 ${displayNationality(item.nationality)}</span>`:'—';
     const dateStr = item.visitDate ? formatDateAr(item.visitDate) : '—';
     const realIdx = influencers.indexOf(item);
     const svcChecks = item.services && item.services.length
@@ -4098,7 +4106,7 @@ function openGuestReadOnlyReport() {
       ? '<span style="color:#a21caf;font-weight:700;">👩 أنثى</span>'
       : '—';
     const natCell = item.nationality
-      ? `<span style="background:#e6f7f1;color:#0a7a55;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:700;">🌍 ${item.nationality}</span>`
+      ? `<span style="background:#e6f7f1;color:#0a7a55;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:700;">🌍 ${displayNationality(item.nationality)}</span>`
       : '—';
     const phoneCell = guest
       ? '<span style="color:#9ca3af;font-size:11px;">🔒 مخفي</span>'
