@@ -4897,10 +4897,9 @@ async function init() {
   const loaded = await loadFromStorage();
   if(!loaded) { showToast('⚠️ تعذر تحميل البيانات — تحقق من الاتصال', '#dc2626'); }
   influencers.forEach(item => { if(item.phone) item.phone = normalizePhone(item.phone); });
-  // لا نحذف تلقائياً — فقط نكشف عدد المكررات للمدير
   const removed = 0;
-  document.getElementById('loadingOverlay').style.display = 'none';
   if(isGuest()) {
+    document.getElementById('loadingOverlay').style.display = 'none';
     document.querySelector('.toolbar').style.display = 'none';
     document.getElementById('grid').style.display = 'none';
     document.querySelector('.page-footer').style.display = 'none';
@@ -4918,6 +4917,7 @@ async function init() {
   }
   migrateDialects();
   renderGrid();
+  document.getElementById('loadingOverlay').style.display = 'none';
   updateDupReviewBtn();
   setTimeout(saveDailyBackup, 3000);
   if(removed > 0) showToast('🧹 تم حذف '+removed+' تكرار تلقائياً', '#ca8a04');
