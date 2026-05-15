@@ -4917,7 +4917,12 @@ async function init() {
   }
   migrateDialects();
   renderGrid();
-  document.getElementById('loadingOverlay').style.display = 'none';
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      const ol = document.getElementById('loadingOverlay');
+      if(ol) ol.style.display = 'none';
+    });
+  });
   updateDupReviewBtn();
   setTimeout(saveDailyBackup, 3000);
   if(removed > 0) showToast('🧹 تم حذف '+removed+' تكرار تلقائياً', '#ca8a04');
