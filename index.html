@@ -854,6 +854,7 @@ const LS_KEY = 'cure_influencers_v18';
 const LS_DELETED_KEY = 'cure_deleted_v18';
 
 async function saveToStorage() {
+  if(!influencers.length) return; // أمان — لا ترفع بيانات فاضية
   try { localStorage.setItem(LS_KEY, JSON.stringify(influencers)); localStorage.setItem(LS_KEY+'_savedAt', Date.now().toString()); } catch(e) {}
   try { localStorage.setItem(LS_DELETED_KEY, JSON.stringify(deletedInfluencers)); localStorage.setItem(LS_DELETED_KEY+'_savedAt', Date.now().toString()); } catch(e) {}
   try {
@@ -891,6 +892,7 @@ async function saveToStorage() {
 
 // حفظ مؤثر واحد فقط بدون المساس بالباقين — يمنع race condition
 async function saveOneToFirebase(idx) {
+  if(!influencers.length) return;
   if(idx === undefined || idx === null || !influencers[idx]) return saveToStorage();
   try { localStorage.setItem(LS_KEY, JSON.stringify(influencers)); } catch(e) {}
   try {
@@ -1065,6 +1067,7 @@ function saveFile(idx) {
   }
 }
 function migrateDialects() {
+  if(!influencers.length) return;
   let changed = false;
   influencers.forEach(item => {
     const currentDialects = item.dialects || [];
