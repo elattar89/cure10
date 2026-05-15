@@ -343,11 +343,9 @@ body{font-family:'Tajawal',sans-serif;direction:rtl;background:#0d1117;color:#e6
   </div>
 </div>
 
-<div id="loadingOverlay">
   <div style="width:56px;height:56px;border-radius:50%;background:rgba(255,255,255,0.15);border:2px solid rgba(255,255,255,0.3);display:flex;align-items:center;justify-content:center;">
     <svg viewBox="0 0 40 40" fill="none" width="30" height="30"><circle cx="20" cy="20" r="18" stroke="white" stroke-width="2"/><rect x="16" y="8" width="8" height="24" rx="3" fill="white"/><rect x="8" y="16" width="24" height="8" rx="3" fill="white"/></svg>
   </div>
-  <div class="loading-spinner"></div>
   <div style="color:#8b949e;font-size:14px;">جاري تحميل البيانات...</div>
 </div>
 
@@ -827,6 +825,31 @@ const MONTHS_AR = ['يناير','فبراير','مارس','أبريل','مايو
 const DB_URL = 'https://cure-10-influncers-default-rtdb.firebaseio.com';
 const DB_PATH = 'cure_influencers_data';
 const DB_DELETED_PATH = 'cure_deleted_data';
+const DB_BACKUP_PATH = 'cure_backups';
+
+// حفظ نسخة احتياطية يومية على Firebase (آخر 5 أيام)
+async function saveDailyBackup() {
+  try {
+    const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
+    const lastBackup = localStorage.getItem('cure_last_backup_date');
+    if(lastBackup === today) return; // اتحفظ النهارده قبل كده
+    if(!influencers.length) return;
+    // جيب الـ backups الموجودة
+    const res = await fetch(`${DB_URL}/${DB_BACKUP_PATH}.json`, { method:'GET', headers:{'Accept':'application/json'}, mode:'cors' });
+    let backups = {};
+    if(res && res.ok) { try { backups = await res.json() || {}; } catch(e) {} }
+    // أضف النسخة دي
+    backups[today] = { data: JSON.stringify(influencers), savedAt: Date.now(), count: influencers.length };
+    // احتفظ بآخر 5 أيام بس
+    const keys = Object.keys(backups).sort().reverse();
+    if(keys.length > 5) keys.slice(5).forEach(k => delete backups[k]);
+    await fetch(`${DB_URL}/${DB_BACKUP_PATH}.json`, {
+      method:'PUT', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify(backups)
+    });
+    localStorage.setItem('cure_last_backup_date', today);
+  } catch(e) {}
+}
 const LS_KEY = 'cure_influencers_v18';
 const LS_DELETED_KEY = 'cure_deleted_v18';
 
@@ -834,9 +857,28 @@ async function saveToStorage() {
   try { localStorage.setItem(LS_KEY, JSON.stringify(influencers)); localStorage.setItem(LS_KEY+'_savedAt', Date.now().toString()); } catch(e) {}
   try { localStorage.setItem(LS_DELETED_KEY, JSON.stringify(deletedInfluencers)); localStorage.setItem(LS_DELETED_KEY+'_savedAt', Date.now().toString()); } catch(e) {}
   try {
+    // جيب البيانات الحالية من Firebase وادمجها مع اللي عندنا — عشان ميبقاش overwrite
+    const getRes = await Promise.race([
+      fetch(`${DB_URL}/${DB_PATH}.json`, { method:'GET', headers:{'Accept':'application/json'}, mode:'cors' }),
+      new Promise((_,rej) => setTimeout(() => rej(new Error('timeout')), 4000))
+    ]);
+    let merged = [...influencers];
+    if(getRes && getRes.ok) {
+      const val = await getRes.json();
+      let remote = [];
+      if(val && val.data) { try { remote = JSON.parse(val.data); } catch(e) {} }
+      if(Array.isArray(remote) && remote.length > influencers.length) {
+        // لو Firebase فيه ناس أكتر — خليهم (ممكن حد أضاف من جهاز تاني)
+        const localKeys = new Set(influencers.map(i => [i.phone||'',i.ig||'',i.name||''].join('|')));
+        remote.forEach(r => {
+          const rk = [r.phone||'',r.ig||'',r.name||''].join('|');
+          if(!localKeys.has(rk)) merged.push(r);
+        });
+      }
+    }
     const res = await fetch(`${DB_URL}/${DB_PATH}.json`, {
       method: 'PUT', headers: {'Content-Type':'application/json'},
-      body: JSON.stringify({ data: JSON.stringify(influencers) })
+      body: JSON.stringify({ data: JSON.stringify(merged) })
     });
     await fetch(`${DB_URL}/${DB_DELETED_PATH}.json`, {
       method: 'PUT', headers: {'Content-Type':'application/json'},
@@ -1014,9 +1056,13 @@ function showSaveIndicator() {
     setTimeout(() => { openGuestReadOnlyReport(); }, 300);
   }
 }
-function saveFile(idx) { 
-  if(idx !== undefined && idx !== null) saveOneToFirebase(idx);
-  else saveToStorage(); 
+function saveFile(idx) {
+  if(idx !== undefined && idx !== null) {
+    saveOneToFirebase(idx);
+  } else {
+    // للعمليات الكبيرة زي الإضافة والحذف — لازم نحفظ كل البيانات
+    saveToStorage();
+  }
 }
 function migrateDialects() {
   let changed = false;
@@ -2813,11 +2859,73 @@ function openRecovery() {
     <button onclick="triggerCsvImport()" style="flex:2;min-width:140px;padding:10px;border-radius:9px;border:1px solid #7c3aed;background:#1a1040;color:#c084fc;font-size:13px;font-weight:700;cursor:pointer;font-family:Tajawal,sans-serif;">📂 استيراد من CSV</button>
     <button onclick="recoverFromFirebase()" style="flex:2;min-width:140px;padding:10px;border-radius:9px;border:none;background:#1a6fa8;color:#fff;font-size:13px;font-weight:700;cursor:pointer;font-family:Tajawal,sans-serif;">☁️ إعادة تحميل من Firebase</button>
   </div>
+  <div style="margin-top:1.2rem;">
+    <p style="font-size:12px;color:#8b949e;margin-bottom:.6rem;">☁️ نسخ احتياطية يومية على Firebase (آخر 5 أيام):</p>
+    <div id="firebaseBackupsList" style="display:flex;flex-direction:column;gap:8px;">
+      <div style="color:#484f58;font-size:12px;text-align:center;padding:.5rem;">⏳ جاري التحميل...</div>
+    </div>
+  </div>
   <input type="file" id="csvImportInput" accept=".csv" style="display:none;" onchange="handleCsvImport(event)">
   </div></div>`;
 
   const div=document.createElement('div');div.innerHTML=html;document.body.appendChild(div.firstElementChild);
+
+  // تحميل الـ Firebase backups
+  (async () => {
+    const container = document.getElementById('firebaseBackupsList');
+    if(!container) return;
+    try {
+      const res = await fetch(`${DB_URL}/${DB_BACKUP_PATH}.json`, { method:'GET', headers:{'Accept':'application/json'}, mode:'cors' });
+      if(!res || !res.ok) throw new Error('failed');
+      const backups = await res.json();
+      if(!backups || !Object.keys(backups).length) {
+        container.innerHTML = '<div style="color:#484f58;font-size:12px;text-align:center;padding:.5rem;">لا توجد نسخ احتياطية بعد — ستُحفظ تلقائياً كل يوم</div>';
+        return;
+      }
+      const days = ['الأحد','الاثنين','الثلاثاء','الأربعاء','الخميس','الجمعة','السبت'];
+      const months = ['يناير','فبراير','مارس','أبريل','مايو','يونيو','يوليو','أغسطس','سبتمبر','أكتوبر','نوفمبر','ديسمبر'];
+      const sorted = Object.entries(backups).sort((a,b) => b[0].localeCompare(a[0]));
+      container.innerHTML = sorted.map(([date, snap], i) => {
+        const d = new Date(snap.savedAt);
+        const label = `${days[d.getDay()]} ${d.getDate()} ${months[d.getMonth()]} ${d.getFullYear()}`;
+        const isNewest = i === 0;
+        return `<div style="display:flex;align-items:center;justify-content:space-between;background:${isNewest?'rgba(22,163,74,0.08)':'rgba(255,255,255,0.03)'};border:1px solid ${isNewest?'#16a34a':'#30363d'};border-radius:8px;padding:10px 14px;">
+          <div>
+            ${isNewest?'<span style="background:#14532d;color:#4ade80;font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px;margin-left:6px;">⭐ الأحدث</span>':''}
+            <span style="color:#e2e8f0;font-size:13px;font-weight:700;">${label}</span>
+            <span style="color:#4ade80;font-size:12px;margin-right:8px;">📦 ${snap.count} شخص</span>
+          </div>
+          <div style="display:flex;gap:6px;">
+            <button onclick="recoverFromFirebaseBackup('${date}')" style="background:#14532d;color:#4ade80;border:1px solid #16a34a;border-radius:7px;padding:6px 12px;font-size:12px;font-weight:700;cursor:pointer;font-family:Tajawal,sans-serif;">↩ استرجاع</button>
+          </div>
+        </div>`;
+      }).join('');
+    } catch(e) {
+      container.innerHTML = '<div style="color:#484f58;font-size:12px;text-align:center;padding:.5rem;">تعذر تحميل النسخ الاحتياطية</div>';
+    }
+  })();
 }
+
+async function recoverFromFirebaseBackup(date) {
+  if(!confirm(`هتسترجع نسخة ${date}؟ البيانات الحالية هتتبدل.`)) return;
+  try {
+    showToast('⏳ جاري الاسترجاع...', '#1a6fa8');
+    const res = await fetch(`${DB_URL}/${DB_BACKUP_PATH}/${date}.json`, { method:'GET', headers:{'Accept':'application/json'}, mode:'cors' });
+    if(!res || !res.ok) throw new Error('failed');
+    const snap = await res.json();
+    if(!snap || !snap.data) throw new Error('no data');
+    const arr = JSON.parse(snap.data);
+    if(!Array.isArray(arr)) throw new Error('invalid');
+    influencers = arr;
+    await saveToStorage();
+    renderGrid(); updateStats();
+    document.getElementById('recoveryOverlay').remove();
+    showToast(`✅ تم استرجاع ${arr.length} شخص من نسخة ${date}`, '#16a34a');
+  } catch(e) {
+    showToast('❌ فشل الاسترجاع: ' + e.message, '#dc2626');
+  }
+}
+window.recoverFromFirebaseBackup = recoverFromFirebaseBackup;
 
 async function recoverFromKey(key) {
   if(!confirm('سيتم استبدال البيانات الحالية بهذه النسخة. متأكد؟')) return;
@@ -4808,6 +4916,7 @@ async function init() {
   migrateDialects();
   renderGrid();
   updateDupReviewBtn();
+  setTimeout(saveDailyBackup, 3000);
   if(removed > 0) showToast('🧹 تم حذف '+removed+' تكرار تلقائياً', '#ca8a04');
   // Check missed visits after short delay
   setTimeout(checkMissedVisits, 800);
