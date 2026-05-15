@@ -1081,7 +1081,8 @@ function migrateDialects() {
       if(d) { item.dialects = [d]; changed = true; }
     }
   });
-  if(changed) { saveFile(); }
+  // نحفظ محلياً بس — مش على Firebase عشان منلوحش addedAt
+  if(changed) { try { localStorage.setItem(LS_KEY, JSON.stringify(influencers)); } catch(e) {} }
 }
 
 function getInitial(item) {
@@ -1558,13 +1559,17 @@ function renderGrid() {
     // المكرر يحتفظ بلونه البنفسجي المميز
     const finalCardStyle = cardBorderStyle;
     html+=`<div class="card ${item.status||'pending'}" data-idx="${idx}" style="${finalCardStyle}">
-      ${isDupOriginal?`<div style="background:rgba(236,72,153,0.15);border:1px solid #ec4899;color:#fbcfe8;font-size:11px;font-weight:700;padding:3px 10px;border-radius:6px;margin-bottom:.5rem;display:inline-block;">📁 الأصل</div>`:''}
-      ${item.status==='duplicate_pending'?`<div style="background:rgba(236,72,153,0.2);border:1px solid #ec4899;color:#fbcfe8;font-size:11px;font-weight:700;padding:3px 10px;border-radius:6px;margin-bottom:.5rem;display:inline-block;">🔁 مكرر</div>`:''}
-      ${item.visitStatus==='cancelled'?`<div style="background:#ca8a04;color:#000;font-size:11px;font-weight:700;padding:3px 10px;border-radius:6px;margin-bottom:.5rem;display:inline-block;">⚠️ تم إلغاء الموعد</div>`:''}
-      ${isPublished?`<div style="background:rgba(202,138,4,0.15);border:1px solid #ca8a04;color:#fbbf24;font-size:11px;font-weight:700;padding:3px 10px;border-radius:6px;margin-bottom:.5rem;display:inline-block;">🌟 تم نشر المحتوى</div>`:''}
-      ${isUnpublished?`<div style="background:rgba(124,58,237,0.15);border:1px solid #7c3aed;color:#c084fc;font-size:11px;font-weight:700;padding:3px 10px;border-radius:6px;margin-bottom:.5rem;display:inline-block;">🟣 لم يتم نشر المحتوى</div>`:''}
-      ${isNew?`<div style="background:rgba(37,99,235,0.2);border:1px solid #3b82f6;color:#93c5fd;font-size:11px;font-weight:700;padding:3px 10px;border-radius:6px;margin-bottom:.5rem;display:inline-block;">🆕 جديد</div>`:''}
-      <div class="card-top">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:${isDupOriginal||item.status==='duplicate_pending'||item.visitStatus==='cancelled'||isPublished||isUnpublished||isNew?'.3rem':'0'}">
+        <div style="display:flex;flex-wrap:wrap;gap:4px;">
+          ${isDupOriginal?`<div style="background:rgba(236,72,153,0.15);border:1px solid #ec4899;color:#fbcfe8;font-size:11px;font-weight:700;padding:3px 10px;border-radius:6px;display:inline-block;">📁 الأصل</div>`:''}
+          ${item.status==='duplicate_pending'?`<div style="background:rgba(236,72,153,0.2);border:1px solid #ec4899;color:#fbcfe8;font-size:11px;font-weight:700;padding:3px 10px;border-radius:6px;display:inline-block;">🔁 مكرر</div>`:''}
+          ${item.visitStatus==='cancelled'?`<div style="background:#ca8a04;color:#000;font-size:11px;font-weight:700;padding:3px 10px;border-radius:6px;display:inline-block;">⚠️ تم إلغاء الموعد</div>`:''}
+          ${isPublished?`<div style="background:rgba(202,138,4,0.15);border:1px solid #ca8a04;color:#fbbf24;font-size:11px;font-weight:700;padding:3px 10px;border-radius:6px;display:inline-block;">🌟 تم نشر المحتوى</div>`:''}
+          ${isUnpublished?`<div style="background:rgba(124,58,237,0.15);border:1px solid #7c3aed;color:#c084fc;font-size:11px;font-weight:700;padding:3px 10px;border-radius:6px;display:inline-block;">🟣 لم يتم نشر المحتوى</div>`:''}
+          ${isNew?`<div style="background:rgba(37,99,235,0.2);border:1px solid #3b82f6;color:#93c5fd;font-size:11px;font-weight:700;padding:3px 10px;border-radius:6px;display:inline-block;">🆕 جديد</div>`:''}
+        </div>
+        ${item.addedAt?`<div style="font-size:10px;color:#484f58;text-align:left;white-space:nowrap;">${new Date(item.addedAt).toLocaleDateString('ar-KW',{day:'numeric',month:'short'})}<br>${new Date(item.addedAt).toLocaleTimeString('ar-KW',{hour:'2-digit',minute:'2-digit'})}</div>`:''}
+      </div>
         <div class="avatar" style="background:${color}">${initial}</div>
         <div class="card-info">
           <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
