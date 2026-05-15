@@ -995,7 +995,7 @@ async function tryLoadFirebase() {
                     dupNew.push({item: incoming, dup});
                   }
                 }
-                _bulkClean = cleanNew.map(i => { i.addedAt=Date.now(); i.autoAdded=true; return i; });
+                _bulkClean = cleanNew.map(i => { if(!i.addedAt) i.addedAt=Date.now(); i.autoAdded=true; return i; });
                 _bulkPending = dupNew;
                 _bulkDecisions = {};
                 if(_bulkPending.length === 0) {
