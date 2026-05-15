@@ -3568,7 +3568,16 @@ function openReportFromBtn(){
   else if(currentFilter==='male'||currentFilter==='female')openGenderReport(currentFilter==='male'?'m':'f');
 }
 let _closingReport=false;
-function closeReport(){if(_closingReport)return;_closingReport=true;const c=document.getElementById('reportContainer');if(c){c.style.display='none';setTimeout(()=>{if(c.parentNode)c.remove();_closingReport=false;},300);}else{_closingReport=false;}const b=document.getElementById('dupWarningBanner');if(b)b.style.display='';}
+function closeReport(){
+  if(_closingReport)return;
+  _closingReport=true;
+  try {
+    const c=document.getElementById('reportContainer');
+    if(c){c.style.display='none';setTimeout(()=>{try{if(c.parentNode)c.remove();}catch(e){}finally{_closingReport=false;}},300);}
+    else{_closingReport=false;}
+    const b=document.getElementById('dupWarningBanner');if(b)b.style.display='';
+  } catch(e){_closingReport=false;}
+}
 function _hideBannerForReport(){const b=document.getElementById('dupWarningBanner');if(b)b.style.display='none';}
 function closeReportIfBg(e){if(e.target.id==='reportOverlay')closeReport();}
 
