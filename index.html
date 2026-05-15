@@ -1570,6 +1570,7 @@ function renderGrid() {
         </div>
         ${item.addedAt?`<div style="font-size:10px;color:#6e7681;text-align:left;white-space:nowrap;line-height:1.4;background:rgba(255,255,255,0.05);padding:2px 6px;border-radius:5px;">${new Date(item.addedAt).toLocaleDateString('ar-KW',{day:'numeric',month:'short',year:'numeric'})} ${new Date(item.addedAt).toLocaleTimeString('ar-KW',{hour:'2-digit',minute:'2-digit'})}</div>`:''}
       </div>
+      <div class="card-top">
         <div class="avatar" style="background:${color}">${initial}</div>
         <div class="card-info">
           <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
@@ -4033,6 +4034,7 @@ function doLogin() {
   if(USERS[user] && USERS[user] === pass) {
     setAuth(user);
     document.getElementById('loginScreen').style.display = 'none';
+    document.getElementById('loadingOverlay').style.display = 'flex';
     updateWelcome();
     logActivity('login', `تسجيل دخول: ${user}`);
     // Remove ?guest=1 from URL if present
@@ -4931,12 +4933,7 @@ async function init() {
   }
   migrateDialects();
   renderGrid();
-  requestAnimationFrame(() => {
-    requestAnimationFrame(() => {
-      const ol = document.getElementById('loadingOverlay');
-      if(ol) ol.style.display = 'none';
-    });
-  });
+  setTimeout(()=>{const ol=document.getElementById("loadingOverlay");if(ol)ol.style.display="none";},200);
   updateDupReviewBtn();
   setTimeout(saveDailyBackup, 3000);
   if(removed > 0) showToast('🧹 تم حذف '+removed+' تكرار تلقائياً', '#ca8a04');
