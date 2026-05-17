@@ -825,6 +825,21 @@ const DIALECT_LABELS = ['🇰🇼 كويتي','🇪🇬 مصري','🌙 خليج
 const MONTHS_AR = ['يناير','فبراير','مارس','أبريل','مايو','يونيو','يوليو','أغسطس','سبتمبر','أكتوبر','نوفمبر','ديسمبر'];
 
 const DB_URL = 'https://cure-10-influncers-default-rtdb.firebaseio.com';
+
+// وقت من Firebase Server دايماً — مش من الجهاز
+let _serverTimeOffset = 0;
+async function syncServerTime() {
+  try {
+    const res = await fetch(`${DB_URL}/.json?shallow=true`, { method:'GET', mode:'cors' });
+    if(res && res.ok) {
+      const serverDate = res.headers.get('Date');
+      if(serverDate) {
+        _serverTimeOffset = new Date(serverDate).getTime() - Date.now();
+      }
+    }
+  } catch(e) {}
+}
+function serverNow() { return Date.now() + _serverTimeOffset; }
 const DB_PATH = 'cure_influencers_data';
 const DB_DELETED_PATH = 'cure_deleted_data';
 const DB_BACKUP_PATH = 'cure_backups';
@@ -951,7 +966,7 @@ async function tryLoadFirebase() {
                     dupNew.push({item: incoming, dup});
                   }
                 }
-                _bulkClean = cleanNew.map(i => { if(!i.addedAt) i.addedAt=Date.now(); i.autoAdded=true; return i; });
+                _bulkClean = cleanNew.map(i => { if(!i.addedAt) i.addedAt=serverNow(); i.autoAdded=true; return i; });
                 _bulkPending = dupNew;
                 _bulkDecisions = {};
                 if(_bulkPending.length === 0) {
@@ -1199,8 +1214,8 @@ function updateStats() {
   const statCan=document.getElementById('statCancelled');
   if(statCan) statCan.textContent=cancelled;
   // New (last 48h)
-  const now48h = Date.now() - (48 * 60 * 60 * 1000);
-  const newCount = influencers.filter(i=>i.addedAt && i.addedAt > now48h && !i.wasUpdated && i.autoAdded).length;
+  const now48h = serverNow() - (48 * 60 * 60 * 1000);
+  const newCount = influencers.filter(i=>i.addedAt && i.addedAt > now48h && i.addedAt <= serverNow() && !i.wasUpdated && i.autoAdded).length;
   const statNew=document.getElementById('statNew');
   if(statNew) statNew.textContent=newCount;
 }
@@ -1358,7 +1373,7 @@ function renderGrid() {
   // 5 = مقبولين ملغي موعدهم (cancelled) — أبجدي
   // 6 = مرفوضين — أبجدي
   // المكرر يظهر دائماً بعد أصله مباشرةً بغض النظر عن حالة الأصل
-  const _now48 = Date.now() - (48 * 60 * 60 * 1000);
+  const _now48 = serverNow() - (48 * 60 * 60 * 1000);
 
   function getDupOriginalIdx(dupItem) {
     const nPhone = normalizePhone(dupItem.phone);
@@ -1379,7 +1394,7 @@ function renderGrid() {
 
   // ترتيب الأصول بناءً على حالتهم
   function getOrder(item) {
-    const isNew = item.addedAt && item.addedAt > _now48 && !item.wasUpdated && item.autoAdded;
+    const isNew = item.addedAt && item.addedAt > _now48 && item.addedAt <= serverNow() && !item.wasUpdated && item.autoAdded;
     if(isNew) return 0;
     if(!item.status||item.status==='pending') return 1;
     if(item.status==='approved'&&item.visitStatus==='done') return 2;
@@ -1489,9 +1504,9 @@ function renderGrid() {
     const hasDlct=item.dialects&&item.dialects.length>0;
     const isPublished = item.visitStatus==='done' && item.contentStatus==='published';
     // Badge "جديد" - أُضيف في آخر 48 ساعة ولم يتم تحديثه كمكرر
-    const now48 = Date.now() - (48 * 60 * 60 * 1000);
-    const isNew = item.addedAt && item.addedAt > now48 && !item.wasUpdated && item.autoAdded;
-    if(item.autoAdded) console.log(item.name||item.ig, 'addedAt:', new Date(item.addedAt).toLocaleString(), 'isNew:', isNew);
+    const now48 = serverNow() - (48 * 60 * 60 * 1000);
+    const now = Date.now();
+    const isNew = item.addedAt && item.addedAt > now48 && item.addedAt <= now && !item.wasUpdated && item.autoAdded;
     // الكرت الأزرق: فقط لو اتضاف تلقائياً (من فورم/bulk) وفي خلال 48 ساعة
     const isNewAutoBlue = isNew && item.autoAdded;
     const isUnpublished = item.visitStatus==='done' && item.contentStatus==='unpublished';
@@ -1907,7 +1922,7 @@ function addInfluencer() {
   const newItem={name,phone,civil,nationality,gender,ig:igHandle,ig_url:igRaw.startsWith('http')?igRaw:(igRaw?'https://www.instagram.com/'+igRaw.replace('@',''):''),tt:ttHandle,tt_url:ttRaw.startsWith('http')?ttRaw:(ttRaw?'https://www.tiktok.com/'+ttHandle:''),snap,status:'pending',visitDate:'',dialects:autoDialect?[autoDialect]:[]};
   const dup=findDuplicate(newItem);
   if(dup){closeModal();showSingleDupWarning(newItem,dup);return;}
-  newItem.addedAt=Date.now();influencers.push(newItem); closeModal();
+  newItem.addedAt=serverNow();influencers.push(newItem); closeModal();
   ['mName','mPhone','mCivil','mIg','mTt','mSnap'].forEach(id=>document.getElementById(id).value='');
   document.getElementById('mNationality').value='';
   const base='flex:1;padding:9px;border-radius:9px;font-size:13px;cursor:pointer;font-family:Tajawal,sans-serif;';
@@ -2077,7 +2092,7 @@ function parseBulkText(fullText) {
 
   const items = [];
   for(const block of blocks) {
-    const item = {name:'',phone:'',ig:'',ig_url:'',tt:'',tt_url:'',snap:'',status:'pending',gender:'',nationality:'',addedAt:Date.now()};
+    const item = {name:'',phone:'',ig:'',ig_url:'',tt:'',tt_url:'',snap:'',status:'pending',gender:'',nationality:'',addedAt:serverNow()};
 
     for(const line of block) {
       const l = line.trim();
@@ -2164,7 +2179,7 @@ function confirmBulkAdd() {
   if(parsed.length===0) { showToast('⚠️ لم يتم استخراج أي بيانات', '#d97706'); return; }
   _bulkClean=[];_bulkPending=[];
   parsed.forEach(item=>{const dup=findDuplicate(item);if(dup)_bulkPending.push({item,dup});else _bulkClean.push(item);});
-  if(_bulkPending.length===0){_bulkClean.forEach(i=>{if(!i.addedAt)i.addedAt=Date.now(); i.autoAdded=true;});influencers.push(..._bulkClean);closeBulkModal();renderGrid();saveFile();showToast('✅ تم إضافة '+_bulkClean.length+' مؤثر بنجاح!','#059669');return;}
+  if(_bulkPending.length===0){_bulkClean.forEach(i=>{if(!i.addedAt)i.addedAt=serverNow(); i.autoAdded=true;});influencers.push(..._bulkClean);closeBulkModal();renderGrid();saveFile();showToast('✅ تم إضافة '+_bulkClean.length+' مؤثر بنجاح!','#059669');return;}
   closeBulkModal();_bulkDecisions={};renderBulkDupModal();document.getElementById('dupBulkOverlay').classList.remove('hidden');
 }
 function renderBulkDupModal() {
@@ -2248,7 +2263,7 @@ function applyBulkDecisions(){
       updated++;
     } else skipped++;
   });
-  _bulkClean.forEach(i=>{if(!i.addedAt)i.addedAt=Date.now(); i.autoAdded=true;}); influencers.push(..._bulkClean); added+=_bulkClean.length;
+  _bulkClean.forEach(i=>{if(!i.addedAt)i.addedAt=serverNow(); i.autoAdded=true;}); influencers.push(..._bulkClean); added+=_bulkClean.length;
   document.getElementById('dupBulkOverlay').classList.add('hidden');
   renderGrid(); saveFile();
   showToast('✅ '+added+' أُضيف · 🔄 '+updated+' حُدّث · ⏭ '+skipped+' تخطّي','#059669');
@@ -2549,7 +2564,7 @@ function parseFormImport() {
     const ig_url= ig_raw.startsWith('http')?ig_raw.split('?')[0].split('&')[0]:ig?'https://www.instagram.com/'+ig.replace('@',''):'';
     const tt    = tt_raw.includes('tiktok.com/@')?'@'+tt_raw.split('tiktok.com/@').pop().split('?')[0]:'';
     const tt_url= tt_raw.startsWith('http')?tt_raw.split('?')[0]:'';
-    return {name,civil,phone,nationality:nat_raw,gender,ig,ig_url,tt,tt_url,snap:snap_raw,status:'pending',addedAt:Date.now()};
+    return {name,civil,phone,nationality:nat_raw,gender,ig,ig_url,tt,tt_url,snap:snap_raw,status:'pending',addedAt:serverNow()};
   }
 
   // Split into blocks by the email header marker or by "الاسم الثلاثي" / "الاسم" boundary
@@ -2650,7 +2665,7 @@ function confirmFormImport() {
     _formImportItem = null;
     document.getElementById('formImportOverlay').classList.add('hidden');
     if(_bulkPending.length === 0) {
-      _bulkClean.forEach(i=>{ if(!i.addedAt) i.addedAt=Date.now(); i.autoAdded=true; });
+      _bulkClean.forEach(i=>{ if(!i.addedAt) i.addedAt=serverNow(); i.autoAdded=true; });
       influencers.push(..._bulkClean);
       renderGrid(); saveFile();
       showToast('✅ تم إضافة ' + _bulkClean.length + ' مؤثر بنجاح!', '#059669');
@@ -2667,7 +2682,7 @@ function confirmFormImport() {
   document.getElementById('formImportOverlay').classList.add('hidden');
   _formImportItem=null;
   if(dup){ showSingleDupWarning(itemToAdd,dup); return; }
-  if(!itemToAdd.addedAt) itemToAdd.addedAt=Date.now();
+  if(!itemToAdd.addedAt) itemToAdd.addedAt=serverNow();
   itemToAdd.autoAdded=true;
   influencers.push(itemToAdd);
   renderGrid(); saveFile();
@@ -4867,6 +4882,7 @@ window.deleteDupEntry=deleteDupEntry; window.keepOnlyThis=keepOnlyThis;
 async function init() {
   if(!checkAuth()) return;
   updateWelcome();
+  await syncServerTime();
   // Safety: force hide loading after 20 seconds no matter what
   const safetyTimer = setTimeout(() => {
     const ol=document.getElementById('loadingOverlay');if(ol)ol.style.display='none';
@@ -4906,8 +4922,8 @@ async function init() {
   // إشعار تلقائي لو في مكررين أو جدد عند فتح الصفحة
   setTimeout(function() {
     const dupGroups = findAllDuplicates();
-    const now48h = Date.now() - 48*60*60*1000;
-    const newCount = influencers.filter(i => i.addedAt && i.addedAt > now48h && !i.wasUpdated && i.autoAdded).length;
+    const now48h = serverNow() - 48*60*60*1000;
+    const newCount = influencers.filter(i => i.addedAt && i.addedAt > now48h && i.addedAt <= serverNow() && !i.wasUpdated && i.autoAdded).length;
     const dupCount = dupGroups.reduce((s,g) => s+g.length, 0);
     if((dupGroups.length > 0 || newCount > 0) && !document.getElementById('dupWarningBanner')) {
       const banner = document.createElement('div');
