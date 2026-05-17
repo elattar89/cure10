@@ -343,9 +343,11 @@ body{font-family:'Tajawal',sans-serif;direction:rtl;background:#0d1117;color:#e6
   </div>
 </div>
 
+<div id="loadingOverlay">
   <div style="width:56px;height:56px;border-radius:50%;background:rgba(255,255,255,0.15);border:2px solid rgba(255,255,255,0.3);display:flex;align-items:center;justify-content:center;">
     <svg viewBox="0 0 40 40" fill="none" width="30" height="30"><circle cx="20" cy="20" r="18" stroke="white" stroke-width="2"/><rect x="16" y="8" width="8" height="24" rx="3" fill="white"/><rect x="8" y="16" width="24" height="8" rx="3" fill="white"/></svg>
   </div>
+  <div class="loading-spinner"></div>
   <div style="color:#8b949e;font-size:14px;">جاري تحميل البيانات...</div>
 </div>
 
@@ -4904,26 +4906,31 @@ window.deleteDupEntry=deleteDupEntry; window.keepOnlyThis=keepOnlyThis;
 async function init() {
   if(!checkAuth()) return;
   updateWelcome();
-  // Safety: force hide loading after 10 seconds no matter what
+  // Safety: force hide loading after 20 seconds no matter what
   const safetyTimer = setTimeout(() => {
-    document.getElementById('loadingOverlay').style.display = 'none';
-  }, 10000);
+    const ol=document.getElementById('loadingOverlay');if(ol)ol.style.display='none';
+    if(!influencers.length) showToast('⚠️ تعذر تحميل البيانات — تحقق من الاتصال', '#dc2626');
+  }, 20000);
   try {
   initNationalitySelects();
-  const loaded = await loadFromStorage();
-  if(!loaded) { showToast('⚠️ تعذر تحميل البيانات — تحقق من الاتصال', '#dc2626'); }
+  let loaded = await loadFromStorage();
+  // لو البيانات فاضية — نحاول تاني بعد ثانيتين
+  if(!loaded || !influencers.length) {
+    await new Promise(r => setTimeout(r, 2000));
+    loaded = await loadFromStorage();
+  }
+  if(!loaded || !influencers.length) { showToast('⚠️ تعذر تحميل البيانات — تحقق من الاتصال', '#dc2626'); }
   influencers.forEach(item => { if(item.phone) item.phone = normalizePhone(item.phone); });
   const removed = 0;
   if(isGuest()) {
-    document.getElementById('loadingOverlay').style.display = 'none';
+    const ol = document.getElementById('loadingOverlay'); if(ol) ol.style.display = 'none';
     document.querySelector('.toolbar').style.display = 'none';
     document.getElementById('grid').style.display = 'none';
     document.querySelector('.page-footer').style.display = 'none';
     const fab = document.getElementById('fabBtn'); if(fab) fab.style.display = 'none';
     document.querySelectorAll('.stat').forEach(s => { s.style.cursor='default'; s.setAttribute('onclick',''); });
     updateStats();
-    // Guest NEVER saves to Firebase - read only
-    // Poll Firebase every 30s for live updates
+    // Poll Firebase every 10s for live updates
     setInterval(function() {
       tryLoadFirebase().then(function(loaded) {
         if(loaded) { updateStats(); }
