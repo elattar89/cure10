@@ -1530,7 +1530,7 @@ function renderGrid() {
     const isPublished = item.visitStatus==='done' && item.contentStatus==='published';
     // Badge "جديد" - أُضيف في آخر 48 ساعة ولم يتم تحديثه كمكرر
     const now48 = Date.now() - (48 * 60 * 60 * 1000);
-    const isNew = item.addedAt && item.addedAt > now48 && !item.wasUpdated;
+    const isNew = item.addedAt && item.addedAt > now48 && !item.wasUpdated && item.autoAdded;
     // الكرت الأزرق: فقط لو اتضاف تلقائياً (من فورم/bulk) وفي خلال 48 ساعة
     const isNewAutoBlue = isNew && item.autoAdded;
     const isUnpublished = item.visitStatus==='done' && item.contentStatus==='unpublished';
