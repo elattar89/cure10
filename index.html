@@ -856,49 +856,29 @@ const LS_KEY = 'cure_influencers_v18';
 const LS_DELETED_KEY = 'cure_deleted_v18';
 
 async function saveToStorage() {
-  if(!influencers.length) return; // أمان — لا ترفع بيانات فاضية
-  try { localStorage.setItem(LS_KEY, JSON.stringify(influencers)); localStorage.setItem(LS_KEY+'_savedAt', Date.now().toString()); } catch(e) {}
-  try { localStorage.setItem(LS_DELETED_KEY, JSON.stringify(deletedInfluencers)); localStorage.setItem(LS_DELETED_KEY+'_savedAt', Date.now().toString()); } catch(e) {}
+  if(!influencers.length) return;
   try {
-    // جيب البيانات الحالية من Firebase وادمجها مع اللي عندنا — عشان ميبقاش overwrite
-    const getRes = await Promise.race([
-      fetch(`${DB_URL}/${DB_PATH}.json`, { method:'GET', headers:{'Accept':'application/json'}, mode:'cors' }),
-      new Promise((_,rej) => setTimeout(() => rej(new Error('timeout')), 4000))
+    const res = await Promise.race([
+      fetch(`${DB_URL}/${DB_PATH}.json`, {
+        method:'PUT', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ data: JSON.stringify(influencers) })
+      }),
+      new Promise((_,rej) => setTimeout(() => rej(new Error('timeout')), 5000))
     ]);
-    let merged = [...influencers];
-    if(getRes && getRes.ok) {
-      const val = await getRes.json();
-      let remote = [];
-      if(val && val.data) { try { remote = JSON.parse(val.data); } catch(e) {} }
-      if(Array.isArray(remote) && remote.length > influencers.length) {
-        // لو Firebase فيه ناس أكتر — خليهم (ممكن حد أضاف من جهاز تاني)
-        const localKeys = new Set(influencers.map(i => [i.phone||'',i.ig||'',i.name||''].join('|')));
-        remote.forEach(r => {
-          const rk = [r.phone||'',r.ig||'',r.name||''].join('|');
-          if(!localKeys.has(rk)) merged.push(r);
-        });
-      }
-    }
-    const res = await fetch(`${DB_URL}/${DB_PATH}.json`, {
-      method: 'PUT', headers: {'Content-Type':'application/json'},
-      body: JSON.stringify({ data: JSON.stringify(merged) })
-    });
     await fetch(`${DB_URL}/${DB_DELETED_PATH}.json`, {
-      method: 'PUT', headers: {'Content-Type':'application/json'},
+      method:'PUT', headers:{'Content-Type':'application/json'},
       body: JSON.stringify({ data: JSON.stringify(deletedInfluencers) })
     });
-    if (res.ok) { showSaveIndicator(); return; }
+    if(res && res.ok) { showSaveIndicator(); return; }
   } catch(e) {}
-  showSaveIndicator();
+  showToast('❌ فشل الحفظ — تحقق من الاتصال', '#dc2626');
 }
 
-// حفظ مؤثر واحد فقط بدون المساس بالباقين — يمنع race condition
+// حفظ مؤثر واحد فقط — يمنع race condition
 async function saveOneToFirebase(idx) {
   if(!influencers.length) return;
   if(idx === undefined || idx === null || !influencers[idx]) return saveToStorage();
-  try { localStorage.setItem(LS_KEY, JSON.stringify(influencers)); } catch(e) {}
   try {
-    // جيب البيانات الحالية من Firebase أولاً
     const res = await Promise.race([
       fetch(`${DB_URL}/${DB_PATH}.json`, { method:'GET', headers:{'Accept':'application/json'}, mode:'cors' }),
       new Promise((_,rej) => setTimeout(() => rej(new Error('timeout')), 5000))
@@ -908,7 +888,6 @@ async function saveOneToFirebase(idx) {
       let remote = [];
       if(val && val.data) { try { remote = JSON.parse(val.data); } catch(e) {} }
       if(!Array.isArray(remote)) remote = [];
-      // ابحث عن المؤثر في Firebase وحدّثه
       const local = influencers[idx];
       const key = [local.phone||'', local.ig||'', local.tt||'', local.snap||'', local.civil||'', local.name||''].join('|');
       let found = false;
@@ -925,38 +904,13 @@ async function saveOneToFirebase(idx) {
       showSaveIndicator(); return;
     }
   } catch(e) {}
-  // fallback للحفظ الكامل
-  saveToStorage();
+  showToast('❌ فشل الحفظ — تحقق من الاتصال', '#dc2626');
 }
+
 async function loadFromStorage() {
-  // Always load from Firebase first (most up-to-date)
-  // Use localStorage only as fallback if Firebase is unreachable
-  if(window.location.search.indexOf('guest=1') !== -1) {
-    // Guest: Firebase only, never localStorage
-    const loaded = await tryLoadFirebase();
-    return loaded;
-  }
-
-  // Admin: Try Firebase first
-  const firebaseLoaded = await tryLoadFirebase();
-  if(firebaseLoaded) return true;
-
-  // Firebase failed — fall back to localStorage
-  try {
-    const ls = localStorage.getItem(LS_KEY);
-    if (ls) {
-      const parsed = JSON.parse(ls);
-      if (Array.isArray(parsed) && parsed.length > 0) {
-        influencers = parsed;
-        showToast('⚠️ تم التحميل من الجهاز — Firebase غير متاح', '#d97706');
-        return true;
-      }
-    }
-    const lsd = localStorage.getItem(LS_DELETED_KEY);
-    if (lsd) { const p = JSON.parse(lsd); if(Array.isArray(p)) deletedInfluencers = p; }
-  } catch(e) {}
-
-  return false;
+  const loaded = await tryLoadFirebase();
+  if(!loaded) showToast('❌ تعذر التحميل — تحقق من الاتصال بالإنترنت', '#dc2626');
+  return loaded;
 }
 
 async function tryLoadFirebase() {
@@ -1013,11 +967,17 @@ async function tryLoadFirebase() {
                   if(h3) h3.textContent = '⚠️ تسجيلات جديدة من الفورم — بعضها مكرر';
                 }
               }
-              // Sync updates from remote for existing influencers
+              // Sync updates from remote for existing influencers — بدون لمس addedAt وautoAdded
               parsed.forEach(remote => {
                 const rKey = [remote.phone||'', remote.ig||'', remote.tt||'', remote.snap||'', remote.civil||'', remote.name||''].join('|');
                 const local = influencers.find(i => [i.phone||'', i.ig||'', i.tt||'', i.snap||'', i.civil||'', i.name||''].join('|') === rKey);
-                if(local) Object.assign(local, remote);
+                if(local) {
+                  const keepAddedAt = local.addedAt;
+                  const keepAutoAdded = local.autoAdded;
+                  Object.assign(local, remote);
+                  if(keepAddedAt) local.addedAt = keepAddedAt;
+                  if(keepAutoAdded !== undefined) local.autoAdded = keepAutoAdded;
+                }
               });
             } else {
               // First load — no local data yet
@@ -4914,14 +4874,11 @@ async function init() {
   try {
   initNationalitySelects();
   let loaded = await loadFromStorage();
-  // لو البيانات فاضية — نحاول تاني بعد ثانيتين
   if(!loaded || !influencers.length) {
-    await new Promise(r => setTimeout(r, 2000));
-    loaded = await loadFromStorage();
+    loaded = await loadFromStorage(); // محاولة ثانية فوراً
   }
-  if(!loaded || !influencers.length) { showToast('⚠️ تعذر تحميل البيانات — تحقق من الاتصال', '#dc2626'); }
+  if(!loaded || !influencers.length) { showToast('❌ تعذر التحميل — تحقق من الاتصال', '#dc2626'); }
   influencers.forEach(item => { if(item.phone) item.phone = normalizePhone(item.phone); });
-  const removed = 0;
   if(isGuest()) {
     const ol = document.getElementById('loadingOverlay'); if(ol) ol.style.display = 'none';
     document.querySelector('.toolbar').style.display = 'none';
@@ -4943,17 +4900,15 @@ async function init() {
   setTimeout(()=>{const ol=document.getElementById("loadingOverlay");if(ol)ol.style.display="none";},200);
   updateDupReviewBtn();
   setTimeout(saveDailyBackup, 3000);
-  if(removed > 0) showToast('🧹 تم حذف '+removed+' تكرار تلقائياً', '#ca8a04');
   // Check missed visits after short delay
   setTimeout(checkMissedVisits, 800);
-  // ⚠️ إشعار تلقائي لو في مكررين أو جدد عند فتح الصفحة
+  // إشعار تلقائي لو في مكررين أو جدد عند فتح الصفحة
   setTimeout(function() {
     const dupGroups = findAllDuplicates();
     const now48h = Date.now() - 48*60*60*1000;
-    const newCount = influencers.filter(i => i.addedAt && i.addedAt > now48h && !i.wasUpdated).length;
+    const newCount = influencers.filter(i => i.addedAt && i.addedAt > now48h && !i.wasUpdated && i.autoAdded).length;
     const dupCount = dupGroups.reduce((s,g) => s+g.length, 0);
     if((dupGroups.length > 0 || newCount > 0) && !document.getElementById('dupWarningBanner')) {
-      const names = dupGroups.slice(0,2).map(g => influencers[g[0]] ? (influencers[g[0]].name||influencers[g[0]].ig||'؟') : '؟').join('، ');
       const banner = document.createElement('div');
       banner.id = 'dupWarningBanner';
       banner.style.cssText = 'width:100%;display:flex;gap:10px;direction:rtl;margin-top:1rem;position:relative;z-index:1;font-family:Tajawal,sans-serif;';
@@ -4980,10 +4935,10 @@ async function init() {
       document.querySelector('.header').appendChild(banner);
     }
   }, 1500);
-  // Poll Firebase every 30s to sync with other devices
+  // Poll Firebase كل 10 ثواني للـ sync مع الأجهزة التانية
   setInterval(function() {
     tryLoadFirebase().then(function(loaded) {
-      if(loaded) { updateStats(); renderGrid(); updateDupReviewBtn(); }
+      if(loaded) { updateStats(); updateDupReviewBtn(); }
     }).catch(function(){});
   }, 10000);
   } catch(err) {
@@ -5005,7 +4960,6 @@ window.openBulkModal=openBulkModal; window.closeBulkModal=closeBulkModal;
 window.addInfluencer=addInfluencer; window.confirmBulkAdd=confirmBulkAdd;
 window.openEditModal=openEditModal; window.closeEditModal=closeEditModal;
 window.saveEditInfluencer=saveEditInfluencer;
-window.deleteInfluencer=deleteInfluencer;
 window.setFilter=setFilter; window.setFilterFromStat=setFilterFromStat;
 window.toggleNatMenu=toggleNatMenu; window.setNatFilter=setNatFilter;
 window.toggleDlctMenu=toggleDlctMenu; window.setDlctFilter=setDlctFilter;
