@@ -1200,7 +1200,7 @@ function updateStats() {
   if(statCan) statCan.textContent=cancelled;
   // New (last 48h)
   const now48h = Date.now() - (48 * 60 * 60 * 1000);
-  const newCount = influencers.filter(i=>i.addedAt && i.addedAt > now48h && !i.wasUpdated).length;
+  const newCount = influencers.filter(i=>i.addedAt && i.addedAt > now48h && !i.wasUpdated && i.autoAdded).length;
   const statNew=document.getElementById('statNew');
   if(statNew) statNew.textContent=newCount;
 }
@@ -1379,7 +1379,7 @@ function renderGrid() {
 
   // ترتيب الأصول بناءً على حالتهم
   function getOrder(item) {
-    const isNew = item.addedAt && item.addedAt > _now48 && !item.wasUpdated;
+    const isNew = item.addedAt && item.addedAt > _now48 && !item.wasUpdated && item.autoAdded;
     if(isNew) return 0;
     if(!item.status||item.status==='pending') return 1;
     if(item.status==='approved'&&item.visitStatus==='done') return 2;
@@ -1491,6 +1491,7 @@ function renderGrid() {
     // Badge "جديد" - أُضيف في آخر 48 ساعة ولم يتم تحديثه كمكرر
     const now48 = Date.now() - (48 * 60 * 60 * 1000);
     const isNew = item.addedAt && item.addedAt > now48 && !item.wasUpdated && item.autoAdded;
+    if(item.autoAdded) console.log(item.name||item.ig, 'addedAt:', new Date(item.addedAt).toLocaleString(), 'isNew:', isNew);
     // الكرت الأزرق: فقط لو اتضاف تلقائياً (من فورم/bulk) وفي خلال 48 ساعة
     const isNewAutoBlue = isNew && item.autoAdded;
     const isUnpublished = item.visitStatus==='done' && item.contentStatus==='unpublished';
