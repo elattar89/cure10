@@ -4897,6 +4897,7 @@ async function init() {
   if(!loaded || !influencers.length) { showToast('❌ تعذر التحميل — تحقق من الاتصال', '#dc2626'); }
   influencers.forEach(item => { if(item.phone) item.phone = normalizePhone(item.phone); });
   if(isGuest()) {
+    clearTimeout(safetyTimer);
     const ol = document.getElementById('loadingOverlay'); if(ol) ol.style.display = 'none';
     document.querySelector('.toolbar').style.display = 'none';
     document.getElementById('grid').style.display = 'none';
