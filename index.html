@@ -1440,9 +1440,9 @@ function renderGrid() {
     const isNew = isNewItem(item);
     if(isNew) return 0;
     if(!item.status||item.status==='pending') return 1;
-    if(item.status==='approved'&&item.visitStatus==='done') return 2;
-    if(item.status==='approved'&&item.visitDate&&item.visitStatus!=='cancelled') return 3;
-    if(item.status==='approved'&&!item.visitDate) return 4;
+    if(item.status==='approved'&&item.visitDate&&item.visitStatus!=='cancelled'&&item.visitStatus!=='done') return 2;
+    if(item.status==='approved'&&!item.visitDate) return 3;
+    if(item.status==='approved'&&item.visitStatus==='done') return 4;
     if(item.status==='approved'&&item.visitStatus==='cancelled') return 5;
     if(item.status==='rejected') return 6;
     return 7;
