@@ -953,7 +953,11 @@ async function tryLoadFirebase() {
                     dupNew.push({item: incoming, dup});
                   }
                 }
-                _bulkClean = cleanNew.map(i => { if(!i.addedAt) i.addedAt=serverNow(); i.autoAdded=true; return i; });
+                _bulkClean = cleanNew.map(i => { 
+                  if(!i.addedAt) i.addedAt = serverNow(); 
+                  i.autoAdded = true; // دايماً
+                  return i; 
+                });
                 _bulkPending = dupNew;
                 _bulkDecisions = {};
                 if(_bulkPending.length === 0) {
@@ -978,7 +982,8 @@ async function tryLoadFirebase() {
                   const keepAutoAdded = local.autoAdded;
                   Object.assign(local, remote);
                   if(keepAddedAt) local.addedAt = keepAddedAt;
-                  if(keepAutoAdded !== undefined) local.autoAdded = keepAutoAdded;
+                  if(keepAutoAdded === true) local.autoAdded = true;
+                  else if(remote.autoAdded === true) local.autoAdded = true;
                 }
               });
             } else {
@@ -1202,7 +1207,7 @@ function updateStats() {
   if(statCan) statCan.textContent=cancelled;
   // New (last 48h)
   const now48h = serverNow() - (48 * 60 * 60 * 1000);
-  const newCount = influencers.filter(i=>i.addedAt && i.addedAt > now48h && i.addedAt <= serverNow() && !i.wasUpdated && i.autoAdded).length;
+  const newCount = influencers.filter(i=>i.addedAt && i.addedAt > now48h && i.addedAt <= serverNow() && !i.wasUpdated).length;
   const statNew=document.getElementById('statNew');
   if(statNew) statNew.textContent=newCount;
 }
@@ -1381,7 +1386,7 @@ function renderGrid() {
 
   // ترتيب الأصول بناءً على حالتهم
   function getOrder(item) {
-    const isNew = item.addedAt && item.addedAt > _now48 && item.addedAt <= serverNow() && !item.wasUpdated && item.autoAdded;
+    const isNew = item.addedAt && item.addedAt > _now48 && item.addedAt <= serverNow() && !item.wasUpdated;
     if(isNew) return 0;
     if(!item.status||item.status==='pending') return 1;
     if(item.status==='approved'&&item.visitStatus==='done') return 2;
@@ -1430,7 +1435,7 @@ function renderGrid() {
       if(aAt === 0 && bAt === 0) return 0;
       if(aAt === 0) return 1;
       if(bAt === 0) return -1;
-      return bAt - aAt;
+      return bAt - aAt; // الأحدث فوق
     }
 
     // الأصل يسبق مكرره مباشرةً — بغض النظر عن المجموعة
@@ -1500,9 +1505,9 @@ function renderGrid() {
     // Badge "جديد" - أُضيف في آخر 48 ساعة ولم يتم تحديثه كمكرر
     const now48 = serverNow() - (48 * 60 * 60 * 1000);
     const now = Date.now();
-    const isNew = item.addedAt && item.addedAt > now48 && item.addedAt <= now && !item.wasUpdated && item.autoAdded;
-    // الكرت الأزرق: فقط لو اتضاف تلقائياً (من فورم/bulk) وفي خلال 48 ساعة
-    const isNewAutoBlue = isNew && item.autoAdded;
+    const isNew = item.addedAt && item.addedAt > now48 && item.addedAt <= now && !item.wasUpdated;
+    // الكرت الجديد: أي شخص أضيف في آخر 48 ساعة سواء يدوي أو تلقائي
+    const isNewAutoBlue = isNew;
     const isUnpublished = item.visitStatus==='done' && item.contentStatus==='unpublished';
     const cardBorderStyle = item.status==='rejected'
       ? 'border-color:#dc2626;background:rgba(220,38,38,0.10);'
@@ -4917,7 +4922,7 @@ async function init() {
   setTimeout(function() {
     const dupGroups = findAllDuplicates();
     const now48h = serverNow() - 48*60*60*1000;
-    const newCount = influencers.filter(i => i.addedAt && i.addedAt > now48h && i.addedAt <= serverNow() && !i.wasUpdated && i.autoAdded).length;
+    const newCount = influencers.filter(i => i.addedAt && i.addedAt > now48h && i.addedAt <= serverNow() && !i.wasUpdated).length;
     const dupCount = dupGroups.reduce((s,g) => s+g.length, 0);
     if((dupGroups.length > 0 || newCount > 0) && !document.getElementById('dupWarningBanner')) {
       const banner = document.createElement('div');
