@@ -1031,6 +1031,7 @@ async function tryLoadFirebase() {
                 const rKey = [remote.phone||'', remote.ig||'', remote.tt||'', remote.snap||'', remote.civil||'', remote.name||''].join('|');
                 const local = influencers.find(i => [i.phone||'', i.ig||'', i.tt||'', i.snap||'', i.civil||'', i.name||''].join('|') === rKey);
                 if(local) {
+                  if(local._pickingDate || local._editing) return; // مش تمس الكارت ده — بيتعدل دلوقتي
                   const keepAddedAt = local.addedAt;
                   const keepAutoAdded = local.autoAdded;
                   Object.assign(local, remote);
@@ -1070,15 +1071,9 @@ async function tryLoadFirebase() {
   return false;
 }
 function showSaveIndicator() {
-  const el = document.getElementById('saveIndicator');
-  el.style.display = 'block';
-  clearTimeout(el._timer);
-  el._timer = setTimeout(() => { el.style.display = 'none'; }, 2000);
-  // Auto-refresh report if it's open
-  const report = document.getElementById('reportOverlay');
-  if(report) {
-    setTimeout(() => { openGuestReadOnlyReport(); }, 300);
-  }
+  // Auto-refresh report if open
+  const report = document.getElementById("reportOverlay");
+  if(report) { setTimeout(() => { openGuestReadOnlyReport(); }, 300); }
 }
 function saveFile(idx) {
   if(idx !== undefined && idx !== null) {
@@ -1824,6 +1819,7 @@ window.closeMissedVisits = closeMissedVisits;
 let _notesIdx = null;
 function openNotes(idx) {
   _notesIdx = idx;
+  if(influencers[idx]) influencers[idx]._editing = true;
   const item = influencers[idx];
   document.getElementById('notesName').textContent = getDisplayName(item, idx);
   document.getElementById('notesText').value = item.notes || '';
@@ -1831,12 +1827,14 @@ function openNotes(idx) {
   setTimeout(()=>document.getElementById('notesText').focus(), 100);
 }
 function closeNotes() {
+  if(_notesIdx !== null && influencers[_notesIdx]) delete influencers[_notesIdx]._editing;
   document.getElementById('notesOverlay').classList.add('hidden');
   _notesIdx = null;
 }
 function saveNotes() {
   if(_notesIdx === null) return;
   influencers[_notesIdx].notes = document.getElementById('notesText').value.trim();
+  if(influencers[_notesIdx]) delete influencers[_notesIdx]._editing;
   saveFile(_notesIdx); renderGrid();
   closeNotes();
   showToast('✅ تم حفظ الملاحظات', '#ca8a04');
@@ -1974,6 +1972,7 @@ function addInfluencer() {
 
 function openEditModal(idx) {
   _editIdx=idx; const item=influencers[idx];
+  if(item) item._editing = true;
   document.getElementById('eName').value=item.name||'';
   document.getElementById('ePhone').value=item.phone||'';
   document.getElementById('eCivil').value=item.civil||'';
@@ -1995,7 +1994,10 @@ function openEditModal(idx) {
   }
   document.getElementById('editModalOverlay').classList.remove('hidden');
 }
-function closeEditModal(){ document.getElementById('editModalOverlay').classList.add('hidden'); _editIdx=null; }
+function closeEditModal(){ 
+  if(_editIdx !== null && influencers[_editIdx]) delete influencers[_editIdx]._editing;
+  document.getElementById('editModalOverlay').classList.add('hidden'); _editIdx=null; 
+}
 function saveEditInfluencer() {
   if(_editIdx===null) return;
   const item=influencers[_editIdx];
@@ -3186,6 +3188,7 @@ window.parseFormImport=parseFormImport; window.confirmFormImport=confirmFormImpo
 function openServicePopup(idx, e){
   e.stopPropagation();
   _svcTargetIdx = idx;
+  if(influencers[idx]) influencers[idx]._editing = true;
   const item = influencers[idx];
   const popup = document.getElementById('servicePopup');
 
@@ -3260,15 +3263,16 @@ function openServicePopupFromReport(idx, e) {
 let _svcFromReport = false;
 
 function closeServicePopup(){
+  if(_svcTargetIdx !== null && influencers[_svcTargetIdx]) delete influencers[_svcTargetIdx]._editing;
   document.getElementById('servicePopup').classList.remove('open');
   _svcTargetIdx = null;
   _svcFromReport = false;
 }
 function cancelServicePopup(){
-  // Restore original services and close without saving
   if(_svcTargetIdx !== null && typeof _svcOrigServices !== 'undefined' && _svcOrigServices !== null){
     influencers[_svcTargetIdx].services = _svcOrigServices;
   }
+  if(_svcTargetIdx !== null && influencers[_svcTargetIdx]) delete influencers[_svcTargetIdx]._editing;
   document.getElementById('servicePopup').classList.remove('open');
   _svcTargetIdx = null;
   _svcFromReport = false;
@@ -3282,6 +3286,7 @@ let _dlctTargetIdx = null;
 function openDialectPopup(idx, e) {
   e.stopPropagation();
   _dlctTargetIdx = idx;
+  if(influencers[idx]) influencers[idx]._editing = true;
   const item = influencers[idx];
   const popup = document.getElementById('dialectPopup');
   DIALECTS.forEach((d, i) => {
@@ -3320,6 +3325,7 @@ function toggleDialectById(dialect, cb) {
 }
 function toggleDialect(e, dialect) { toggleDialectById(dialect, document.getElementById(DIALECT_IDS[DIALECTS.indexOf(dialect)])); }
 function closeDialectPopup() {
+  if(_dlctTargetIdx !== null && influencers[_dlctTargetIdx]) delete influencers[_dlctTargetIdx]._editing;
   document.getElementById('dialectPopup').classList.remove('open');
   _dlctTargetIdx = null;
 }
@@ -3383,6 +3389,7 @@ function closeDatePicker(){
     const savedIdx=dpTargetIdx;
     document.getElementById('datePickerPopup').classList.remove('open');
     dpTargetIdx=null;
+    if(influencers[savedIdx]) delete influencers[savedIdx]._pickingDate;
     renderGrid();
     saveFile(savedIdx);
   } else {
@@ -3395,12 +3402,10 @@ function cancelDatePicker(){
   document.getElementById('datePickerPopup').classList.remove('open');
   // Restore saved date if we modified it in-memory during selection
   if(dpTargetIdx!==null){
-    // Re-load from influencers (selectDay already mutated it, so reload from Firebase/LS isn't needed
-    // but we do need to undo any selectDay call made during this session)
-    // We stored _dpOrigDate when the picker opened
     if(typeof _dpOrigDate !== 'undefined' && _dpOrigDate !== null){
       influencers[dpTargetIdx].visitDate = _dpOrigDate;
     }
+    delete influencers[dpTargetIdx]._pickingDate;
   }
   dpTargetIdx=null;
   _dpOrigDate=null;
@@ -3453,7 +3458,7 @@ function selectDay(d){
   const mm=document.getElementById('dpMinute').value||'00';
   const ap=document.getElementById('dpAmPm').value||'AM';
   influencers[dpTargetIdx].visitDate=iso+'T'+hh+':'+mm+ap;
-  // Reset cancelled status when new date is selected
+  influencers[dpTargetIdx]._pickingDate=true; // منع الـ sync من مسحه
   if(influencers[dpTargetIdx].visitStatus==='cancelled'){
     influencers[dpTargetIdx].visitStatus='';
   }
