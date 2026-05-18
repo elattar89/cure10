@@ -2025,7 +2025,7 @@ function parseSheetRow(line) {
   const tt=tt_url?(extractTt(tt_url)||''):(ttRaw.startsWith('@')?ttRaw:'');
   const snap=snapRaw||'';
   const ts=timestamp?new Date(timestamp).getTime()||Date.now():Date.now();
-  return {name:fullname,phone:normalizePhone(phone),civil,nationality,gender,ig,ig_url,tt,tt_url,snap,status:'pending',addedAt:ts};
+  return {name:fullname,phone:normalizePhone(phone),civil,nationality,gender,ig,ig_url,tt,tt_url,snap,status:'pending',addedAt:ts,autoAdded:true};
 }
 
 function parseBulkText(fullText) {
