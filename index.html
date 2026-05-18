@@ -829,7 +829,27 @@ const DB_URL = 'https://cure-10-influncers-default-rtdb.firebaseio.com';
 function serverNow() { return Date.now(); }
 function isNewItem(item) {
   const now48 = Date.now() - (48 * 60 * 60 * 1000);
-  return !!(item.addedAt && item.addedAt > now48 && item.addedAt <= Date.now() && !item.wasUpdated);
+  const at = normalizeAddedAt(item.addedAt);
+  return !!(at && at > now48 && at <= Date.now() && !item.wasUpdated);
+}
+
+// تحويل addedAt لـ timestamp صحيح
+function normalizeAddedAt(addedAt) {
+  if(!addedAt) return 0;
+  // لو ISO string
+  if(typeof addedAt === 'string') {
+    const t = new Date(addedAt).getTime();
+    return isNaN(t) ? 0 : t;
+  }
+  // لو رقم
+  if(typeof addedAt === 'number') {
+    // لو أكبر من سنة 2030 — غلط، نرجع 0
+    if(addedAt > 1893456000000) return 0;
+    // لو أصغر من 2020 — غلط
+    if(addedAt < 1577836800000) return 0;
+    return addedAt;
+  }
+  return 0;
 }
 const DB_PATH = 'cure_influencers_data';
 const DB_DELETED_PATH = 'cure_deleted_data';
@@ -1425,48 +1445,22 @@ function renderGrid() {
   }
 
   const sorted = [...influencers].map((item,idx)=>({item,idx})).sort((a,b)=>{
-    // لو الفلتر "قيد المراجعة" أو "إجمالي" — رتب بالتاريخ بس من الأحدث للأقدم
-    if(currentFilter === 'pending' || currentFilter === 'all') {
-      const aAt = a.item.addedAt || 0;
-      const bAt = b.item.addedAt || 0;
-      if(aAt === 0 && bAt === 0) return 0;
-      if(aAt === 0) return 1;
-      if(bAt === 0) return -1;
-      return bAt - aAt;
-    }
-
+    // الترتيب الأساسي حسب الحالة
     const oa = getEffectiveOrder(a.item);
     const ob = getEffectiveOrder(b.item);
-
     if(oa !== ob) return oa - ob;
 
-    // كل الكروت بنفس الـ order: الأحدث أولاً
-    const aAt = a.item.addedAt || 0;
-    const bAt = b.item.addedAt || 0;
-    if(aAt === 0 && bAt === 0) {
-      // لو مفيش تاريخ: أبجدي
-    } else if(aAt === 0) return 1;
-    else if(bAt === 0) return -1;
-    else if(bAt !== aAt) return bAt - aAt;
+    // نفس الحالة: الأحدث فوق، بدون تاريخ في الأخير
+    const aAt = normalizeAddedAt(a.item.addedAt);
+    const bAt = normalizeAddedAt(b.item.addedAt);
+    if(aAt && bAt) return bAt - aAt;
+    if(aAt) return -1;
+    if(bAt) return 1;
 
-    // الأصل يسبق مكرره مباشرةً — بغض النظر عن المجموعة
-    if(b.item.status==='duplicate_pending' && getAnchorIdx(b.item,b.idx)===a.idx) return -1;
-    if(a.item.status==='duplicate_pending' && getAnchorIdx(a.item,a.idx)===b.idx) return 1;
-
-    // ترتيب أبجدي (للمكرر يُستخدم اسم أصله)
+    // كلاهم بدون تاريخ: أبجدي
     const nameA = getEffectiveSortName(a.item, a.idx);
     const nameB = getEffectiveSortName(b.item, b.idx);
-    const isArabic = s => /[؀-ۿ]/.test(s.charAt(0));
-    const arA = isArabic(nameA), arB = isArabic(nameB);
-    if(arA && !arB) return -1;
-    if(!arA && arB) return 1;
-    const cmp = nameA.localeCompare(nameB, arA?'ar':'en', {sensitivity:'base'});
-    if(cmp !== 0) return cmp;
-
-    // نفس الاسم: الأصل قبل المكرر
-    if(a.item.status!=='duplicate_pending' && b.item.status==='duplicate_pending') return -1;
-    if(a.item.status==='duplicate_pending' && b.item.status!=='duplicate_pending') return 1;
-    return 0;
+    return nameA.localeCompare(nameB, 'ar', {sensitivity:'base'});
   });
   sorted.forEach(({item,idx})=>{
     const name=getDisplayName(item,idx);
