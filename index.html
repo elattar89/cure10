@@ -1423,8 +1423,15 @@ function renderGrid() {
 
     if(oa !== ob) return oa - ob;
 
-    // الجدد والقيد المراجعة: الأحدث أولاً
-    if(oa === 0 || oa === 1) return (b.item.addedAt||0) - (a.item.addedAt||0);
+    // الجدد والقيد المراجعة: الأحدث أولاً — اللي مفيش عنده تاريخ يروح تحت
+    if(oa === 0 || oa === 1) {
+      const aAt = a.item.addedAt || 0;
+      const bAt = b.item.addedAt || 0;
+      if(aAt === 0 && bAt === 0) return 0;
+      if(aAt === 0) return 1;
+      if(bAt === 0) return -1;
+      return bAt - aAt;
+    }
 
     // الأصل يسبق مكرره مباشرةً — بغض النظر عن المجموعة
     if(b.item.status==='duplicate_pending' && getAnchorIdx(b.item,b.idx)===a.idx) return -1;
