@@ -1425,6 +1425,16 @@ function renderGrid() {
   }
 
   const sorted = [...influencers].map((item,idx)=>({item,idx})).sort((a,b)=>{
+    // لو الفلتر "قيد المراجعة" أو "إجمالي" — رتب بالتاريخ بس من الأحدث للأقدم
+    if(currentFilter === 'pending' || currentFilter === 'all') {
+      const aAt = a.item.addedAt || 0;
+      const bAt = b.item.addedAt || 0;
+      if(aAt === 0 && bAt === 0) return 0;
+      if(aAt === 0) return 1;
+      if(bAt === 0) return -1;
+      return bAt - aAt;
+    }
+
     const oa = getEffectiveOrder(a.item);
     const ob = getEffectiveOrder(b.item);
 
