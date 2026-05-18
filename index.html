@@ -826,20 +826,7 @@ const MONTHS_AR = ['يناير','فبراير','مارس','أبريل','مايو
 
 const DB_URL = 'https://cure-10-influncers-default-rtdb.firebaseio.com';
 
-// وقت من Firebase Server دايماً — مش من الجهاز
-let _serverTimeOffset = 0;
-async function syncServerTime() {
-  try {
-    const res = await fetch(`${DB_URL}/.json?shallow=true`, { method:'GET', mode:'cors' });
-    if(res && res.ok) {
-      const serverDate = res.headers.get('Date');
-      if(serverDate) {
-        _serverTimeOffset = new Date(serverDate).getTime() - Date.now();
-      }
-    }
-  } catch(e) {}
-}
-function serverNow() { return Date.now() + _serverTimeOffset; }
+function serverNow() { return Date.now(); }
 const DB_PATH = 'cure_influencers_data';
 const DB_DELETED_PATH = 'cure_deleted_data';
 const DB_BACKUP_PATH = 'cure_backups';
@@ -4882,7 +4869,6 @@ window.deleteDupEntry=deleteDupEntry; window.keepOnlyThis=keepOnlyThis;
 async function init() {
   if(!checkAuth()) return;
   updateWelcome();
-  await syncServerTime();
   // Safety: force hide loading after 20 seconds no matter what
   const safetyTimer = setTimeout(() => {
     const ol=document.getElementById('loadingOverlay');if(ol)ol.style.display='none';
