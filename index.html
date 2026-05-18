@@ -1631,7 +1631,7 @@ function saveSig(realIdx) {
   if(!canvas) return;
   const dataUrl = canvas.toDataURL('image/png');
   influencers[realIdx].signature = dataUrl;
-  saveFile();
+  saveFile(realIdx);
   // Refresh report
   const td = canvas.closest('td');
   if(td) {
@@ -1651,7 +1651,7 @@ function clearCanvas(realIdx) {
 
 function clearSignature(realIdx) {
   influencers[realIdx].signature = '';
-  saveFile();
+  saveFile(realIdx);
   // Refresh the td
   const imgs = document.querySelectorAll(`[onclick="clearSignature(${realIdx})"]`);
   imgs.forEach(btn => {
@@ -1722,13 +1722,13 @@ function renderMissedVisitsList(missed) {
 function missedVisitAction(idx, status) {
   influencers[idx].visitStatus = status;
   if(status === 'cancelled') {
-    saveFile(); renderGrid(); updateStats();
+    saveFile(idx); renderGrid(); updateStats();
     const row = document.getElementById('missedRow_'+idx);
     if(row) row.remove();
     checkAllMissedHandled();
   } else if(status === 'done') {
-    saveFile(); renderGrid(); updateStats();
-    // Hide action buttons and show rating
+    // لا نحفظ هنا — ننتظر التأكيد
+    renderGrid(); updateStats();
     const row = document.getElementById('missedRow_'+idx);
     if(row) {
       row.querySelector('div:first-child').innerHTML += '<div style="font-size:11px;color:#4ade80;margin-top:4px;">✅ تمت — قيّم الزيارة ثم اضغط تأكيد</div>';
@@ -1738,13 +1738,13 @@ function missedVisitAction(idx, status) {
     const stars = document.getElementById('missedStars_'+idx);
     if(stars) {
       stars.style.display = 'flex';
-      // Add confirm button
       stars.insertAdjacentHTML('afterend', `<button onclick="confirmMissedDone(${idx})" style="width:100%;margin-top:8px;padding:8px;border-radius:8px;border:1px solid #1a6fa8;background:#1e3a5f;color:#60a5fa;font-size:13px;font-weight:700;cursor:pointer;font-family:Tajawal,sans-serif;">تأكيد ✓</button>`);
     }
   }
 }
 
 function confirmMissedDone(idx) {
+  saveFile(idx); // الحفظ هنا بعد التأكيد
   const row = document.getElementById('missedRow_'+idx);
   if(row) row.remove();
   checkAllMissedHandled();
@@ -1759,7 +1759,7 @@ function checkAllMissedHandled() {
 
 function setMissedRating(idx, rating) {
   influencers[idx].visitRating = rating;
-  saveFile(); renderGrid();
+  saveFile(idx); renderGrid();
   for(let s=1;s<=5;s++) {
     const star = document.getElementById('mstar_'+idx+'_'+s);
     if(star) star.style.color = rating >= s ? '#f59e0b' : '#30363d';
@@ -1791,14 +1791,14 @@ function closeNotes() {
 function saveNotes() {
   if(_notesIdx === null) return;
   influencers[_notesIdx].notes = document.getElementById('notesText').value.trim();
-  saveFile(); renderGrid();
+  saveFile(_notesIdx); renderGrid();
   closeNotes();
   showToast('✅ تم حفظ الملاحظات', '#ca8a04');
 }
 window.openNotes=openNotes; window.closeNotes=closeNotes; window.saveNotes=saveNotes;
 function setVisitRating(idx, rating) {
   influencers[idx].visitRating = rating;
-  saveFile(); renderGrid();
+  saveFile(idx); renderGrid();
 }
 window.setVisitRating = setVisitRating;
 
@@ -2387,7 +2387,7 @@ https://cure-submit-form-gsheets.vercel.app
   logActivity('send_wa', `إرسال واتساب: ${item.name||item.ig||item.phone}`);
   // Auto-check the sent checkbox
   item.waSent = true;
-  saveFile();
+  saveFile(idx);
   const ck = document.getElementById('waCk_' + idx);
   const btn = document.getElementById('waBtn_' + idx);
   if(ck) ck.checked = true;
@@ -2395,7 +2395,7 @@ https://cure-submit-form-gsheets.vercel.app
 }
 function toggleWaSent(idx, cb) {
   influencers[idx].waSent = cb.checked;
-  saveFile();
+  saveFile(idx);
   const btn = document.getElementById('waBtn_' + idx);
   const lbl = cb.parentElement;
   if(btn) {
@@ -3263,7 +3263,7 @@ function toggleDialectById(dialect, cb) {
     btn.style.borderColor = item.dialects.length ? '#0891b2' : '';
     btn.style.color = item.dialects.length ? '#22d3ee' : '';
   }
-  saveFile();
+  saveFile(_dlctTargetIdx);
   refreshApptCardIfOpen(_dlctTargetIdx);
 }
 function toggleDialect(e, dialect) { toggleDialectById(dialect, document.getElementById(DIALECT_IDS[DIALECTS.indexOf(dialect)])); }
