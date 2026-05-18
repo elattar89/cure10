@@ -827,6 +827,10 @@ const MONTHS_AR = ['يناير','فبراير','مارس','أبريل','مايو
 const DB_URL = 'https://cure-10-influncers-default-rtdb.firebaseio.com';
 
 function serverNow() { return Date.now(); }
+function isNewItem(item) {
+  const now48 = Date.now() - (48 * 60 * 60 * 1000);
+  return !!(item.addedAt && item.addedAt > now48 && item.addedAt <= Date.now() && !item.wasUpdated);
+}
 const DB_PATH = 'cure_influencers_data';
 const DB_DELETED_PATH = 'cure_deleted_data';
 const DB_BACKUP_PATH = 'cure_backups';
@@ -1206,8 +1210,7 @@ function updateStats() {
   const statCan=document.getElementById('statCancelled');
   if(statCan) statCan.textContent=cancelled;
   // New (last 48h)
-  const now48h = serverNow() - (48 * 60 * 60 * 1000);
-  const newCount = influencers.filter(i=>i.addedAt && i.addedAt > now48h && i.addedAt <= serverNow() && !i.wasUpdated).length;
+  const newCount = influencers.filter(i=>isNewItem(i)).length;
   const statNew=document.getElementById('statNew');
   if(statNew) statNew.textContent=newCount;
 }
@@ -1365,7 +1368,6 @@ function renderGrid() {
   // 5 = مقبولين ملغي موعدهم (cancelled) — أبجدي
   // 6 = مرفوضين — أبجدي
   // المكرر يظهر دائماً بعد أصله مباشرةً بغض النظر عن حالة الأصل
-  const _now48 = serverNow() - (48 * 60 * 60 * 1000);
 
   function getDupOriginalIdx(dupItem) {
     const nPhone = normalizePhone(dupItem.phone);
@@ -1386,7 +1388,7 @@ function renderGrid() {
 
   // ترتيب الأصول بناءً على حالتهم
   function getOrder(item) {
-    const isNew = item.addedAt && item.addedAt > _now48 && item.addedAt <= serverNow() && !item.wasUpdated;
+    const isNew = isNewItem(item);
     if(isNew) return 0;
     if(!item.status||item.status==='pending') return 1;
     if(item.status==='approved'&&item.visitStatus==='done') return 2;
@@ -1475,7 +1477,7 @@ function renderGrid() {
       (currentFilter==='nat_sham'   && NAT_GROUPS.sham.includes(item.nationality||''))||
       (currentFilter==='nat_foreign'&& item.nationality && !NAT_GROUPS.kuwait.includes(item.nationality) && !NAT_GROUPS.gulf.includes(item.nationality) && !NAT_GROUPS.egypt.includes(item.nationality) && !NAT_GROUPS.sham.includes(item.nationality))||
       (currentFilter.startsWith('dlct_') && (item.dialects||[]).includes(currentFilter.replace('dlct_','')))||
-      (currentFilter==='new' && item.addedAt && item.addedAt > _now48 && !item.wasUpdated);
+      (currentFilter==='new' && isNewItem(item));
     if(!matchSearch||!matchFilter) return;
     visible++;
     const initial=getInitial(item), color=getColor(idx);
@@ -1504,7 +1506,7 @@ function renderGrid() {
     // Badge "جديد" - أُضيف في آخر 48 ساعة ولم يتم تحديثه كمكرر
     const now48 = serverNow() - (48 * 60 * 60 * 1000);
     const now = Date.now();
-    const isNew = item.addedAt && item.addedAt > now48 && item.addedAt <= now && !item.wasUpdated;
+    const isNew = isNewItem(item);
     // الكرت الجديد: أي شخص أضيف في آخر 48 ساعة سواء يدوي أو تلقائي
     const isNewAutoBlue = isNew;
     const isUnpublished = item.visitStatus==='done' && item.contentStatus==='unpublished';
@@ -4920,8 +4922,7 @@ async function init() {
   // إشعار تلقائي لو في مكررين أو جدد عند فتح الصفحة
   setTimeout(function() {
     const dupGroups = findAllDuplicates();
-    const now48h = serverNow() - 48*60*60*1000;
-    const newCount = influencers.filter(i => i.addedAt && i.addedAt > now48h && i.addedAt <= serverNow() && !i.wasUpdated).length;
+    const newCount = influencers.filter(i => isNewItem(i)).length;
     const dupCount = dupGroups.reduce((s,g) => s+g.length, 0);
     if((dupGroups.length > 0 || newCount > 0) && !document.getElementById('dupWarningBanner')) {
       const banner = document.createElement('div');
