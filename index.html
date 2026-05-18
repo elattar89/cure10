@@ -1428,15 +1428,14 @@ function renderGrid() {
 
     if(oa !== ob) return oa - ob;
 
-    // الجدد والقيد المراجعة: الأحدث أولاً — اللي مفيش عنده تاريخ يروح تحت
-    if(oa === 0 || oa === 1) {
-      const aAt = a.item.addedAt || 0;
-      const bAt = b.item.addedAt || 0;
-      if(aAt === 0 && bAt === 0) return 0;
-      if(aAt === 0) return 1;
-      if(bAt === 0) return -1;
-      return bAt - aAt; // الأحدث فوق
-    }
+    // كل الكروت بنفس الـ order: الأحدث أولاً
+    const aAt = a.item.addedAt || 0;
+    const bAt = b.item.addedAt || 0;
+    if(aAt === 0 && bAt === 0) {
+      // لو مفيش تاريخ: أبجدي
+    } else if(aAt === 0) return 1;
+    else if(bAt === 0) return -1;
+    else if(bAt !== aAt) return bAt - aAt;
 
     // الأصل يسبق مكرره مباشرةً — بغض النظر عن المجموعة
     if(b.item.status==='duplicate_pending' && getAnchorIdx(b.item,b.idx)===a.idx) return -1;
