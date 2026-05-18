@@ -826,30 +826,59 @@ const MONTHS_AR = ['يناير','فبراير','مارس','أبريل','مايو
 
 const DB_URL = 'https://cure-10-influncers-default-rtdb.firebaseio.com';
 
-function serverNow() { return Date.now(); }
+let _firebaseTimeOffset = 0;
+async function syncFirebaseTime() {
+  try {
+    const start = Date.now();
+    const res = await fetch(`${DB_URL}/.json?shallow=true`, { method:'GET', mode:'cors' });
+    if(res && res.ok) {
+      const serverDate = res.headers.get('Date');
+      if(serverDate) {
+        const serverTime = new Date(serverDate).getTime();
+        const roundTrip = (Date.now() - start) / 2;
+        _firebaseTimeOffset = serverTime + roundTrip - Date.now();
+      }
+    }
+  } catch(e) {}
+}
+function serverNow() { return Date.now() + _firebaseTimeOffset; }
+
+// جيب timestamp من Firebase مباشرة — أدق من serverNow
+async function getFirebaseTimestamp() {
+  try {
+    const start = Date.now();
+    const res = await fetch(`${DB_URL}/.json?shallow=true`, { method:'GET', mode:'cors' });
+    if(res && res.ok) {
+      const serverDate = res.headers.get('Date');
+      if(serverDate) {
+        const serverTime = new Date(serverDate).getTime();
+        const roundTrip = (Date.now() - start) / 2;
+        return serverTime + roundTrip;
+      }
+    }
+  } catch(e) {}
+  return serverNow(); // fallback
+}
 function isNewItem(item) {
-  const now48 = Date.now() - (48 * 60 * 60 * 1000);
+  const now48 = serverNow() - (48 * 60 * 60 * 1000);
   const at = normalizeAddedAt(item.addedAt);
-  return !!(at && at > now48 && at <= Date.now() && !item.wasUpdated);
+  return !!(at && at > now48 && !item.wasUpdated);
 }
 
 // تحويل addedAt لـ timestamp صحيح
 function normalizeAddedAt(addedAt) {
   if(!addedAt) return 0;
-  // لو ISO string
+  const now = serverNow();
+  let t = 0;
   if(typeof addedAt === 'string') {
-    const t = new Date(addedAt).getTime();
-    return isNaN(t) ? 0 : t;
+    t = new Date(addedAt).getTime();
+  } else if(typeof addedAt === 'number') {
+    t = addedAt;
   }
-  // لو رقم
-  if(typeof addedAt === 'number') {
-    // لو أكبر من سنة 2030 — غلط، نرجع 0
-    if(addedAt > 1893456000000) return 0;
-    // لو أصغر من 2020 — غلط
-    if(addedAt < 1577836800000) return 0;
-    return addedAt;
-  }
-  return 0;
+  if(isNaN(t) || t <= 0) return 0;
+  if(t < 1577836800000) return 0; // أقدم من 2020
+  if(t > now) return 0; // في المستقبل
+  return t;
 }
 const DB_PATH = 'cure_influencers_data';
 const DB_DELETED_PATH = 'cure_deleted_data';
@@ -1926,7 +1955,13 @@ function addInfluencer() {
   const newItem={name,phone,civil,nationality,gender,ig:igHandle,ig_url:igRaw.startsWith('http')?igRaw:(igRaw?'https://www.instagram.com/'+igRaw.replace('@',''):''),tt:ttHandle,tt_url:ttRaw.startsWith('http')?ttRaw:(ttRaw?'https://www.tiktok.com/'+ttHandle:''),snap,status:'pending',visitDate:'',dialects:autoDialect?[autoDialect]:[]};
   const dup=findDuplicate(newItem);
   if(dup){closeModal();showSingleDupWarning(newItem,dup);return;}
-  newItem.addedAt=serverNow();influencers.push(newItem); closeModal();
+  getFirebaseTimestamp().then(ts => {
+    newItem.addedAt = ts;
+    influencers.push(newItem);
+    renderGrid(); saveFile(); showToast('✅ تم إضافة المؤثر بنجاح!','#059669');
+    updateStats(); updateDupReviewBtn();
+  });
+  closeModal();
   ['mName','mPhone','mCivil','mIg','mTt','mSnap'].forEach(id=>document.getElementById(id).value='');
   document.getElementById('mNationality').value='';
   const base='flex:1;padding:9px;border-radius:9px;font-size:13px;cursor:pointer;font-family:Tajawal,sans-serif;';
@@ -4886,6 +4921,7 @@ window.deleteDupEntry=deleteDupEntry; window.keepOnlyThis=keepOnlyThis;
 async function init() {
   if(!checkAuth()) return;
   updateWelcome();
+  await syncFirebaseTime();
   // Safety: force hide loading after 20 seconds no matter what
   const safetyTimer = setTimeout(() => {
     const ol=document.getElementById('loadingOverlay');if(ol)ol.style.display='none';
