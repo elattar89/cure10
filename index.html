@@ -331,17 +331,21 @@ body{font-family:'Tajawal',sans-serif;direction:rtl;background:#0d1117;color:#e6
         style="width:100%;padding:12px 14px;border-radius:10px;border:1px solid rgba(255,255,255,0.2);background:rgba(255,255,255,0.1);color:#fff;font-size:14px;font-family:Tajawal,sans-serif;outline:none;box-sizing:border-box;"
         onkeydown="if(event.key==='Enter')document.getElementById('loginPass').focus()">
     </div>
-    <div style="margin-bottom:1.5rem;">
+    <div style="margin-bottom:0.6rem;">
       <label style="color:rgba(255,255,255,0.8);font-size:13px;display:block;margin-bottom:6px;">كلمة المرور</label>
-      <div style="position:relative;">
-        <input id="loginPass" type="password" placeholder="كلمة المرور" autocomplete="current-password"
-          style="width:100%;padding:12px 44px 12px 14px;border-radius:10px;border:1px solid rgba(255,255,255,0.2);background:rgba(255,255,255,0.1);color:#fff;font-size:14px;font-family:Tajawal,sans-serif;outline:none;box-sizing:border-box;"
-          onkeydown="if(event.key==='Enter')doLogin()">
-        <button type="button" onclick="togglePassView()" id="showPassBtn"
-          style="position:absolute;left:10px;top:50%;transform:translateY(-50%);background:none;border:none;color:rgba(255,255,255,0.6);cursor:pointer;font-size:16px;padding:4px;line-height:1;">
-          👁
-        </button>
-      </div>
+      <input id="loginPass" type="password" placeholder="أدخل كلمة المرور" autocomplete="current-password"
+        style="width:100%;padding:12px 14px;border-radius:10px;border:1px solid rgba(255,255,255,0.2);background:rgba(255,255,255,0.1);color:#fff;font-size:14px;font-family:Tajawal,sans-serif;outline:none;box-sizing:border-box;"
+        onkeydown="if(event.key==='Enter')doLogin()">
+    </div>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.2rem;direction:rtl;">
+      <label style="display:flex;align-items:center;gap:6px;cursor:pointer;color:rgba(255,255,255,0.8);font-size:13px;font-family:Tajawal,sans-serif;user-select:none;">
+        <input type="checkbox" id="showPassCb" onchange="togglePassView()" style="width:15px;height:15px;cursor:pointer;accent-color:#22c55e;">
+        <span>إظهار كلمة المرور</span>
+      </label>
+      <label style="display:flex;align-items:center;gap:6px;cursor:pointer;color:rgba(255,255,255,0.8);font-size:13px;font-family:Tajawal,sans-serif;user-select:none;">
+        <input type="checkbox" id="rememberCb" onchange="toggleRemember()" style="width:15px;height:15px;cursor:pointer;accent-color:#22c55e;">
+        <span>تذكرني</span>
+      </label>
     </div>
     <div id="loginError" style="display:none;color:#f87171;font-size:13px;text-align:center;margin-bottom:1rem;background:rgba(220,38,38,0.15);padding:8px;border-radius:8px;">❌ اسم المستخدم أو كلمة المرور غلط</div>
     <button onclick="doLogin()" style="width:100%;padding:13px;border-radius:12px;border:none;background:#fff;color:#0a3d62;font-size:15px;font-weight:900;cursor:pointer;font-family:Tajawal,sans-serif;transition:.2s;">دخول ←</button>
@@ -4051,14 +4055,8 @@ const USERS = {
 };
 function togglePassView() {
   const inp = document.getElementById('loginPass');
-  const btn = document.getElementById('showPassBtn');
-  if(inp.type === 'password') {
-    inp.type = 'text';
-    btn.textContent = '🙈';
-  } else {
-    inp.type = 'password';
-    btn.textContent = '👁';
-  }
+  const cb = document.getElementById('showPassCb');
+  inp.type = (cb && cb.checked) ? 'text' : 'password';
 }
 window.togglePassView = togglePassView;
 function doLogin() {
@@ -4110,8 +4108,11 @@ localStorage.removeItem('cure_auth_v2');
 // Clear auth on back navigation (all devices)
 window.addEventListener('pageshow', function(e) {
   if(e.persisted) {
-    sessionStorage.removeItem('cure_auth');
-    window.location.reload();
+    // Only clear session; if user had remember-me, localStorage keeps them logged in
+    if(!localStorage.getItem('cure_auth_remember')) {
+      sessionStorage.removeItem('cure_auth');
+      window.location.reload();
+    }
   }
 });
 if(new URLSearchParams(window.location.search).get('guest') === '1') {
@@ -4119,14 +4120,25 @@ if(new URLSearchParams(window.location.search).get('guest') === '1') {
   sessionStorage.setItem('cure_auth', 'guest');
 }
 
+var _rememberMe = false;
+function toggleRemember() {
+  var cb = document.getElementById('rememberCb');
+  _rememberMe = cb ? cb.checked : false;
+}
+window.toggleRemember = toggleRemember;
 function setAuth(user) {
   sessionStorage.setItem('cure_auth', user);
+  if(_rememberMe) {
+    localStorage.setItem('cure_auth_remember', user);
+  } else {
+    localStorage.removeItem('cure_auth_remember');
+  }
   if(user !== 'guest') localStorage.setItem('cure_admin_auth', user);
 }
 function getAuth() {
-  return sessionStorage.getItem('cure_auth');
+  return sessionStorage.getItem('cure_auth') || localStorage.getItem('cure_auth_remember');
 }
-function clearAuth() { sessionStorage.removeItem('cure_auth'); }
+function clearAuth() { sessionStorage.removeItem('cure_auth'); localStorage.removeItem('cure_auth_remember'); }
 function isGuest() { return getAuth() === 'guest'; }
 function updateWelcome() {
   const user = getAuth() || '';
