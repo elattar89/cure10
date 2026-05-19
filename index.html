@@ -988,7 +988,7 @@ async function tryLoadFirebase() {
     try {
       const res = await Promise.race([
         fetch(url, { method: 'GET', headers: { 'Accept': 'application/json' }, mode: 'cors' }),
-        new Promise((_,rej) => setTimeout(() => rej(new Error('timeout')), 7000))
+        new Promise((_,rej) => setTimeout(() => rej(new Error('timeout')), 15000))
       ]);
       if(res && res.ok) {
         const val = await res.json();
@@ -4108,10 +4108,8 @@ localStorage.removeItem('cure_auth_v2');
 // Clear auth on back navigation (all devices)
 window.addEventListener('pageshow', function(e) {
   if(e.persisted) {
-    // Only clear session; if user had remember-me, localStorage keeps them logged in
     if(!localStorage.getItem('cure_auth_remember')) {
       sessionStorage.removeItem('cure_auth');
-      window.location.reload();
     }
   }
 });
