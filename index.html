@@ -1071,9 +1071,14 @@ async function tryLoadFirebase() {
   return false;
 }
 function showSaveIndicator() {
-  // Auto-refresh report if open
-  const report = document.getElementById("reportOverlay");
-  if(report) { setTimeout(() => { openGuestReadOnlyReport(); }, 300); }
+  // Auto-refresh report if open — بدون فتح كشف جديد
+  const rc = document.getElementById('reportContainer');
+  if(rc) {
+    const type = rc.dataset.reportType;
+    if(type === 'approved') openGuestReadOnlyReport();
+    else if(type === 'status') openStatusReport(rc.dataset.statusType);
+    else if(type === 'gender') openGenderReport(rc.dataset.genderType);
+  }
 }
 function saveFile(idx) {
   if(idx !== undefined && idx !== null) {
@@ -3568,12 +3573,6 @@ function showApptCard(idx) {
 }
 function closeApptCard() {
   document.getElementById('apptCardOverlay').style.display = 'none';
-  // لو الكشف مفتوح، أعد بناءه عشان تظهر التعديلات
-  const rc = document.getElementById('reportContainer');
-  if(rc && rc.querySelector('[id^="rrow_"]')) {
-    rc.remove();
-    openGuestReadOnlyReport();
-  }
 }
 window.showApptCard = showApptCard;
 window.closeApptCard = closeApptCard;
@@ -3592,8 +3591,13 @@ function buildSocialsHtml(item) {
 }
 
 function openReportFromBtn(){
-  if(currentFilter==='approved'||currentFilter==='rejected'||currentFilter==='visited'||currentFilter==='cancelled')openStatusReport('approved');
-  else if(currentFilter==='male'||currentFilter==='female')openGenderReport(currentFilter==='male'?'m':'f');
+  if(currentFilter==='approved') openGuestReadOnlyReport();
+  else if(currentFilter==='rejected') openStatusReport('rejected');
+  else if(currentFilter==='visited') openStatusReport('visited');
+  else if(currentFilter==='cancelled') openStatusReport('cancelled');
+  else if(currentFilter==='male') openGenderReport('m');
+  else if(currentFilter==='female') openGenderReport('f');
+  else openGuestReadOnlyReport();
 }
 let _closingReport=false;
 function closeReport(){
