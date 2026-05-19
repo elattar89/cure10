@@ -192,7 +192,7 @@ body{font-family:'Tajawal',sans-serif;direction:rtl;background:#0d1117;color:#e6
 .loading-spinner{width:40px;height:40px;border:3px solid #21262d;border-top-color:#1a6fa8;border-radius:50%;animation:spin .8s linear infinite;}
 @keyframes spin{to{transform:rotate(360deg);}}
 @media(max-width:600px){
-  .grid{grid-template-columns:1fr;}
+  .grid{grid-template-columns:1fr 1fr;}
   .header h1{font-size:18px;}
   .header{padding:1.2rem 1rem 1.5rem;}
   .stats-bar{gap:.4rem;}
@@ -204,15 +204,19 @@ body{font-family:'Tajawal',sans-serif;direction:rtl;background:#0d1117;color:#e6
   .filter-btn{white-space:nowrap;flex-shrink:0;font-size:11px;padding:6px 10px;}
   .toolbar{flex-wrap:nowrap;overflow-x:auto;gap:6px;padding:.5rem;}
   .toolbar::-webkit-scrollbar{display:none;}
-  .card{padding:.8rem;}
-  .card-name{font-size:13px;}
-  .action-btn{font-size:11px;padding:5px 8px;}
+  .card{padding:.6rem;}
+  .card-name{font-size:12px;}
+  .card-phone{font-size:11px;}
+  .action-btn{font-size:10px;padding:4px 6px;}
   .modal{padding:1rem;max-height:92vh;}
   .modal input,.modal select{font-size:14px;}
   .fab{width:44px;height:44px;font-size:20px;}
   .report-modal{padding:.8rem;border-radius:10px;}
   .report-actions{flex-wrap:wrap;gap:6px;}
   .report-btn-print,.report-btn-share,.report-btn-close{font-size:12px;padding:7px 12px;}
+@media(max-width:360px){
+  .grid{grid-template-columns:1fr;}
+}
 }
 @media(max-width:400px){
   .stat{padding:.3rem .4rem;min-width:48px;}
