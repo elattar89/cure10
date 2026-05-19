@@ -4128,8 +4128,6 @@ function setAuth(user) {
   sessionStorage.setItem('cure_auth', user);
   if(_rememberMe) {
     localStorage.setItem('cure_auth_remember', user);
-  } else {
-    localStorage.removeItem('cure_auth_remember');
   }
   if(user !== 'guest') localStorage.setItem('cure_admin_auth', user);
 }
