@@ -3393,19 +3393,20 @@ function closeDatePicker(){
     }
     const savedIdx=dpTargetIdx;
     document.getElementById('datePickerPopup').classList.remove('open');
+    document.body.style.overflow = '';
     dpTargetIdx=null;
     if(influencers[savedIdx]) delete influencers[savedIdx]._pickingDate;
     renderGrid();
     saveFile(savedIdx);
   } else {
     document.getElementById('datePickerPopup').classList.remove('open');
+    document.body.style.overflow = '';
     dpTargetIdx=null;
   }
 }
 function cancelDatePicker(){
-  // Just close — restore original date (no save, no renderGrid)
   document.getElementById('datePickerPopup').classList.remove('open');
-  // Restore saved date if we modified it in-memory during selection
+  document.body.style.overflow = '';
   if(dpTargetIdx!==null){
     if(typeof _dpOrigDate !== 'undefined' && _dpOrigDate !== null){
       influencers[dpTargetIdx].visitDate = _dpOrigDate;
@@ -4531,7 +4532,9 @@ function openInlineDate(idx, btn, e) {
   }
 
   const dpEl = document.getElementById('datePickerPopup');
+  document.body.appendChild(dpEl); // تأكيد إنه في آخر body
   dpEl.classList.add('open');
+  document.body.style.overflow = 'hidden'; // منع الـ scroll
   renderDpSelects(); renderDpDays();
   if(item.visitDate) enableTimeSelects(); else disableTimeSelects();
   _inlineDateRowIdx = idx;
