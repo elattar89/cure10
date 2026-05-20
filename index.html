@@ -277,20 +277,20 @@ body{font-family:'Tajawal',sans-serif;direction:rtl;background:#0d1117;color:#e6
   .report-table td{padding:4px 5px!important;font-size:10px!important;border:1px solid #ccc!important;-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important;}
   /* Column widths for landscape A4 (~277mm printable) */
   .report-table th:nth-child(1), .report-table td:nth-child(1){ width:25px!important; }
-  .report-table th:nth-child(2), .report-table td:nth-child(2){ width:85px!important; }
-  .report-table th:nth-child(3), .report-table td:nth-child(3){ width:30px!important; }
-  .report-table th:nth-child(4), .report-table td:nth-child(4){ width:50px!important; }
-  .report-table th:nth-child(5), .report-table td:nth-child(5){ width:65px!important; }
-  .report-table th:nth-child(6), .report-table td:nth-child(6){ width:65px!important; }
-  .report-table th:nth-child(7), .report-table td:nth-child(7){ width:80px!important; }
+  .report-table th:nth-child(2), .report-table td:nth-child(2){ width:80px!important; }
+  .report-table th:nth-child(3), .report-table td:nth-child(3){ width:28px!important; }
+  .report-table th:nth-child(4), .report-table td:nth-child(4){ width:45px!important; }
+  .report-table th:nth-child(5), .report-table td:nth-child(5){ width:55px!important; }
+  .report-table th:nth-child(6), .report-table td:nth-child(6){ width:50px!important; }
+  .report-table th:nth-child(7), .report-table td:nth-child(7){ width:55px!important; }
   .report-table th:nth-child(8), .report-table td:nth-child(8){ width:65px!important; }
-  .report-table th:nth-child(9), .report-table td:nth-child(9){ width:50px!important; }
-  .report-table th:nth-child(10),.report-table td:nth-child(10){ width:60px!important; }
-  .report-table th:nth-child(11),.report-table td:nth-child(11){ width:60px!important; }
-  .report-table th:nth-child(12),.report-table td:nth-child(12){ width:100px!important;}
+  .report-table th:nth-child(9), .report-table td:nth-child(9){ width:55px!important; }
+  .report-table th:nth-child(10),.report-table td:nth-child(10){ display:none!important; }
+  .report-table th:nth-child(11),.report-table td:nth-child(11){ display:none!important; }
+  .report-table th:nth-child(12),.report-table td:nth-child(12){ width:110px!important;}
   /* Signature column print */
   .report-table td:nth-child(12) { overflow:visible!important; }
-  .sig-print-img { width:100px!important; height:45px!important; object-fit:contain!important; display:block!important; -webkit-print-color-adjust:exact!important; print-color-adjust:exact!important; }
+  .sig-print-img { width:110px!important; height:50px!important; object-fit:contain!important; display:block!important; -webkit-print-color-adjust:exact!important; print-color-adjust:exact!important; }
   .sig-print-line { height:40px!important; border-bottom:1.5px solid #374151!important; margin:10px 4px 0!important; display:block!important; }
   /* Card grid print styles */
   #approvedCardsGrid { display:grid!important; grid-template-columns:repeat(2,1fr)!important; gap:10px!important; }
@@ -3615,9 +3615,22 @@ const scSVG_rpt='<svg width="13" height="13" viewBox="0 0 24 24" fill="#FFFC00" 
 
 function buildSocialsHtml(item) {
   let s='';
-  if(item.ig){const u=item.ig_url&&item.ig_url.startsWith('http')?item.ig_url:'https://www.instagram.com/'+item.ig.replace('@','');s+=`<a href="${u}" target="_blank" style="display:flex;align-items:center;gap:5px;margin-bottom:2px;text-decoration:none;">${igSVG_rpt}<span style="color:#c13584;">${item.ig}</span></a>`;}
-  if(item.tt){const u=item.tt_url&&item.tt_url.startsWith('http')?item.tt_url:'https://www.tiktok.com/'+item.tt;s+=`<a href="${u}" target="_blank" style="display:flex;align-items:center;gap:5px;margin-bottom:2px;text-decoration:none;">${ttSVG_rpt}<span style="color:#333;">${item.tt}</span></a>`;}
-  if(item.snap){const m2=item.snap.match(/snapchat\.com\/add\/([^/?]+)/i);const h=m2?m2[1]:(item.snap.startsWith('http')?'سناب':item.snap);const u=item.snap.startsWith('http')?item.snap:'https://www.snapchat.com/add/'+item.snap;s+=`<a href="${u}" target="_blank" style="display:flex;align-items:center;gap:5px;margin-bottom:2px;text-decoration:none;">${scSVG_rpt}<span style="color:#d97706;">${h}</span></a>`;}
+  function shortHandle(val){
+    if(!val) return '';
+    // استخرج الـ handle من الرابط أو @username
+    val = val.trim();
+    // رابط انستاجرام / تيك توك / سناب
+    let m = val.match(/(?:instagram\.com|tiktok\.com|snapchat\.com\/add)\/([^/?&#\s]+)/i);
+    if(m) return '@'+m[1];
+    // @ username مباشرة
+    if(val.startsWith('@')) return val;
+    // رابط عام — خذ آخر جزء من الـ path
+    try { const u=new URL(val); const parts=u.pathname.replace(/\/$/,'').split('/'); const last=parts[parts.length-1]; if(last) return '@'+last; } catch(e){}
+    return val;
+  }
+  if(item.ig){const u=item.ig_url&&item.ig_url.startsWith('http')?item.ig_url:'https://www.instagram.com/'+item.ig.replace('@','');const h=shortHandle(item.ig||item.ig_url);s+=`<a href="${u}" target="_blank" style="display:flex;align-items:center;gap:4px;margin-bottom:2px;text-decoration:none;">${igSVG_rpt}<span style="color:#c13584;font-size:12px;font-weight:700;">${h}</span></a>`;}
+  if(item.tt){const u=item.tt_url&&item.tt_url.startsWith('http')?item.tt_url:'https://www.tiktok.com/'+item.tt;const h=shortHandle(item.tt||item.tt_url);s+=`<a href="${u}" target="_blank" style="display:flex;align-items:center;gap:4px;margin-bottom:2px;text-decoration:none;">${ttSVG_rpt}<span style="color:#333;font-size:12px;font-weight:700;">${h}</span></a>`;}
+  if(item.snap){const m2=item.snap.match(/snapchat\.com\/add\/([^/?]+)/i);const h=m2?('@'+m2[1]):(item.snap.startsWith('@')?item.snap:item.snap.startsWith('http')?shortHandle(item.snap):item.snap);const u=item.snap.startsWith('http')?item.snap:'https://www.snapchat.com/add/'+item.snap;s+=`<a href="${u}" target="_blank" style="display:flex;align-items:center;gap:4px;margin-bottom:2px;text-decoration:none;">${scSVG_rpt}<span style="color:#d97706;font-size:12px;font-weight:700;">${h}</span></a>`;}
   return s||'—';
 }
 
@@ -3643,6 +3656,29 @@ function closeReport(){
 }
 function _hideBannerForReport(){const b=document.getElementById('dupWarningBanner');if(b)b.style.display='none';}
 function closeReportIfBg(e){if(e.target.id==='reportOverlay')closeReport();}
+
+function clearSignatureAndDraw(idx) {
+  const item = influencers[idx]; if(!item) return;
+  item.signature = '';
+  saveFile(idx);
+  // إعادة رسم صف التوقيع بدون إغلاق الكشف
+  const reportContainer = document.getElementById('reportContainer');
+  if(reportContainer) {
+    const sigCell = reportContainer.querySelector(`#rrow_${idx} td:last-child`);
+    if(sigCell) {
+      sigCell.innerHTML = `<div class="no-print">
+        <canvas id="sigCanvas_${idx}" width="160" height="60"
+          style="border:2px dashed #6b7280;border-radius:8px;cursor:crosshair;touch-action:none;display:block;background:#fafafa;"
+          onmousedown="startSig(event,${idx})" ontouchstart="startSig(event,${idx})"></canvas>
+        <div style="display:flex;gap:4px;margin-top:4px;">
+          <button onclick="saveSig(${idx})" style="flex:1;padding:4px;border:1.5px solid #059669;background:#f0fdf4;color:#059669;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer;font-family:Tajawal,sans-serif;">✓ حفظ</button>
+          <button onclick="clearCanvas(${idx})" style="flex:1;padding:4px;border:1.5px solid #9ca3af;background:#f9fafb;color:#555;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer;font-family:Tajawal,sans-serif;">مسح</button>
+        </div>
+      </div>`;
+    }
+  }
+  showToast('🗑 تم مسح التوقيع', '#dc2626');
+}
 
 function setContentStatus(idx, status) {
   influencers[idx].contentStatus = status;
@@ -3823,16 +3859,18 @@ function openStatusReport(type) {
       const bc=_rowBorderColor(vs,cs);
       const dateStr=item.visitDate?formatDateAr(item.visitDate):'<span style="color:#9ca3af;font-size:11px;">لا يوجد موعد</span>';
       const gLabel=item.gender==='m'
-        ?`<span style="background:#eff6ff;color:#1d4ed8;border:1px solid #bfdbfe;padding:3px 10px;border-radius:20px;font-size:12px;font-weight:700;">ذكر</span>`
+        ?`<span style="background:#1d4ed8;color:#fff;border:1px solid #1d4ed8;padding:3px 12px;border-radius:20px;font-size:12px;font-weight:700;">👨 ذكر</span>`
         :item.gender==='f'
-        ?`<span style="background:#fdf4ff;color:#a21caf;border:1px solid #f0abfc;padding:3px 10px;border-radius:20px;font-size:12px;font-weight:700;">أنثى</span>`
+        ?`<span style="background:#a21caf;color:#fff;border:1px solid #a21caf;padding:3px 12px;border-radius:20px;font-size:12px;font-weight:700;">👩 أنثى</span>`
         :'—';
       const natLabel=item.nationality
-        ?`<span style="background:#ecfdf5;color:#065f46;border:1px solid #6ee7b7;padding:3px 10px;border-radius:20px;font-size:12px;font-weight:700;">${displayNationality(item.nationality)}</span>`
+        ?`<span style="background:#065f46;color:#fff;border:1px solid #065f46;padding:3px 10px;border-radius:20px;font-size:12px;font-weight:700;">${displayNationality(item.nationality)}</span>`
         :'—';
       const phoneHtml=item.phone
-        ?`<div onclick="showPhonePopup('${item.phone.replace(/'/g,"\\'")}','${(item.name||item.ig||'').replace(/'/g,"\\'")}',event)" style="color:#0369a1;direction:ltr;font-size:13px;cursor:pointer;font-weight:700;">${item.phone}</div>
-           ${item.civil?`<div style="color:#94a3b8;font-size:11px;direction:ltr;">${item.civil}</div>`:''}`
+        ?`<div onclick="showPhonePopup('${item.phone.replace(/'/g,"\\'")}','${(item.name||item.ig||'').replace(/'/g,"\\'")}',event)" style="color:#0369a1;direction:ltr;font-size:13px;cursor:pointer;font-weight:700;">📞 ${item.phone}</div>`
+        :'<span style="color:#9ca3af;">—</span>';
+      const civilHtml=item.civil
+        ?`<div style="color:#0f766e;direction:ltr;font-size:13px;font-weight:700;">🪪 ${item.civil}</div>`
         :'<span style="color:#9ca3af;">—</span>';
       const socialsHtml=buildSocialsHtml(item);
       const svcLabel=(item.services&&item.services.length)
@@ -3841,19 +3879,21 @@ function openStatusReport(type) {
       const stLbl=_statusLabel(vs,cs);
       const sigHtml=item.signature
         ?`<div style="position:relative;">
-            <img src="${item.signature}" class="sig-print-img" style="width:120px;height:44px;object-fit:contain;display:block;border:1px solid #e5e7eb;border-radius:6px;" />
-            <button onclick="clearSignature(${realIdx})" class="no-print" style="position:absolute;top:0;left:0;background:#dc2626;color:#fff;border:none;border-radius:4px;font-size:9px;padding:1px 5px;cursor:pointer;">✕</button>
+            <img src="${item.signature}" class="sig-print-img" style="width:160px;height:60px;object-fit:contain;display:block;border:2px solid #059669;border-radius:8px;" />
+            <div class="no-print" style="display:flex;gap:4px;margin-top:4px;">
+              <button onclick="clearSignatureAndDraw(${realIdx})" style="flex:1;padding:4px;border:1px solid #dc2626;background:#fef2f2;color:#dc2626;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer;font-family:Tajawal,sans-serif;">🗑 مسح</button>
+            </div>
           </div>`
         :`<div class="no-print">
-            <canvas id="sigCanvas_${realIdx}" width="120" height="44"
-              style="border:1.5px dashed #9ca3af;border-radius:6px;cursor:crosshair;touch-action:none;display:block;"
+            <canvas id="sigCanvas_${realIdx}" width="160" height="60"
+              style="border:2px dashed #6b7280;border-radius:8px;cursor:crosshair;touch-action:none;display:block;background:#fafafa;"
               onmousedown="startSig(event,${realIdx})" ontouchstart="startSig(event,${realIdx})"></canvas>
-            <div style="display:flex;gap:3px;margin-top:2px;">
-              <button onclick="saveSig(${realIdx})" style="flex:1;padding:2px;border:1px solid #059669;background:#f0fdf4;color:#059669;border-radius:4px;font-size:10px;cursor:pointer;font-family:Tajawal,sans-serif;">✓ حفظ</button>
-              <button onclick="clearCanvas(${realIdx})" style="flex:1;padding:2px;border:1px solid #9ca3af;background:#f9fafb;color:#555;border-radius:4px;font-size:10px;cursor:pointer;font-family:Tajawal,sans-serif;">مسح</button>
+            <div style="display:flex;gap:4px;margin-top:4px;">
+              <button onclick="saveSig(${realIdx})" style="flex:1;padding:4px;border:1.5px solid #059669;background:#f0fdf4;color:#059669;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer;font-family:Tajawal,sans-serif;">✓ حفظ</button>
+              <button onclick="clearCanvas(${realIdx})" style="flex:1;padding:4px;border:1.5px solid #9ca3af;background:#f9fafb;color:#555;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer;font-family:Tajawal,sans-serif;">مسح</button>
             </div>
           </div>
-          <div class="sig-print-line no-print-hide" style="display:none;height:44px;border-bottom:1.5px solid #374151;margin:4px 0;"></div>`;
+          <div class="sig-print-line no-print-hide" style="display:none;height:60px;border-bottom:1.5px solid #374151;margin:4px 0;"></div>`;
 
       return `<tr id="rrow_${realIdx}" style="background:${bg};border-right:5px solid ${bc};transition:background .2s;">
         <td style="text-align:center;font-weight:900;color:${thBg};font-size:14px;padding:10px 8px;min-width:32px;">${i+1}</td>
@@ -3863,7 +3903,8 @@ function openStatusReport(type) {
         </td>
         <td style="text-align:center;padding:10px 8px;">${gLabel}</td>
         <td style="text-align:center;padding:10px 8px;">${natLabel}</td>
-        <td style="padding:10px 10px;min-width:100px;">${phoneHtml}</td>
+        <td style="padding:10px 10px;min-width:95px;">${phoneHtml}</td>
+        <td style="padding:10px 10px;min-width:90px;">${civilHtml}</td>
         <td style="padding:10px 10px;min-width:100px;"><div style="display:flex;flex-direction:column;gap:3px;">${socialsHtml}</div></td>
         <td style="padding:10px 10px;min-width:100px;text-align:center;">
           <div id="rptSvcBtn_${realIdx}" style="display:flex;flex-direction:column;align-items:center;gap:4px;">
@@ -3872,23 +3913,29 @@ function openStatusReport(type) {
           </div>
         </td>
         <td style="padding:10px 10px;min-width:110px;text-align:center;font-weight:700;color:${thBg};font-size:13px;">${dateStr}</td>
-        <td style="padding:6px 8px;min-width:110px;" class="no-print">
-          <select id="vsSelect_${realIdx}" onchange="setVisitStatusFromSelect(${realIdx},this.value)"
-            style="width:100%;padding:7px 8px;border-radius:10px;border:1.5px solid;font-size:12px;font-weight:700;font-family:Tajawal,sans-serif;cursor:pointer;direction:rtl;appearance:none;-webkit-appearance:none;${_vsSel(vs)}">
-            <option value="" ${vs===''?'selected':''}>— اختر —</option>
-            <option value="done" ${vs==='done'?'selected':''}>✅ تمت</option>
-            <option value="cancelled" ${vs==='cancelled'?'selected':''}>⚠️ ألغيت</option>
-          </select>
+        <td style="padding:6px 8px;min-width:130px;" class="no-print">
+          <div style="position:relative;">
+            <select id="vsSelect_${realIdx}" onchange="setVisitStatusFromSelect(${realIdx},this.value)"
+              style="width:100%;padding:7px 30px 7px 8px;border-radius:10px;border:2px solid;font-size:12px;font-weight:700;font-family:Tajawal,sans-serif;cursor:pointer;direction:rtl;appearance:none;-webkit-appearance:none;${_vsSel(vs)}">
+              <option value="" ${vs===''?'selected':''}>— اختر —</option>
+              <option value="done" ${vs==='done'?'selected':''}>✅ تمت</option>
+              <option value="cancelled" ${vs==='cancelled'?'selected':''}>⚠️ ألغيت</option>
+            </select>
+            <span style="position:absolute;left:8px;top:50%;transform:translateY(-50%);pointer-events:none;font-size:14px;color:#374151;">▼</span>
+          </div>
         </td>
-        <td style="padding:6px 8px;min-width:120px;" class="no-print">
-          <select id="csSelect_${realIdx}" onchange="setContentStatusFromSelect(${realIdx},this.value)"
-            style="width:100%;padding:7px 8px;border-radius:10px;border:1.5px solid;font-size:12px;font-weight:700;font-family:Tajawal,sans-serif;cursor:pointer;direction:rtl;appearance:none;-webkit-appearance:none;${_csSel(cs)}">
-            <option value="" ${cs===''?'selected':''}>— اختر —</option>
-            <option value="published" ${cs==='published'?'selected':''}>🌟 تم النشر</option>
-            <option value="unpublished" ${cs==='unpublished'?'selected':''}>🟣 لم يتم</option>
-          </select>
+        <td style="padding:6px 8px;min-width:130px;" class="no-print">
+          <div style="position:relative;">
+            <select id="csSelect_${realIdx}" onchange="setContentStatusFromSelect(${realIdx},this.value)"
+              style="width:100%;padding:7px 30px 7px 8px;border-radius:10px;border:2px solid;font-size:12px;font-weight:700;font-family:Tajawal,sans-serif;cursor:pointer;direction:rtl;appearance:none;-webkit-appearance:none;${_csSel(cs)}">
+              <option value="" ${cs===''?'selected':''}>— اختر —</option>
+              <option value="published" ${cs==='published'?'selected':''}>🌟 تم النشر</option>
+              <option value="unpublished" ${cs==='unpublished'?'selected':''}>🟣 لم يتم</option>
+            </select>
+            <span style="position:absolute;left:8px;top:50%;transform:translateY(-50%);pointer-events:none;font-size:14px;color:#374151;">▼</span>
+          </div>
         </td>
-        <td style="padding:6px 8px;min-width:130px;">${sigHtml}</td>
+        <td style="padding:6px 8px;min-width:160px;">${sigHtml}</td>
       </tr>`;
     }).join('');
 
@@ -3929,13 +3976,14 @@ function openStatusReport(type) {
                   <th style="background:${thBg};color:#fff;padding:10px 12px;font-size:12px;font-weight:700;text-align:right;min-width:110px;">الاسم</th>
                   <th style="background:${thBg};color:#fff;padding:10px 8px;font-size:12px;font-weight:700;text-align:center;min-width:60px;">الجنس</th>
                   <th style="background:${thBg};color:#fff;padding:10px 8px;font-size:12px;font-weight:700;text-align:center;min-width:75px;">الجنسية</th>
-                  <th style="background:${thBg};color:#fff;padding:10px 10px;font-size:12px;font-weight:700;text-align:right;min-width:100px;">الموبايل / المدني</th>
-                  <th style="background:${thBg};color:#fff;padding:10px 10px;font-size:12px;font-weight:700;text-align:right;min-width:100px;">السوشيال</th>
+                  <th style="background:${thBg};color:#fff;padding:10px 10px;font-size:12px;font-weight:700;text-align:right;min-width:95px;">الموبايل</th>
+                  <th style="background:${thBg};color:#fff;padding:10px 10px;font-size:12px;font-weight:700;text-align:right;min-width:90px;">الرقم المدني</th>
+                  <th style="background:${thBg};color:#fff;padding:10px 10px;font-size:12px;font-weight:700;text-align:right;min-width:95px;">السوشيال</th>
                   <th style="background:${thBg};color:#fff;padding:10px 10px;font-size:12px;font-weight:700;text-align:center;min-width:100px;">الخدمة</th>
                   <th style="background:${thBg};color:#fff;padding:10px 10px;font-size:12px;font-weight:700;text-align:center;min-width:110px;">الموعد</th>
-                  <th style="background:${thBg};color:#fff;padding:10px 8px;font-size:12px;font-weight:700;text-align:center;min-width:110px;" class="no-print">حالة الزيارة</th>
-                  <th style="background:${thBg};color:#fff;padding:10px 8px;font-size:12px;font-weight:700;text-align:center;min-width:120px;" class="no-print">حالة المحتوى</th>
-                  <th style="background:${thBg};color:#fff;padding:10px 8px;font-size:12px;font-weight:700;text-align:center;min-width:130px;border-radius:0 10px 10px 0;">توقيع المؤثر</th>
+                  <th style="background:${thBg};color:#fff;padding:10px 8px;font-size:12px;font-weight:700;text-align:center;min-width:130px;" class="no-print">حالة الزيارة</th>
+                  <th style="background:${thBg};color:#fff;padding:10px 8px;font-size:12px;font-weight:700;text-align:center;min-width:130px;" class="no-print">حالة المحتوى</th>
+                  <th style="background:${thBg};color:#fff;padding:10px 8px;font-size:12px;font-weight:700;text-align:center;min-width:180px;border-radius:0 10px 10px 0;">توقيع المؤثر</th>
                 </tr>
               </thead>
               <tbody>
@@ -4497,18 +4545,23 @@ function openGuestReadOnlyReport() {
     const bc = _rowBorderColor(vs,cs);
     const dateStr = item.visitDate ? formatDateAr(item.visitDate) : '<span style="color:#9ca3af;font-size:11px;">لا يوجد موعد</span>';
     const gLabel = item.gender==='m'
-      ? '<span style="background:#eff6ff;color:#1d4ed8;border:1px solid #bfdbfe;padding:3px 10px;border-radius:20px;font-size:12px;font-weight:700;">ذكر</span>'
+      ? '<span style="background:#1d4ed8;color:#fff;border:1px solid #1d4ed8;padding:3px 12px;border-radius:20px;font-size:12px;font-weight:700;">👨 ذكر</span>'
       : item.gender==='f'
-      ? '<span style="background:#fdf4ff;color:#a21caf;border:1px solid #f0abfc;padding:3px 10px;border-radius:20px;font-size:12px;font-weight:700;">أنثى</span>'
+      ? '<span style="background:#a21caf;color:#fff;border:1px solid #a21caf;padding:3px 12px;border-radius:20px;font-size:12px;font-weight:700;">👩 أنثى</span>'
       : '—';
     const natLabel = item.nationality
-      ? `<span style="background:#ecfdf5;color:#065f46;border:1px solid #6ee7b7;padding:3px 10px;border-radius:20px;font-size:12px;font-weight:700;">${displayNationality(item.nationality)}</span>`
+      ? `<span style="background:#065f46;color:#fff;border:1px solid #065f46;padding:3px 10px;border-radius:20px;font-size:12px;font-weight:700;">${displayNationality(item.nationality)}</span>`
       : '—';
     const phoneHtml = guest
       ? '<span style="color:#9ca3af;font-size:11px;">🔒 مخفي</span>'
       : item.phone
-      ? `<div onclick="showPhonePopup('${item.phone.replace(/'/g,"\\'")}','${(item.name||item.ig||'').replace(/'/g,"\\'")}',event)" style="color:#0369a1;direction:ltr;font-size:13px;cursor:pointer;font-weight:700;">${item.phone}</div>${item.civil?`<div style="color:#94a3b8;font-size:11px;direction:ltr;">${item.civil}</div>`:''}`
+      ? `<div onclick="showPhonePopup('${item.phone.replace(/'/g,"\\'")}','${(item.name||item.ig||'').replace(/'/g,"\\'")}',event)" style="color:#0369a1;direction:ltr;font-size:13px;cursor:pointer;font-weight:700;">📞 ${item.phone}</div>`
       : '—';
+    const civilHtml = guest
+      ? '<span style="color:#9ca3af;font-size:11px;">🔒 مخفي</span>'
+      : item.civil
+      ? `<div style="color:#0f766e;direction:ltr;font-size:13px;font-weight:700;">🪪 ${item.civil}</div>`
+      : '<span style="color:#9ca3af;">—</span>';
     const socialsCell = guest
       ? '<span style="color:#9ca3af;font-size:11px;">🔒 مخفي</span>'
       : `<div style="display:flex;flex-direction:column;gap:3px;">${buildSocialsHtml(item)}</div>`;
@@ -4517,37 +4570,45 @@ function openGuestReadOnlyReport() {
       : '<span style="color:#9ca3af;">—</span>';
     const stLbl = _statusLabel(vs,cs);
     const sigCell = guest
-      ? (item.signature ? `<img src="${item.signature}" style="width:120px;height:44px;object-fit:contain;display:block;" />` : '—')
+      ? (item.signature ? `<img src="${item.signature}" style="width:160px;height:60px;object-fit:contain;display:block;" />` : '—')
       : item.signature
       ? `<div style="position:relative;">
-           <img src="${item.signature}" class="sig-print-img" style="width:120px;height:44px;object-fit:contain;display:block;border:1px solid #e5e7eb;border-radius:6px;" />
-           <button onclick="clearSignature(${realIdx})" style="position:absolute;top:0;left:0;background:#dc2626;color:#fff;border:none;border-radius:4px;font-size:9px;padding:1px 5px;cursor:pointer;">✕</button>
+           <img src="${item.signature}" class="sig-print-img" style="width:160px;height:60px;object-fit:contain;display:block;border:2px solid #059669;border-radius:8px;" />
+           <div style="display:flex;gap:4px;margin-top:4px;">
+             <button onclick="clearSignatureAndDraw(${realIdx})" style="flex:1;padding:4px;border:1px solid #dc2626;background:#fef2f2;color:#dc2626;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer;font-family:Tajawal,sans-serif;">🗑 مسح</button>
+           </div>
          </div>`
-      : `<canvas id="sigCanvas_${realIdx}" width="120" height="44"
-           style="border:1.5px dashed #9ca3af;border-radius:6px;cursor:crosshair;touch-action:none;display:block;"
+      : `<canvas id="sigCanvas_${realIdx}" width="160" height="60"
+           style="border:2px dashed #6b7280;border-radius:8px;cursor:crosshair;touch-action:none;display:block;background:#fafafa;"
            onmousedown="startSig(event,${realIdx})" ontouchstart="startSig(event,${realIdx})"></canvas>
-         <div style="display:flex;gap:3px;margin-top:2px;">
-           <button onclick="saveSig(${realIdx})" style="flex:1;padding:2px;border:1px solid #059669;background:#f0fdf4;color:#059669;border-radius:4px;font-size:10px;cursor:pointer;font-family:Tajawal,sans-serif;">✓ حفظ</button>
-           <button onclick="clearCanvas(${realIdx})" style="flex:1;padding:2px;border:1px solid #9ca3af;background:#f9fafb;color:#555;border-radius:4px;font-size:10px;cursor:pointer;font-family:Tajawal,sans-serif;">مسح</button>
+         <div style="display:flex;gap:4px;margin-top:4px;">
+           <button onclick="saveSig(${realIdx})" style="flex:1;padding:4px;border:1.5px solid #059669;background:#f0fdf4;color:#059669;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer;font-family:Tajawal,sans-serif;">✓ حفظ</button>
+           <button onclick="clearCanvas(${realIdx})" style="flex:1;padding:4px;border:1.5px solid #9ca3af;background:#f9fafb;color:#555;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer;font-family:Tajawal,sans-serif;">مسح</button>
          </div>`;
 
     const visitSel = guest
       ? `<div style="font-size:12px;font-weight:700;${vs==='done'?'color:#15803d;':vs==='cancelled'?'color:#92400e;':'color:#64748b;'}">${vs==='done'?'✅ تمت':vs==='cancelled'?'⚠️ ألغيت':'—'}</div>`
-      : `<select id="vsSelect_${realIdx}" onchange="setVisitStatusFromSelect(${realIdx},this.value)"
-          style="width:100%;padding:6px 8px;border-radius:10px;border:1.5px solid;font-size:12px;font-weight:700;font-family:Tajawal,sans-serif;cursor:pointer;direction:rtl;appearance:none;-webkit-appearance:none;${_vsSel(vs)}">
-          <option value="" ${vs===''?'selected':''}>— اختر —</option>
-          <option value="done" ${vs==='done'?'selected':''}>✅ تمت</option>
-          <option value="cancelled" ${vs==='cancelled'?'selected':''}>⚠️ ألغيت</option>
-        </select>`;
+      : `<div style="position:relative;">
+          <select id="vsSelect_${realIdx}" onchange="setVisitStatusFromSelect(${realIdx},this.value)"
+            style="width:100%;padding:7px 30px 7px 8px;border-radius:10px;border:2px solid;font-size:12px;font-weight:700;font-family:Tajawal,sans-serif;cursor:pointer;direction:rtl;appearance:none;-webkit-appearance:none;${_vsSel(vs)}">
+            <option value="" ${vs===''?'selected':''}>— اختر —</option>
+            <option value="done" ${vs==='done'?'selected':''}>✅ تمت</option>
+            <option value="cancelled" ${vs==='cancelled'?'selected':''}>⚠️ ألغيت</option>
+          </select>
+          <span style="position:absolute;left:8px;top:50%;transform:translateY(-50%);pointer-events:none;font-size:14px;color:#374151;">▼</span>
+        </div>`;
 
     const contentSel = guest
       ? `<div style="font-size:12px;font-weight:700;${cs==='published'?'color:#92400e;':cs==='unpublished'?'color:#6d28d9;':'color:#64748b;'}">${cs==='published'?'🌟 تم النشر':cs==='unpublished'?'🟣 لم يتم':'—'}</div>`
-      : `<select id="csSelect_${realIdx}" onchange="setContentStatusFromSelect(${realIdx},this.value)"
-          style="width:100%;padding:6px 8px;border-radius:10px;border:1.5px solid;font-size:12px;font-weight:700;font-family:Tajawal,sans-serif;cursor:pointer;direction:rtl;appearance:none;-webkit-appearance:none;${_csSel(cs)}">
-          <option value="" ${cs===''?'selected':''}>— اختر —</option>
-          <option value="published" ${cs==='published'?'selected':''}>🌟 تم النشر</option>
-          <option value="unpublished" ${cs==='unpublished'?'selected':''}>🟣 لم يتم</option>
-        </select>`;
+      : `<div style="position:relative;">
+          <select id="csSelect_${realIdx}" onchange="setContentStatusFromSelect(${realIdx},this.value)"
+            style="width:100%;padding:7px 30px 7px 8px;border-radius:10px;border:2px solid;font-size:12px;font-weight:700;font-family:Tajawal,sans-serif;cursor:pointer;direction:rtl;appearance:none;-webkit-appearance:none;${_csSel(cs)}">
+            <option value="" ${cs===''?'selected':''}>— اختر —</option>
+            <option value="published" ${cs==='published'?'selected':''}>🌟 تم النشر</option>
+            <option value="unpublished" ${cs==='unpublished'?'selected':''}>🟣 لم يتم</option>
+          </select>
+          <span style="position:absolute;left:8px;top:50%;transform:translateY(-50%);pointer-events:none;font-size:14px;color:#374151;">▼</span>
+        </div>`;
 
     return `<tr id="rrow_${realIdx}" style="background:${bg};border-right:5px solid ${bc};transition:background .2s;">
       <td style="text-align:center;font-weight:900;color:${thBg};font-size:14px;padding:10px 8px;">${i+1}</td>
@@ -4557,7 +4618,8 @@ function openGuestReadOnlyReport() {
       </td>
       <td style="text-align:center;padding:10px 8px;">${gLabel}</td>
       <td style="text-align:center;padding:10px 8px;">${natLabel}</td>
-      <td style="padding:10px 10px;min-width:100px;">${phoneHtml}</td>
+      <td style="padding:10px 10px;min-width:95px;">${phoneHtml}</td>
+      <td style="padding:10px 10px;min-width:90px;">${civilHtml}</td>
       <td style="padding:10px 10px;min-width:90px;">${socialsCell}</td>
       <td style="padding:10px 10px;min-width:100px;text-align:center;">
         <div id="svcDisplay_${realIdx}" style="margin-bottom:4px;">${svcLabel}</div>
@@ -4567,9 +4629,9 @@ function openGuestReadOnlyReport() {
         <div style="font-weight:700;color:${thBg};font-size:13px;margin-bottom:4px;">${dateStr}</div>
         ${!guest?`<button onclick="openInlineDate(${realIdx},this,event)" style="padding:4px 12px;border-radius:8px;border:1px solid #dc2626;background:#fff;color:#dc2626;font-size:11px;font-weight:700;cursor:pointer;font-family:Tajawal,sans-serif;">تعديل</button>`:''}
       </td>
-      <td style="padding:6px 8px;min-width:115px;" class="no-print">${visitSel}</td>
-      <td style="padding:6px 8px;min-width:125px;" class="no-print">${contentSel}</td>
-      <td style="padding:6px 8px;min-width:135px;">${sigCell}</td>
+      <td style="padding:6px 8px;min-width:130px;" class="no-print">${visitSel}</td>
+      <td style="padding:6px 8px;min-width:130px;" class="no-print">${contentSel}</td>
+      <td style="padding:6px 8px;min-width:180px;">${sigCell}</td>
     </tr>`;
   }).join('');
 
@@ -4605,13 +4667,14 @@ function openGuestReadOnlyReport() {
                 <th style="background:${thBg};color:#fff;padding:10px 12px;font-size:12px;font-weight:700;text-align:right;min-width:110px;">الاسم</th>
                 <th style="background:${thBg};color:#fff;padding:10px 8px;font-size:12px;font-weight:700;text-align:center;">الجنس</th>
                 <th style="background:${thBg};color:#fff;padding:10px 8px;font-size:12px;font-weight:700;text-align:center;">الجنسية</th>
-                <th style="background:${thBg};color:#fff;padding:10px 10px;font-size:12px;font-weight:700;text-align:right;">الموبايل / المدني</th>
-                <th style="background:${thBg};color:#fff;padding:10px 10px;font-size:12px;font-weight:700;text-align:right;">السوشيال</th>
+                <th style="background:${thBg};color:#fff;padding:10px 10px;font-size:12px;font-weight:700;text-align:right;min-width:95px;">الموبايل</th>
+                <th style="background:${thBg};color:#fff;padding:10px 10px;font-size:12px;font-weight:700;text-align:right;min-width:90px;">الرقم المدني</th>
+                <th style="background:${thBg};color:#fff;padding:10px 10px;font-size:12px;font-weight:700;text-align:right;min-width:90px;">السوشيال</th>
                 <th style="background:${thBg};color:#fff;padding:10px 10px;font-size:12px;font-weight:700;text-align:center;">الخدمة</th>
                 <th style="background:${thBg};color:#fff;padding:10px 10px;font-size:12px;font-weight:700;text-align:center;">الموعد</th>
-                <th style="background:${thBg};color:#fff;padding:10px 8px;font-size:12px;font-weight:700;text-align:center;" class="no-print">حالة الزيارة</th>
-                <th style="background:${thBg};color:#fff;padding:10px 8px;font-size:12px;font-weight:700;text-align:center;" class="no-print">حالة المحتوى</th>
-                <th style="background:${thBg};color:#fff;padding:10px 8px;font-size:12px;font-weight:700;text-align:center;border-radius:0 10px 10px 0;">توقيع المؤثر</th>
+                <th style="background:${thBg};color:#fff;padding:10px 8px;font-size:12px;font-weight:700;text-align:center;min-width:130px;" class="no-print">حالة الزيارة</th>
+                <th style="background:${thBg};color:#fff;padding:10px 8px;font-size:12px;font-weight:700;text-align:center;min-width:130px;" class="no-print">حالة المحتوى</th>
+                <th style="background:${thBg};color:#fff;padding:10px 8px;font-size:12px;font-weight:700;text-align:center;min-width:180px;border-radius:0 10px 10px 0;">توقيع المؤثر</th>
               </tr>
             </thead>
             <tbody>${rows}</tbody>
