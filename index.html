@@ -1175,6 +1175,12 @@ async function tryLoadFirebase() {
                 const dupNew = [];
                 for(const incoming of brandNew) {
                   const dup = findDuplicate(incoming);
+                  // normalize gender قبل الإضافة
+                  if(incoming.gender && incoming.gender !== 'm' && incoming.gender !== 'f') {
+                    const g = incoming.gender.trim().toLowerCase();
+                    if(['أنثى','انثى','female'].includes(g)) incoming.gender = 'f';
+                    else if(['ذكر','male'].includes(g)) incoming.gender = 'm';
+                  }
                   if(!dup) {
                     cleanNew.push(incoming);
                   } else {
@@ -1185,6 +1191,14 @@ async function tryLoadFirebase() {
                   if(!i.addedAt) i.addedAt = serverNow();
                   if(!i._uid) i._uid = genUID();
                   i.autoAdded = true;
+                  // normalize gender — الفورم بيبعته "ذكر"/"أنثى" نص عربي
+                  if(i.gender && i.gender !== 'm' && i.gender !== 'f') {
+                    const g = i.gender.trim().toLowerCase();
+                    if(['أنثى','انثى','female'].includes(g)) i.gender = 'f';
+                    else if(['ذكر','male'].includes(g)) i.gender = 'm';
+                  }
+                  // normalize nationality
+                  if(i.nationality) { const n = normalizeNationality(i.nationality); if(n) i.nationality = n; }
                   return i;
                 });
                 _bulkPending = dupNew;
