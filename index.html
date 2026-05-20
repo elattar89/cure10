@@ -3617,16 +3617,15 @@ function buildSocialsHtml(item) {
   let s='';
   function shortHandle(val){
     if(!val) return '';
-    // استخرج الـ handle من الرابط أو @username
     val = val.trim();
-    // رابط انستاجرام / تيك توك / سناب
+    // رابط يحتوي على اسم الحساب
     let m = val.match(/(?:instagram\.com|tiktok\.com|snapchat\.com\/add)\/([^/?&#\s]+)/i);
     if(m) return '@'+m[1];
-    // @ username مباشرة
+    // أي رابط عام — خذ آخر جزء من الـ path
+    try { const u=new URL(val); const parts=u.pathname.replace(/\/$/,'').split('/').filter(Boolean); const last=parts[parts.length-1]; if(last) return '@'+last; } catch(e){}
+    // @ username مباشرة أو نص عادي
     if(val.startsWith('@')) return val;
-    // رابط عام — خذ آخر جزء من الـ path
-    try { const u=new URL(val); const parts=u.pathname.replace(/\/$/,'').split('/'); const last=parts[parts.length-1]; if(last) return '@'+last; } catch(e){}
-    return val;
+    return '@'+val;
   }
   if(item.ig){const u=item.ig_url&&item.ig_url.startsWith('http')?item.ig_url:'https://www.instagram.com/'+item.ig.replace('@','');const h=shortHandle(item.ig||item.ig_url);s+=`<a href="${u}" target="_blank" style="display:flex;align-items:center;gap:4px;margin-bottom:2px;text-decoration:none;">${igSVG_rpt}<span style="color:#c13584;font-size:12px;font-weight:700;">${h}</span></a>`;}
   if(item.tt){const u=item.tt_url&&item.tt_url.startsWith('http')?item.tt_url:'https://www.tiktok.com/'+item.tt;const h=shortHandle(item.tt||item.tt_url);s+=`<a href="${u}" target="_blank" style="display:flex;align-items:center;gap:4px;margin-bottom:2px;text-decoration:none;">${ttSVG_rpt}<span style="color:#333;font-size:12px;font-weight:700;">${h}</span></a>`;}
@@ -3817,17 +3816,17 @@ function openStatusReport(type) {
   if(isApproved) {
     // helper: row left-border color + row bg
     function _rowBorderColor(vs,cs){
-      if(cs==='published') return '#ca8a04';
-      if(cs==='unpublished') return '#7c3aed';
-      if(vs==='done') return '#16a34a';
-      if(vs==='cancelled') return '#dc2626';
-      return '#e2e8f0';
+      if(cs==='published') return '#92400e';
+      if(cs==='unpublished') return '#5b21b6';
+      if(vs==='done') return '#15803d';
+      if(vs==='cancelled') return '#b91c1c';
+      return '#cbd5e1';
     }
     function _rowBg(vs,cs){
-      if(cs==='published') return '#fffbeb';
-      if(cs==='unpublished') return '#faf5ff';
-      if(vs==='done') return '#f0fdf4';
-      if(vs==='cancelled') return '#fff7f7';
+      if(cs==='published') return '#fef3c7';
+      if(cs==='unpublished') return '#ede9fe';
+      if(vs==='done') return '#bbf7d0';
+      if(vs==='cancelled') return '#fecaca';
       return '#ffffff';
     }
     // helper: status label under name
@@ -3895,25 +3894,26 @@ function openStatusReport(type) {
           </div>
           <div class="sig-print-line no-print-hide" style="display:none;height:60px;border-bottom:1.5px solid #374151;margin:4px 0;"></div>`;
 
-      return `<tr id="rrow_${realIdx}" style="background:${bg};border-right:5px solid ${bc};transition:background .2s;">
+      const tdS='border-left:1px solid rgba(0,0,0,0.07);';
+      return `<tr id="rrow_${realIdx}" style="background:${bg};border-right:5px solid ${bc};transition:all .2s;box-shadow:0 3px 8px rgba(0,0,0,0.10),0 1px 3px rgba(0,0,0,0.08);outline:1px solid rgba(0,0,0,0.06);">
         <td style="text-align:center;font-weight:900;color:${thBg};font-size:14px;padding:10px 8px;min-width:32px;">${i+1}</td>
-        <td style="padding:10px 10px;min-width:110px;">
+        <td style="padding:10px 10px;min-width:110px;${tdS}">
           <div onclick="showApptCard(${realIdx})" style="font-weight:900;font-size:13px;color:#0a3d62;cursor:pointer;line-height:1.4;">${name}</div>
           ${stLbl?`<div style="margin-top:3px;">${stLbl}</div>`:''}
         </td>
-        <td style="text-align:center;padding:10px 8px;">${gLabel}</td>
-        <td style="text-align:center;padding:10px 8px;">${natLabel}</td>
-        <td style="padding:10px 10px;min-width:95px;">${phoneHtml}</td>
-        <td style="padding:10px 10px;min-width:90px;">${civilHtml}</td>
-        <td style="padding:10px 10px;min-width:100px;"><div style="display:flex;flex-direction:column;gap:3px;">${socialsHtml}</div></td>
-        <td style="padding:10px 10px;min-width:100px;text-align:center;">
+        <td style="text-align:center;padding:10px 8px;${tdS}">${gLabel}</td>
+        <td style="text-align:center;padding:10px 8px;${tdS}">${natLabel}</td>
+        <td style="padding:10px 10px;min-width:95px;${tdS}">${phoneHtml}</td>
+        <td style="padding:10px 10px;min-width:90px;${tdS}">${civilHtml}</td>
+        <td style="padding:10px 10px;min-width:100px;${tdS}"><div style="display:flex;flex-direction:column;gap:3px;">${socialsHtml}</div></td>
+        <td style="padding:10px 10px;min-width:100px;text-align:center;${tdS}">
           <div id="rptSvcBtn_${realIdx}" style="display:flex;flex-direction:column;align-items:center;gap:4px;">
             <div>${svcLabel}</div>
             <button onclick="openServicePopupFromReport(${realIdx},event)" class="no-print" title="تعديل الخدمة" style="padding:4px 12px;border-radius:8px;border:1px solid #7c3aed;background:#f3e8ff;color:#7c3aed;font-size:11px;font-weight:700;cursor:pointer;font-family:Tajawal,sans-serif;margin-top:2px;">تعديل</button>
           </div>
         </td>
-        <td style="padding:10px 10px;min-width:110px;text-align:center;font-weight:700;color:${thBg};font-size:13px;">${dateStr}</td>
-        <td style="padding:6px 8px;min-width:130px;" class="no-print">
+        <td style="padding:10px 10px;min-width:110px;text-align:center;font-weight:700;color:${thBg};font-size:13px;${tdS}">${dateStr}</td>
+        <td style="padding:6px 8px;min-width:130px;border-left:1px solid rgba(0,0,0,0.07);" class="no-print">
           <div style="position:relative;">
             <select id="vsSelect_${realIdx}" onchange="setVisitStatusFromSelect(${realIdx},this.value)"
               style="width:100%;padding:7px 30px 7px 8px;border-radius:10px;border:2px solid;font-size:12px;font-weight:700;font-family:Tajawal,sans-serif;cursor:pointer;direction:rtl;appearance:none;-webkit-appearance:none;${_vsSel(vs)}">
@@ -3924,7 +3924,7 @@ function openStatusReport(type) {
             <span style="position:absolute;left:8px;top:50%;transform:translateY(-50%);pointer-events:none;font-size:14px;color:#374151;">▼</span>
           </div>
         </td>
-        <td style="padding:6px 8px;min-width:130px;" class="no-print">
+        <td style="padding:6px 8px;min-width:130px;border-left:1px solid rgba(0,0,0,0.07);" class="no-print">
           <div style="position:relative;">
             <select id="csSelect_${realIdx}" onchange="setContentStatusFromSelect(${realIdx},this.value)"
               style="width:100%;padding:7px 30px 7px 8px;border-radius:10px;border:2px solid;font-size:12px;font-weight:700;font-family:Tajawal,sans-serif;cursor:pointer;direction:rtl;appearance:none;-webkit-appearance:none;${_csSel(cs)}">
@@ -3935,7 +3935,7 @@ function openStatusReport(type) {
             <span style="position:absolute;left:8px;top:50%;transform:translateY(-50%);pointer-events:none;font-size:14px;color:#374151;">▼</span>
           </div>
         </td>
-        <td style="padding:6px 8px;min-width:160px;">${sigHtml}</td>
+        <td style="padding:6px 8px;min-width:160px;border-left:1px solid rgba(0,0,0,0.07);">${sigHtml}</td>
       </tr>`;
     }).join('');
 
@@ -3969,7 +3969,7 @@ function openStatusReport(type) {
         <div style="padding:1.2rem 1rem;">
           ${legendHtml}
           <div style="width:100%;overflow-x:auto;border-radius:14px;box-shadow:0 2px 16px rgba(0,0,0,.07);">
-            <table style="width:100%;border-collapse:separate;border-spacing:0 6px;background:transparent;min-width:900px;direction:rtl;">
+            <table style="width:100%;border-collapse:separate;border-spacing:0 8px;background:transparent;min-width:900px;direction:rtl;">
               <thead>
                 <tr style="background:transparent;">
                   <th style="background:${thBg};color:#fff;padding:10px 8px;font-size:12px;font-weight:700;text-align:center;border-radius:10px 0 0 10px;width:36px;">#</th>
@@ -4505,17 +4505,17 @@ function openGuestReadOnlyReport() {
   const today = new Date().toLocaleDateString('ar-KW',{year:'numeric',month:'long',day:'numeric'});
 
   function _rowBorderColor(vs,cs){
-    if(cs==='published') return '#ca8a04';
-    if(cs==='unpublished') return '#7c3aed';
-    if(vs==='done') return '#16a34a';
-    if(vs==='cancelled') return '#dc2626';
-    return '#e2e8f0';
+    if(cs==='published') return '#92400e';
+    if(cs==='unpublished') return '#5b21b6';
+    if(vs==='done') return '#15803d';
+    if(vs==='cancelled') return '#b91c1c';
+    return '#cbd5e1';
   }
   function _rowBg(vs,cs){
-    if(cs==='published') return '#fffbeb';
-    if(cs==='unpublished') return '#faf5ff';
-    if(vs==='done') return '#f0fdf4';
-    if(vs==='cancelled') return '#fff7f7';
+    if(cs==='published') return '#fef3c7';
+    if(cs==='unpublished') return '#ede9fe';
+    if(vs==='done') return '#bbf7d0';
+    if(vs==='cancelled') return '#fecaca';
     return '#ffffff';
   }
   function _statusLabel(vs,cs){
@@ -4610,28 +4610,29 @@ function openGuestReadOnlyReport() {
           <span style="position:absolute;left:8px;top:50%;transform:translateY(-50%);pointer-events:none;font-size:14px;color:#374151;">▼</span>
         </div>`;
 
-    return `<tr id="rrow_${realIdx}" style="background:${bg};border-right:5px solid ${bc};transition:background .2s;">
+    const tdSep='border-left:1px solid rgba(0,0,0,0.07);';
+    return `<tr id="rrow_${realIdx}" style="background:${bg};border-right:5px solid ${bc};transition:all .2s;box-shadow:0 3px 8px rgba(0,0,0,0.10),0 1px 3px rgba(0,0,0,0.08);outline:1px solid rgba(0,0,0,0.06);margin-bottom:6px;">
       <td style="text-align:center;font-weight:900;color:${thBg};font-size:14px;padding:10px 8px;">${i+1}</td>
-      <td style="padding:10px 10px;min-width:110px;">
+      <td style="padding:10px 10px;min-width:110px;${tdSep}">
         <div ${!guest?`onclick="showApptCard(${realIdx})" style="font-weight:900;font-size:13px;color:#0a3d62;cursor:pointer;line-height:1.4;"`:' style="font-weight:900;font-size:13px;color:#0a3d62;line-height:1.4;"'}>${name}</div>
         ${stLbl?`<div style="margin-top:3px;">${stLbl}</div>`:''}
       </td>
-      <td style="text-align:center;padding:10px 8px;">${gLabel}</td>
-      <td style="text-align:center;padding:10px 8px;">${natLabel}</td>
-      <td style="padding:10px 10px;min-width:95px;">${phoneHtml}</td>
-      <td style="padding:10px 10px;min-width:90px;">${civilHtml}</td>
-      <td style="padding:10px 10px;min-width:90px;">${socialsCell}</td>
-      <td style="padding:10px 10px;min-width:100px;text-align:center;">
+      <td style="text-align:center;padding:10px 8px;${tdSep}">${gLabel}</td>
+      <td style="text-align:center;padding:10px 8px;${tdSep}">${natLabel}</td>
+      <td style="padding:10px 10px;min-width:95px;${tdSep}">${phoneHtml}</td>
+      <td style="padding:10px 10px;min-width:90px;${tdSep}">${civilHtml}</td>
+      <td style="padding:10px 10px;min-width:90px;${tdSep}">${socialsCell}</td>
+      <td style="padding:10px 10px;min-width:100px;text-align:center;${tdSep}">
         <div id="svcDisplay_${realIdx}" style="margin-bottom:4px;">${svcLabel}</div>
         ${!guest?`<button onclick="openInlineSvc(${realIdx},this,event)" style="padding:4px 12px;border-radius:8px;border:1px solid #dc2626;background:#fff;color:#dc2626;font-size:11px;font-weight:700;cursor:pointer;font-family:Tajawal,sans-serif;">تعديل</button>`:''}
       </td>
-      <td style="padding:10px 10px;min-width:110px;text-align:center;">
+      <td style="padding:10px 10px;min-width:110px;text-align:center;${tdSep}">
         <div style="font-weight:700;color:${thBg};font-size:13px;margin-bottom:4px;">${dateStr}</div>
         ${!guest?`<button onclick="openInlineDate(${realIdx},this,event)" style="padding:4px 12px;border-radius:8px;border:1px solid #dc2626;background:#fff;color:#dc2626;font-size:11px;font-weight:700;cursor:pointer;font-family:Tajawal,sans-serif;">تعديل</button>`:''}
       </td>
-      <td style="padding:6px 8px;min-width:130px;" class="no-print">${visitSel}</td>
-      <td style="padding:6px 8px;min-width:130px;" class="no-print">${contentSel}</td>
-      <td style="padding:6px 8px;min-width:180px;">${sigCell}</td>
+      <td style="padding:6px 8px;min-width:130px;${tdSep}" class="no-print">${visitSel}</td>
+      <td style="padding:6px 8px;min-width:130px;${tdSep}" class="no-print">${contentSel}</td>
+      <td style="padding:6px 8px;min-width:180px;${tdSep}">${sigCell}</td>
     </tr>`;
   }).join('');
 
@@ -4660,7 +4661,7 @@ function openGuestReadOnlyReport() {
       <div style="padding:1.2rem 1rem;">
         ${legendHtml}
         <div style="width:100%;overflow-x:auto;border-radius:14px;box-shadow:0 2px 16px rgba(0,0,0,.07);">
-          <table style="width:100%;border-collapse:separate;border-spacing:0 6px;background:transparent;min-width:950px;direction:rtl;">
+          <table style="width:100%;border-collapse:separate;border-spacing:0 8px;background:transparent;min-width:950px;direction:rtl;">
             <thead>
               <tr>
                 <th style="background:${thBg};color:#fff;padding:10px 8px;font-size:12px;font-weight:700;text-align:center;border-radius:10px 0 0 10px;width:36px;">#</th>
