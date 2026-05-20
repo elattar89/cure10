@@ -81,6 +81,7 @@ body{font-family:'Tajawal',sans-serif;direction:rtl;background:#0d1117;color:#e6
 .phone-popup-overlay{position:fixed;inset:0;z-index:1000;background:rgba(0,0,0,.5);display:flex;align-items:flex-end;justify-content:center;padding-bottom:env(safe-area-inset-bottom,0);}
 .phone-popup{background:#1c2128;border-radius:20px 20px 0 0;padding:1.2rem 1rem 1.4rem;width:100%;max-width:420px;animation:slideUp .2s ease;}
 @keyframes slideUp{from{transform:translateY(100%);}to{transform:translateY(0);}}
+@keyframes fadeIn{from{opacity:0;transform:scale(0.95);}to{opacity:1;transform:scale(1);}}
 .phone-popup-name{font-size:13px;color:#8b949e;text-align:center;margin-bottom:.3rem;}
 .phone-popup-num{font-size:20px;font-weight:900;color:#e6edf3;text-align:center;direction:ltr;margin-bottom:1rem;letter-spacing:1px;}
 .phone-popup-btns{display:grid;grid-template-columns:1fr 1fr;gap:.7rem;}
@@ -114,9 +115,9 @@ body{font-family:'Tajawal',sans-serif;direction:rtl;background:#0d1117;color:#e6
 .modal-save{flex:2;padding:10px;border-radius:9px;border:none;background:#1a6fa8;color:#fff;font-size:13px;font-weight:700;cursor:pointer;font-family:'Tajawal',sans-serif;}
 .bulk-hint{background:#21262d;border-radius:8px;padding:.7rem;font-size:11px;color:#8b949e;margin-bottom:.8rem;line-height:1.7;}
 .bulk-textarea{width:100%;height:180px;background:#21262d;border:1px solid #30363d;border-radius:9px;color:#e6edf3;font-size:12px;font-family:'Tajawal',sans-serif;padding:.7rem;resize:vertical;direction:rtl;}
-.service-popup{position:fixed;inset:0;z-index:4000;background:rgba(0,0,0,.55);display:none;align-items:flex-end;justify-content:center;}
+.service-popup{position:fixed;inset:0;z-index:4000;background:rgba(0,0,0,.55);display:none;align-items:center;justify-content:center;}
 .service-popup.open{display:flex;}
-.service-popup-inner{background:#1c2128;border-radius:20px 20px 0 0;padding:1.2rem 1rem 1.5rem;width:100%;max-width:440px;animation:slideUp .2s ease;}
+.service-popup-inner{background:#1c2128;border-radius:16px;padding:1.2rem 1rem 1.5rem;width:100%;max-width:440px;animation:fadeIn .2s ease;}
 .service-option{display:flex;align-items:center;gap:10px;padding:.75rem 1rem;border-radius:10px;cursor:pointer;font-size:15px;transition:background .15s;margin-bottom:4px;}
 .service-option:hover{background:#21262d;}
 .service-option.checked{background:#1a1040;color:#c084fc;}
@@ -494,9 +495,9 @@ body{font-family:'Tajawal',sans-serif;direction:rtl;background:#0d1117;color:#e6
 
 <!-- Appt Card Popup -->
 <div id="apptCardOverlay" style="display:none;position:fixed;inset:0;z-index:3000;background:rgba(0,0,0,0.7);align-items:center;justify-content:center;padding:1rem;" onclick="if(event.target===this)closeApptCard()">
-  <div style="max-width:480px;width:100%;position:relative;max-height:90vh;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;" onclick="event.stopPropagation()">
-    <button onclick="closeApptCard()" style="position:absolute;top:-14px;left:-14px;z-index:10;width:34px;height:34px;border-radius:50%;border:2px solid #fff;background:#dc2626;color:#fff;font-size:18px;cursor:pointer;font-weight:900;line-height:1;box-shadow:0 2px 8px rgba(0,0,0,.5);">✕</button>
-    <div id="apptCardContent"></div>
+  <div style="max-width:480px;width:100%;position:relative;max-height:90vh;display:flex;flex-direction:column;" onclick="event.stopPropagation()">
+    <div id="apptCardContent" style="overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;border-radius:14px;"></div>
+    <button onclick="closeApptCard()" style="margin-top:10px;width:100%;padding:10px;border-radius:12px;border:2px solid #dc2626;background:#1a0808;color:#f87171;font-size:14px;font-weight:700;cursor:pointer;font-family:Tajawal,sans-serif;">✕ إغلاق</button>
   </div>
 </div>
 
@@ -806,9 +807,116 @@ const NATIONALITIES = [
   'أخرى'
 ];
 
+// جدول تحويل شامل لكل الصيغ الممكنة → القيمة الصحيحة في القائمة
+const NAT_NORMALIZE = {
+  // كويت
+  'كويت':'كويتي','الكويت':'كويتي','kuwait':'كويتي','kuwaiti':'كويتي',
+  // بدون
+  'بدون جنسية':'بدون','stateless':'بدون',
+  // سعودية
+  'سعودية':'سعودي','السعودية':'سعودي','saudi':'سعودي','saudi arabia':'سعودي','سعودياً':'سعودي',
+  // إمارات
+  'إمارات':'إماراتي','الإمارات':'إماراتي','uae':'إماراتي','emirati':'إماراتي','امارات':'إماراتي','إماراتية':'إماراتي',
+  // بحرين
+  'بحرين':'بحريني','البحرين':'بحريني','bahrain':'بحريني','bahraini':'بحريني',
+  // قطر
+  'قطر':'قطري','qatar':'قطري','qatari':'قطري',
+  // عمان
+  'عمان':'عماني','سلطنة عمان':'عماني','oman':'عماني','omani':'عماني',
+  // مصر
+  'مصر':'مصري','مصرية':'مصري','egypt':'مصري','egyptian':'مصري',
+  // أردن
+  'أردن':'أردني','الأردن':'أردني','أردنية':'أردني','jordan':'أردني','jordanian':'أردني',
+  // لبنان
+  'لبنان':'لبناني','لبنانية':'لبناني','lebanon':'لبناني','lebanese':'لبناني',
+  // سوريا
+  'سوريا':'سوري','سورية':'سوري','سوريه':'سوري','syria':'سوري','syrian':'سوري',
+  // عراق
+  'عراق':'عراقي','العراق':'عراقي','عراقية':'عراقي','iraq':'عراقي','iraqi':'عراقي',
+  // يمن
+  'يمن':'يمني','اليمن':'يمني','يمنية':'يمني','yemen':'يمني','yemeni':'يمني',
+  // فلسطين
+  'فلسطين':'فلسطيني','فلسطينية':'فلسطيني','palestine':'فلسطيني','palestinian':'فلسطيني',
+  // سودان
+  'سودان':'سوداني','السودان':'سوداني','سودانية':'سوداني','sudan':'سوداني','sudanese':'سوداني',
+  // ليبيا
+  'ليبيا':'ليبي','ليبية':'ليبي','libya':'ليبي','libyan':'ليبي',
+  // تونس
+  'تونس':'تونسي','تونسية':'تونسي','tunisia':'تونسي','tunisian':'تونسي',
+  // مغرب
+  'مغرب':'مغربي','المغرب':'مغربي','مغربية':'مغربي','morocco':'مغربي','moroccan':'مغربي',
+  // جزائر
+  'جزائر':'جزائري','الجزائر':'جزائري','جزائرية':'جزائري','algeria':'جزائري','algerian':'جزائري',
+  // باكستان
+  'باكستان':'باكستاني','باكستانية':'باكستاني','pakistan':'باكستاني','pakistani':'باكستاني',
+  // هند
+  'هند':'هندي','الهند':'هندي','هندية':'هندي','india':'هندي','indian':'هندي',
+  // بنغلاديش
+  'بنغلاديش':'بنغلاديشي','bangladesh':'بنغلاديشي','bangladeshi':'بنغلاديشي',
+  // فلبين
+  'فلبين':'فلبيني','الفلبين':'فلبيني','فلبينية':'فلبيني','philippines':'فلبيني','filipino':'فلبيني',
+  // إندونيسيا
+  'إندونيسيا':'إندونيسي','اندونيسيا':'إندونيسي','indonesia':'إندونيسي','indonesian':'إندونيسي',
+  // سريلانكا
+  'سريلانكا':'سريلانكي','sri lanka':'سريلانكي','srilankan':'سريلانكي',
+  // أمريكا
+  'أمريكا':'أمريكي','امريكا':'أمريكي','الولايات المتحدة':'أمريكي','usa':'أمريكي','american':'أمريكي','united states':'أمريكي',
+  // بريطانيا
+  'بريطانيا':'بريطاني','المملكة المتحدة':'بريطاني','uk':'بريطاني','british':'بريطاني','united kingdom':'بريطاني',
+  // كندا
+  'كندا':'كندي','canada':'كندي','canadian':'كندي',
+  // أستراليا
+  'أستراليا':'أسترالي','استراليا':'أسترالي','australia':'أسترالي','australian':'أسترالي',
+  // فرنسا
+  'فرنسا':'فرنسي','فرنسية':'فرنسي','france':'فرنسي','french':'فرنسي',
+  // ألمانيا
+  'ألمانيا':'ألماني','المانيا':'ألماني','germany':'ألماني','german':'ألماني',
+  // تركيا
+  'تركيا':'تركي','تركية':'تركي','turkey':'تركي','turkish':'تركي',
+  // إيران
+  'إيران':'إيراني','ايران':'إيراني','إيرانية':'إيراني','iran':'إيراني','iranian':'إيراني',
+  // أفغانستان
+  'أفغانستان':'أفغاني','افغانستان':'أفغاني','afghanistan':'أفغاني','afghan':'أفغاني',
+  // إثيوبيا
+  'إثيوبيا':'إثيوبي','اثيوبيا':'إثيوبي','ethiopia':'إثيوبي','ethiopian':'إثيوبي',
+  // كينيا
+  'كينيا':'كيني','kenya':'كيني','kenyan':'كيني',
+  // أخرى
+  'other':'أخرى','أخري':'أخرى','اخرى':'أخرى','غير ذلك':'أخرى',
+  // غير محدد الجنسية — بيجي من الفورم
+  'غير محدد الجنسية':'أخرى','غير محدد':'أخرى','غير_محدد':'أخرى',
+  'stateless':'بدون','بدون جنسية':'بدون',
+  // أردن بدون همزة
+  'الاردن':'أردني','اردن':'أردني','اردني':'أردني',
+  // لبنان
+  'لبناني':'لبناني',
+  // العراق بدون ال
+  'عراق':'عراقي',
+  // india إنجليزي
+  'india':'هندي','indian':'هندي',
+};
+
+function normalizeNationality(raw) {
+  if(!raw) return '';
+  const trimmed = raw.trim();
+  // مطابقة مباشرة في القائمة
+  if(NATIONALITIES.includes(trimmed)) return trimmed;
+  const key = trimmed.toLowerCase();
+  // مطابقة من جدول التحويل (lowercase)
+  if(NAT_NORMALIZE[key]) return NAT_NORMALIZE[key];
+  // مطابقة من جدول التحويل (as-is)
+  if(NAT_NORMALIZE[trimmed]) return NAT_NORMALIZE[trimmed];
+  // غير محدد الجنسية — أي نص فيه "غير محدد"
+  if(trimmed.includes('غير محدد')) return 'أخرى';
+  // بحث جزئي كـ fallback
+  const found = NATIONALITIES.find(n => n.includes(trimmed) || trimmed.includes(n));
+  return found || trimmed;
+}
+
 function buildNationalityOptions(selected) {
+  const norm = normalizeNationality(selected);
   return `<option value="">— اختر الجنسية —</option>` +
-    NATIONALITIES.map(n => `<option value="${n}" ${n===selected?'selected':''}>${n}</option>`).join('');
+    NATIONALITIES.map(n => `<option value="${n}" ${n===norm?'selected':''}>${n}</option>`).join('');
 }
 
 function initNationalitySelects() {
@@ -932,10 +1040,21 @@ const LS_DELETED_KEY = 'cure_deleted_v18';
 let _isSaving = false;
 let _lastSaveTime = 0;
 
+// توليد ID فريد لكل مؤثر — بيتعمل مرة واحدة ومش بيتغير أبداً
+function genUID() {
+  return Date.now().toString(36) + Math.random().toString(36).substr(2,6);
+}
+function ensureUID(item) {
+  if(!item._uid) item._uid = genUID();
+  return item;
+}
+
 async function saveToStorage() {
   if(!influencers.length) return;
   _isSaving = true;
   _lastSaveTime = Date.now();
+  // تأكد كل شخص عنده _uid قبل الحفظ
+  influencers.forEach(ensureUID);
   try {
     const res = await Promise.race([
       fetch(`${DB_URL}/${DB_PATH}.json`, {
@@ -1014,15 +1133,42 @@ async function tryLoadFirebase() {
           const parsed = JSON.parse(val.data);
           if(Array.isArray(parsed) && parsed.length > 0) {
             if(influencers.length > 0) {
-              // Build a set of all local IDs/timestamps to detect what's new
+              const _cc = c => (c||'').replace(/[٠-٩]/g,d=>'٠١٢٣٤٥٦٧٨٩'.indexOf(d).toString()).replace(/\D/g,'');
+
+              // ── Step 1: Sync تعديلات الأجهزة التانية باستخدام _uid ──
+              // لو الجهاز التاني عمل تعديل، نشوفه بالـ _uid ونطبقه فوراً
+              if(!_isSaving) {
+                parsed.forEach(remote => {
+                  if(!remote._uid) return; // مفيش uid = قديم، مش نلمسه
+                  const local = influencers.find(i => i._uid === remote._uid);
+                  if(local) {
+                    if(local._pickingDate || local._editing) return;
+                    // قارن وقت آخر تعديل — الأحدث يفوز
+                    const remoteTime = remote._updatedAt || remote.addedAt || 0;
+                    const localTime  = local._updatedAt  || local.addedAt  || 0;
+                    if(remoteTime > localTime) {
+                      const keepUID = local._uid;
+                      Object.assign(local, remote);
+                      local._uid = keepUID;
+                    }
+                  }
+                });
+              }
+
+              // ── Step 2: اكتشاف الأشخاص الجدد فعلاً (مش موجودين بالـ _uid ولا بالبيانات) ──
+              const localUIDs = new Set(influencers.map(i => i._uid).filter(Boolean));
               const localKeys = new Set(influencers.map(i =>
-                [i.phone||'', i.ig||'', i.tt||'', i.snap||'', i.civil||'', i.name||''].join('|')
+                [normalizePhone(i.phone), normalizeIg(i.ig), (i.tt||'').replace('@','').toLowerCase().split('?')[0], normalizeSnap(i.snap), _cc(i.civil)].join('|')
               ));
-              // Find entries from Firebase that don't exist locally at all
               const brandNew = parsed.filter(incoming => {
-                const key = [incoming.phone||'', incoming.ig||'', incoming.tt||'', incoming.snap||'', incoming.civil||'', incoming.name||''].join('|');
-                return !localKeys.has(key);
+                // لو عنده _uid وموجود محلياً → مش جديد
+                if(incoming._uid && localUIDs.has(incoming._uid)) return false;
+                // لو بياناته موجودة (phone/ig/civil) → مش جديد
+                const key = [normalizePhone(incoming.phone), normalizeIg(incoming.ig), (incoming.tt||'').replace('@','').toLowerCase().split('?')[0], normalizeSnap(incoming.snap), _cc(incoming.civil)].join('|');
+                if(localKeys.has(key)) return false;
+                return true;
               });
+
               if(brandNew.length > 0) {
                 const cleanNew = [];
                 const dupNew = [];
@@ -1034,10 +1180,11 @@ async function tryLoadFirebase() {
                     dupNew.push({item: incoming, dup});
                   }
                 }
-                _bulkClean = cleanNew.map(i => { 
-                  if(!i.addedAt) i.addedAt = serverNow(); 
-                  i.autoAdded = true; // دايماً
-                  return i; 
+                _bulkClean = cleanNew.map(i => {
+                  if(!i.addedAt) i.addedAt = serverNow();
+                  if(!i._uid) i._uid = genUID();
+                  i.autoAdded = true;
+                  return i;
                 });
                 _bulkPending = dupNew;
                 _bulkDecisions = {};
@@ -1047,29 +1194,12 @@ async function tryLoadFirebase() {
                   saveToStorage();
                   if(_bulkClean.length > 0) showToast('🆕 '+_bulkClean.length+' مؤثر جديد من الفورم', '#059669');
                 } else {
-                  // Show dup modal — admin must decide for each
                   renderBulkDupModal();
                   document.getElementById('dupBulkOverlay').classList.remove('hidden');
                   const h3 = document.querySelector('#dupBulkOverlay h3');
                   if(h3) h3.textContent = '⚠️ تسجيلات جديدة من الفورم — بعضها مكرر';
                 }
               }
-              // Sync updates from remote for existing influencers — بدون لمس addedAt وautoAdded
-              parsed.forEach(remote => {
-                // لو في حفظ حصل مؤخراً — ما نعملش overwrite من Firebase
-                if(_isSaving || (Date.now() - _lastSaveTime) < 15000) return;
-                const rKey = [remote.phone||'', remote.ig||'', remote.tt||'', remote.snap||'', remote.civil||'', remote.name||''].join('|');
-                const local = influencers.find(i => [i.phone||'', i.ig||'', i.tt||'', i.snap||'', i.civil||'', i.name||''].join('|') === rKey);
-                if(local) {
-                  if(local._pickingDate || local._editing) return;
-                  const keepAddedAt = local.addedAt;
-                  const keepAutoAdded = local.autoAdded;
-                  Object.assign(local, remote);
-                  if(keepAddedAt) local.addedAt = keepAddedAt;
-                  if(keepAutoAdded === true) local.autoAdded = true;
-                  else if(remote.autoAdded === true) local.autoAdded = true;
-                }
-              });
             } else {
               // First load — no local data yet
               influencers = parsed;
@@ -1112,9 +1242,14 @@ function showSaveIndicator() {
 }
 function saveFile(idx) {
   if(idx !== undefined && idx !== null) {
+    // نضيف _updatedAt عشان الأجهزة التانية تعرف إن في تعديل جديد
+    if(influencers[idx]) {
+      influencers[idx]._updatedAt = Date.now();
+      ensureUID(influencers[idx]);
+    }
     saveOneToFirebase(idx);
   } else {
-    // للعمليات الكبيرة زي الإضافة والحذف — لازم نحفظ كل البيانات
+    influencers.forEach(i => ensureUID(i));
     saveToStorage();
   }
 }
@@ -1122,6 +1257,7 @@ function migrateDialects() {
   if(!influencers.length) return;
   let changed = false;
   influencers.forEach(item => {
+    // ── migrate dialects ──
     const currentDialects = item.dialects || [];
     const isOnlyForeign = currentDialects.length === 1 && currentDialects[0] === 'أجنبي';
     const isEmpty = currentDialects.length === 0;
@@ -1132,9 +1268,22 @@ function migrateDialects() {
       const d = getAutoDialect(item.nationality || '');
       if(d) { item.dialects = [d]; changed = true; }
     }
+    // ── normalize gender — لو محفوظ كـ "أنثى" أو "female" بدل "f" ──
+    if(item.gender && item.gender !== 'm' && item.gender !== 'f') {
+      const g = item.gender.toLowerCase();
+      if(['أنثى','انثى','female'].includes(g)) { item.gender = 'f'; changed = true; }
+      else if(['ذكر','male'].includes(g)) { item.gender = 'm'; changed = true; }
+    }
+    // ── normalize nationality — لو محفوظة كاسم دولة بدل الـ adjective ──
+    if(item.nationality) {
+      const norm = normalizeNationality(item.nationality);
+      if(norm && norm !== item.nationality) { item.nationality = norm; changed = true; }
+    }
   });
-  // نحفظ محلياً بس — مش على Firebase عشان منلوحش addedAt
-  if(changed) { try { localStorage.setItem(LS_KEY, JSON.stringify(influencers)); } catch(e) {} }
+  if(changed) {
+    try { localStorage.setItem(LS_KEY, JSON.stringify(influencers)); } catch(e) {}
+    saveToStorage(); // نحفظ على Firebase عشان كل الأجهزة تستفيد
+  }
 }
 
 function getInitial(item) {
@@ -1211,14 +1360,16 @@ function findDuplicate(newItem) {
   const nIg = normalizeIg(newItem.ig);
   const nTt = (newItem.tt||'').replace('@','').toLowerCase().trim().split('?')[0];
   const nSnap = normalizeSnap(newItem.snap);
-  const nCivil = (newItem.civil||'').replace(/\s/g,'').replace(/[٠-٩]/g, d=>'٠١٢٣٤٥٦٧٨٩'.indexOf(d).toString());
+  // تنظيف الرقم المدني — بيشيل spaces وأي حروف غير رقمية وعلامات ترقيم
+  function cleanCivil(c){ return (c||'').replace(/[٠-٩]/g,d=>'٠١٢٣٤٥٦٧٨٩'.indexOf(d).toString()).replace(/\D/g,''); }
+  const nCivil = cleanCivil(newItem.civil);
   for(let i=0;i<influencers.length;i++){
     const ex = influencers[i]; const reasons=[];
     if(nPhone && nPhone.length>=7 && normalizePhone(ex.phone)===nPhone) reasons.push('رقم الموبايل');
     if(nIg && nIg.length>2 && normalizeIg(ex.ig)===nIg) reasons.push('حساب انستاجرام');
     if(nTt && nTt.length>2 && (ex.tt||'').replace('@','').toLowerCase().trim().split('?')[0]===nTt) reasons.push('حساب تيك توك');
     if(nSnap && nSnap.length>3 && normalizeSnap(ex.snap)===nSnap) reasons.push('سناب شات');
-    if(nCivil && nCivil.length>=8 && (ex.civil||'').replace(/\s/g,'')===nCivil) reasons.push('الرقم المدني');
+    if(nCivil && nCivil.length>=8 && cleanCivil(ex.civil)===nCivil) reasons.push('الرقم المدني');
     if(reasons.length>0) return {idx:i,item:ex,reasons};
   }
   return null;
@@ -1990,6 +2141,8 @@ function addInfluencer() {
   if(dup){closeModal();showSingleDupWarning(newItem,dup);return;}
   getFirebaseTimestamp().then(ts => {
     newItem.addedAt = ts;
+    newItem._uid = genUID();
+    newItem._updatedAt = ts;
     influencers.push(newItem);
     renderGrid(); saveFile(); showToast('✅ تم إضافة المؤثر بنجاح!','#059669');
     updateStats(); updateDupReviewBtn();
@@ -2011,16 +2164,26 @@ function openEditModal(idx) {
   document.getElementById('eName').value=item.name||'';
   document.getElementById('ePhone').value=item.phone||'';
   document.getElementById('eCivil').value=item.civil||'';
-  document.getElementById('eNationality').innerHTML=buildNationalityOptions(item.nationality||'');
+
+  // normalize nationality — بيستخدم الجدول الشامل
+  const nat = normalizeNationality(item.nationality||'');
+  document.getElementById('eNationality').innerHTML=buildNationalityOptions(nat);
+
   document.getElementById('eIg').value=item.ig||'';
   document.getElementById('eTt').value=item.tt||'';
   document.getElementById('eSnap').value=item.snap||'';
+
+  // normalize gender — لو محفوظ كـ "أنثى" أو "female" بدل "f"
+  let gender = item.gender||'';
+  if(['أنثى','انثى','female','f'].includes(gender.toLowerCase())) gender='f';
+  else if(['ذكر','male','m'].includes(gender.toLowerCase())) gender='m';
+
   const base='flex:1;padding:9px;border-radius:9px;font-size:13px;cursor:pointer;font-family:Tajawal,sans-serif;transition:all .15s;';
   const mBtn=document.getElementById('eGenderM'); const fBtn=document.getElementById('eGenderF');
-  if(item.gender==='m'){
+  if(gender==='m'){
     mBtn.style.cssText=base+'background:#1a6fa8;color:#fff;border:1px solid #1a6fa8;'; mBtn.dataset.selected='1';
     fBtn.style.cssText=base+'background:#21262d;color:#8b949e;border:1px solid #30363d;'; fBtn.dataset.selected='0';
-  } else if(item.gender==='f'){
+  } else if(gender==='f'){
     fBtn.style.cssText=base+'background:#c026d3;color:#fff;border:1px solid #c026d3;'; fBtn.dataset.selected='1';
     mBtn.style.cssText=base+'background:#21262d;color:#8b949e;border:1px solid #30363d;'; mBtn.dataset.selected='0';
   } else {
@@ -2060,7 +2223,7 @@ function saveEditInfluencer() {
   item.name=tempItem.name;
   item.phone=tempItem.phone;
   item.civil=tempItem.civil;
-  item.nationality=document.getElementById('eNationality').value;
+  item.nationality=normalizeNationality(document.getElementById('eNationality').value);
   item.gender=document.getElementById('eGenderM').dataset.selected==='1'?'m':document.getElementById('eGenderF').dataset.selected==='1'?'f':'';
   item.ig=tempItem.ig;
   item.ig_url=igRaw.startsWith('http')?igRaw:(igRaw?'https://www.instagram.com/'+igRaw.replace('@',''):'');
@@ -2108,54 +2271,17 @@ function parseSheetRow(line) {
   if(!fullname && !phone && !igRaw) return null;
   function extractIg(url) { const m=url.match(/instagram\.com\/([^?&\/\s]+)/); return m?'@'+m[1]:''; }
   function extractTt(url) { const m=url.match(/tiktok\.com\/@?([^?&\/\s]+)/); return m?'@'+m[1]:''; }
-  // تحويل اسم الدولة من الـ sheet للقيمة الموحدة في NATIONALITIES
+  // تحويل اسم الدولة — بيستخدم الجدول الشامل NAT_NORMALIZE
   function normalizeNat(raw){
     if(!raw) return '';
-    const natMap={
-      'مصر':'مصري','مصرية':'مصري','egypt':'مصري',
-      'الكويت':'كويتي','kuwait':'كويتي','كويت':'كويتي',
-      'السعودية':'سعودي','سعودية':'سعودي','saudi':'سعودي','ksa':'سعودي',
-      'الإمارات':'إماراتي','إمارات':'إماراتي','uae':'إماراتي',
-      'البحرين':'بحريني','بحرين':'بحريني','bahrain':'بحريني',
-      'قطر':'قطري','qatar':'قطري',
-      'عمان':'عماني','سلطنة عمان':'عماني','oman':'عماني',
-      'العراق':'عراقي','عراق':'عراقي','iraq':'عراقي',
-      'اليمن':'يمني','يمن':'يمني','yemen':'يمني',
-      'سوريا':'سوري','سورية':'سوري','syria':'سوري',
-      'لبنان':'لبناني','lebanon':'لبناني',
-      'الأردن':'أردني','أردن':'أردني','jordan':'أردني',
-      'فلسطين':'فلسطيني','palestine':'فلسطيني',
-      'السودان':'سوداني','سودان':'سوداني','sudan':'سوداني',
-      'ليبيا':'ليبي','libya':'ليبي',
-      'تونس':'تونسي','tunisia':'تونسي',
-      'المغرب':'مغربي','مغرب':'مغربي','morocco':'مغربي',
-      'الجزائر':'جزائري','جزائر':'جزائري','algeria':'جزائري',
-      'باكستان':'باكستاني','pakistan':'باكستاني',
-      'الهند':'هندي','هند':'هندي','india':'هندي',
-      'بنغلاديش':'بنغلاديشي','bangladesh':'بنغلاديشي',
-      'الفلبين':'فلبيني','فلبين':'فلبيني','philippines':'فلبيني',
-      'إندونيسيا':'إندونيسي','indonesia':'إندونيسي',
-      'سريلانكا':'سريلانكي','sri lanka':'سريلانكي',
-      'تركيا':'تركي','turkey':'تركي',
-      'إيران':'إيراني','iran':'إيراني',
-      'أفغانستان':'أفغاني','afghanistan':'أفغاني',
-      'إثيوبيا':'إثيوبي','ethiopia':'إثيوبي',
-      'كينيا':'كيني','kenya':'كيني',
-      'أمريكا':'أمريكي','الولايات المتحدة':'أمريكي','usa':'أمريكي','america':'أمريكي',
-      'بريطانيا':'بريطاني','المملكة المتحدة':'بريطاني','uk':'بريطاني',
-      'كندا':'كندي','canada':'كندي',
-      'أستراليا':'أسترالي','australia':'أسترالي',
-      'فرنسا':'فرنسي','france':'فرنسي',
-      'ألمانيا':'ألماني','germany':'ألماني',
-    };
-    const key = raw.trim().toLowerCase();
-    // أولاً جرب المطابقة المباشرة
-    if(natMap[raw.trim()]) return natMap[raw.trim()];
-    // ثم المطابقة بدون حساسية للحالة
-    for(const k in natMap){ if(k.toLowerCase()===key) return natMap[k]; }
-    // لو القيمة موجودة أصلاً في NATIONALITIES ارجعها كما هي
-    if(typeof NATIONALITIES !== 'undefined' && NATIONALITIES.includes(raw.trim())) return raw.trim();
-    return raw.trim();
+    const trimmed = raw.trim();
+    if(NATIONALITIES.includes(trimmed)) return trimmed;
+    const key = trimmed.toLowerCase();
+    if(NAT_NORMALIZE[key]) return NAT_NORMALIZE[key];
+    if(NAT_NORMALIZE[trimmed]) return NAT_NORMALIZE[trimmed];
+    if(trimmed.includes('غير محدد')) return 'أخرى';
+    const found = NATIONALITIES.find(n => n.includes(trimmed) || trimmed.includes(n));
+    return found || trimmed;
   }
   const nationality = normalizeNat(nationalityRaw);
   const gender=/أنثى|انثى|female/i.test(genderRaw)?'f':/ذكر|male/i.test(genderRaw)?'m':'';
@@ -4226,8 +4352,57 @@ function _refreshReportRow(realIdx){
   }
   // ألوان الكرت
   _applyRowColors(realIdx);
+  // تحديث العدادات في الـ legend
+  const legend = document.getElementById('reportLegend');
+  if(legend) {
+    const approved = influencers.filter(i=>i.status==='approved');
+    const upd = {
+      done:        approved.filter(i=>i.visitStatus==='done').length,
+      cancelled:   approved.filter(i=>i.visitStatus==='cancelled').length,
+      nodate:      approved.filter(i=>!i.visitDate && i.visitStatus!=='done' && i.visitStatus!=='cancelled').length,
+      published:   approved.filter(i=>i.contentStatus==='published').length,
+      unpublished: approved.filter(i=>i.contentStatus==='unpublished').length,
+      all:         approved.length,
+    };
+    legend.querySelectorAll('span[data-filter]').forEach(btn => {
+      const f = btn.dataset.filter;
+      const badge = btn.querySelector('span:last-child');
+      if(badge && upd[f]!==undefined) badge.textContent = upd[f];
+    });
+  }
 }
 window._refreshReportRow=_refreshReportRow;
+
+function filterReportRows(filter) {
+  // تحديث شكل الـ legend — الـ active بيبقى مضغوط
+  const legend = document.getElementById('reportLegend');
+  if(legend) {
+    legend.querySelectorAll('span[data-filter]').forEach(btn => {
+      btn.style.opacity = btn.dataset.filter === filter ? '1' : '0.45';
+      btn.style.transform = btn.dataset.filter === filter ? 'scale(1.05)' : 'scale(1)';
+    });
+    if(filter==='all') legend.querySelectorAll('span[data-filter]').forEach(btn => { btn.style.opacity='1'; btn.style.transform='scale(1)'; });
+  }
+  // فلترة الصفوف
+  const rows = document.querySelectorAll('#reportContainer tr[id^="rrow_"]');
+  rows.forEach(row => {
+    const idx = parseInt(row.id.replace('rrow_',''));
+    const item = influencers[idx];
+    if(!item) return;
+    const vs = item.visitStatus || '';
+    const cs = item.contentStatus || '';
+    const hasDate = !!item.visitDate;
+    let show = false;
+    if(filter==='all')         show = true;
+    else if(filter==='done')   show = vs==='done';
+    else if(filter==='cancelled') show = vs==='cancelled';
+    else if(filter==='nodate') show = !hasDate && vs!=='done' && vs!=='cancelled';
+    else if(filter==='published')   show = cs==='published';
+    else if(filter==='unpublished') show = cs==='unpublished';
+    row.style.display = show ? '' : 'none';
+  });
+}
+window.filterReportRows = filterReportRows;
 
 function setVisitStatusFromSelect(realIdx, newVal) {
   const item=influencers[realIdx]; if(!item) return;
@@ -4809,12 +4984,32 @@ function openGuestReadOnlyReport() {
     </tr>`;
   }).join('');
 
-  const legendHtml = `<div class="no-print" style="display:flex;flex-wrap:wrap;gap:14px;justify-content:flex-end;align-items:center;margin-bottom:1rem;font-size:12px;font-weight:700;">
-    <span style="display:flex;align-items:center;gap:5px;"><span style="width:14px;height:14px;border-radius:50%;background:#16a34a;display:inline-block;"></span> تمت الزيارة</span>
-    <span style="display:flex;align-items:center;gap:5px;"><span style="width:14px;height:14px;border-radius:50%;background:#dc2626;display:inline-block;"></span> ألغيت الزيارة</span>
-    <span style="display:flex;align-items:center;gap:5px;"><span style="width:14px;height:14px;border-radius:50%;background:#e2e8f0;display:inline-block;border:1px solid #cbd5e1;"></span> بدون موعد</span>
-    <span style="display:flex;align-items:center;gap:5px;"><span style="width:14px;height:14px;border-radius:50%;background:#ca8a04;display:inline-block;"></span> تم النشر</span>
-    <span style="display:flex;align-items:center;gap:5px;"><span style="width:14px;height:14px;border-radius:50%;background:#7c3aed;display:inline-block;"></span> لم يتم النشر</span>
+  // حساب العدد لكل حالة
+  const cntDone      = list.filter(i=>i.visitStatus==='done').length;
+  const cntCancelled = list.filter(i=>i.visitStatus==='cancelled').length;
+  const cntNoDate    = list.filter(i=>!i.visitDate && i.visitStatus!=='done' && i.visitStatus!=='cancelled').length;
+  const cntPublished = list.filter(i=>i.contentStatus==='published').length;
+  const cntUnpub     = list.filter(i=>i.contentStatus==='unpublished').length;
+
+  const legendHtml = `<div class="no-print" id="reportLegend" style="display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-bottom:1rem;">
+    <span data-filter="done" onclick="filterReportRows('done')" style="display:flex;align-items:center;gap:6px;cursor:pointer;padding:5px 12px;border-radius:20px;border:2px solid #16a34a;background:#f0fdf4;font-size:12px;font-weight:700;color:#15803d;user-select:none;transition:all .15s;">
+      <span style="width:12px;height:12px;border-radius:50%;background:#16a34a;display:inline-block;"></span> تمت الزيارة <span style="background:#16a34a;color:#fff;border-radius:10px;padding:1px 7px;font-size:11px;">${cntDone}</span>
+    </span>
+    <span data-filter="cancelled" onclick="filterReportRows('cancelled')" style="display:flex;align-items:center;gap:6px;cursor:pointer;padding:5px 12px;border-radius:20px;border:2px solid #dc2626;background:#fef2f2;font-size:12px;font-weight:700;color:#b91c1c;user-select:none;transition:all .15s;">
+      <span style="width:12px;height:12px;border-radius:50%;background:#dc2626;display:inline-block;"></span> ألغيت الزيارة <span style="background:#dc2626;color:#fff;border-radius:10px;padding:1px 7px;font-size:11px;">${cntCancelled}</span>
+    </span>
+    <span data-filter="nodate" onclick="filterReportRows('nodate')" style="display:flex;align-items:center;gap:6px;cursor:pointer;padding:5px 12px;border-radius:20px;border:2px solid #cbd5e1;background:#f8fafc;font-size:12px;font-weight:700;color:#475569;user-select:none;transition:all .15s;">
+      <span style="width:12px;height:12px;border-radius:50%;background:#cbd5e1;display:inline-block;border:1px solid #94a3b8;"></span> بدون موعد <span style="background:#64748b;color:#fff;border-radius:10px;padding:1px 7px;font-size:11px;">${cntNoDate}</span>
+    </span>
+    <span data-filter="published" onclick="filterReportRows('published')" style="display:flex;align-items:center;gap:6px;cursor:pointer;padding:5px 12px;border-radius:20px;border:2px solid #ca8a04;background:#fefce8;font-size:12px;font-weight:700;color:#92400e;user-select:none;transition:all .15s;">
+      <span style="width:12px;height:12px;border-radius:50%;background:#ca8a04;display:inline-block;"></span> تم النشر <span style="background:#ca8a04;color:#fff;border-radius:10px;padding:1px 7px;font-size:11px;">${cntPublished}</span>
+    </span>
+    <span data-filter="unpublished" onclick="filterReportRows('unpublished')" style="display:flex;align-items:center;gap:6px;cursor:pointer;padding:5px 12px;border-radius:20px;border:2px solid #7c3aed;background:#f5f3ff;font-size:12px;font-weight:700;color:#5b21b6;user-select:none;transition:all .15s;">
+      <span style="width:12px;height:12px;border-radius:50%;background:#7c3aed;display:inline-block;"></span> لم يتم النشر <span style="background:#7c3aed;color:#fff;border-radius:10px;padding:1px 7px;font-size:11px;">${cntUnpub}</span>
+    </span>
+    <span data-filter="all" onclick="filterReportRows('all')" style="display:flex;align-items:center;gap:6px;cursor:pointer;padding:5px 12px;border-radius:20px;border:2px solid #0369a1;background:#eff6ff;font-size:12px;font-weight:700;color:#0369a1;user-select:none;">
+      الكل <span style="background:#0369a1;color:#fff;border-radius:10px;padding:1px 7px;font-size:11px;">${list.length}</span>
+    </span>
   </div>`;
 
   const html = `<div class="report-overlay open" id="reportOverlay" onclick="if(event.target===this)closeReport()">
@@ -5440,7 +5635,7 @@ async function init() {
     // Poll Firebase every 10s for live updates
     setInterval(function() {
       // لو في حفظ حصل خلال آخر 15 ثانية، ما نجيبش من Firebase عشان منمسحش البيانات
-      if(_isSaving || (Date.now() - _lastSaveTime) < 15000) return;
+      if(_isSaving || (Date.now() - _lastSaveTime) < 60000) return;
       tryLoadFirebase().then(function(loaded) {
         if(loaded) { updateStats(); }
       }).catch(function(){});
@@ -5489,7 +5684,7 @@ async function init() {
   // Poll Firebase كل 10 ثواني للـ sync مع الأجهزة التانية
   setInterval(function() {
     // لو في حفظ حصل خلال آخر 15 ثانية، ما نجيبش من Firebase عشان منمسحش البيانات
-    if(_isSaving || (Date.now() - _lastSaveTime) < 15000) return;
+    if(_isSaving || (Date.now() - _lastSaveTime) < 60000) return;
     tryLoadFirebase().then(function(loaded) {
       if(loaded) { updateStats(); updateDupReviewBtn(); }
     }).catch(function(){});
