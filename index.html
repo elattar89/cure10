@@ -926,8 +926,13 @@ async function saveDailyBackup() {
 const LS_KEY = 'cure_influencers_v18';
 const LS_DELETED_KEY = 'cure_deleted_v18';
 
+let _isSaving = false;
+let _lastSaveTime = 0;
+
 async function saveToStorage() {
   if(!influencers.length) return;
+  _isSaving = true;
+  _lastSaveTime = Date.now();
   try {
     const res = await Promise.race([
       fetch(`${DB_URL}/${DB_PATH}.json`, {
@@ -940,8 +945,9 @@ async function saveToStorage() {
       method:'PUT', headers:{'Content-Type':'application/json'},
       body: JSON.stringify({ data: JSON.stringify(deletedInfluencers) })
     });
-    if(res && res.ok) { showSaveIndicator(); return; }
+    if(res && res.ok) { showSaveIndicator(); _isSaving = false; return; }
   } catch(e) {}
+  _isSaving = false;
   showToast('❌ فشل الحفظ — تحقق من الاتصال', '#dc2626');
 }
 
@@ -949,6 +955,8 @@ async function saveToStorage() {
 async function saveOneToFirebase(idx) {
   if(!influencers.length) return;
   if(idx === undefined || idx === null || !influencers[idx]) return saveToStorage();
+  _isSaving = true;
+  _lastSaveTime = Date.now();
   try {
     const res = await Promise.race([
       fetch(`${DB_URL}/${DB_PATH}.json`, { method:'GET', headers:{'Accept':'application/json'}, mode:'cors' }),
@@ -972,9 +980,10 @@ async function saveOneToFirebase(idx) {
         method:'PUT', headers:{'Content-Type':'application/json'},
         body: JSON.stringify({ data: JSON.stringify(remote) })
       });
-      showSaveIndicator(); return;
+      showSaveIndicator(); _isSaving = false; return;
     }
   } catch(e) {}
+  _isSaving = false;
   showToast('❌ فشل الحفظ — تحقق من الاتصال', '#dc2626');
 }
 
@@ -1044,10 +1053,12 @@ async function tryLoadFirebase() {
               }
               // Sync updates from remote for existing influencers — بدون لمس addedAt وautoAdded
               parsed.forEach(remote => {
+                // لو في حفظ حصل مؤخراً — ما نعملش overwrite من Firebase
+                if(_isSaving || (Date.now() - _lastSaveTime) < 15000) return;
                 const rKey = [remote.phone||'', remote.ig||'', remote.tt||'', remote.snap||'', remote.civil||'', remote.name||''].join('|');
                 const local = influencers.find(i => [i.phone||'', i.ig||'', i.tt||'', i.snap||'', i.civil||'', i.name||''].join('|') === rKey);
                 if(local) {
-                  if(local._pickingDate || local._editing) return; // مش تمس الكارت ده — بيتعدل دلوقتي
+                  if(local._pickingDate || local._editing) return;
                   const keepAddedAt = local.addedAt;
                   const keepAutoAdded = local.autoAdded;
                   Object.assign(local, remote);
@@ -3403,9 +3414,9 @@ function closeDatePicker(){
     const mm=document.getElementById('dpMinute').value||'00';
     const ap=document.getElementById('dpAmPm').value||'AM';
     influencers[dpTargetIdx].visitDate=dateOnly+'T'+hh+':'+mm+ap;
-    if(influencers[dpTargetIdx].visitStatus==='cancelled'){
+    if(influencers[dpTargetIdx].visitStatus==='cancelled'||influencers[dpTargetIdx].visitStatus==='done'){
       influencers[dpTargetIdx].visitStatus='';
-      showToast('✅ تم تجديد الموعد — رجع للمقبولين','#059669');
+      showToast('✅ تم تجديد الموعد — موعد جديد في المواعيد','#059669');
     }
     const savedIdx=dpTargetIdx;
     document.getElementById('datePickerPopup').classList.remove('open');
@@ -4982,6 +4993,8 @@ async function init() {
     updateStats();
     // Poll Firebase every 10s for live updates
     setInterval(function() {
+      // لو في حفظ حصل خلال آخر 15 ثانية، ما نجيبش من Firebase عشان منمسحش البيانات
+      if(_isSaving || (Date.now() - _lastSaveTime) < 15000) return;
       tryLoadFirebase().then(function(loaded) {
         if(loaded) { updateStats(); }
       }).catch(function(){});
@@ -5029,6 +5042,8 @@ async function init() {
   }, 1500);
   // Poll Firebase كل 10 ثواني للـ sync مع الأجهزة التانية
   setInterval(function() {
+    // لو في حفظ حصل خلال آخر 15 ثانية، ما نجيبش من Firebase عشان منمسحش البيانات
+    if(_isSaving || (Date.now() - _lastSaveTime) < 15000) return;
     tryLoadFirebase().then(function(loaded) {
       if(loaded) { updateStats(); updateDupReviewBtn(); }
     }).catch(function(){});
