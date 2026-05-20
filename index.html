@@ -263,7 +263,7 @@ body{font-family:'Tajawal',sans-serif;direction:rtl;background:#0d1117;color:#e6
 .report-btn-close{padding:12px 28px;border-radius:9px;background:#e5e7eb;border:none;color:#333;font-size:15px;cursor:pointer;font-family:'Tajawal',sans-serif;font-weight:700;min-width:100px;}
 @media print{
   .no-print { display:none!important; }
-  .no-print-hide { display:block!important; }
+  .no-print-hide { display:flex!important; }
   @page { size: A4 landscape; margin: 1cm; }
   body{background:#fff!important;}
   body > *{display:none!important;}
@@ -292,6 +292,9 @@ body{font-family:'Tajawal',sans-serif;direction:rtl;background:#0d1117;color:#e6
   .report-table td:nth-child(12) { overflow:visible!important; }
   .sig-print-img { width:100px!important; height:45px!important; object-fit:contain!important; display:block!important; -webkit-print-color-adjust:exact!important; print-color-adjust:exact!important; }
   .sig-print-line { height:40px!important; border-bottom:1.5px solid #374151!important; margin:10px 4px 0!important; display:block!important; }
+  /* Card grid print styles */
+  #approvedCardsGrid { display:grid!important; grid-template-columns:repeat(2,1fr)!important; gap:10px!important; }
+  #approvedCardsGrid > div { border:1.5px solid #ccc!important; border-radius:8px!important; padding:10px!important; break-inside:avoid!important; -webkit-print-color-adjust:exact!important; print-color-adjust:exact!important; }
   /* Reduce font for social links */
   .report-social a{ font-size:9px!important; }
   .report-header h2{ font-size:16px!important; }
@@ -3619,13 +3622,13 @@ function buildSocialsHtml(item) {
 }
 
 function openReportFromBtn(){
-  if(currentFilter==='approved') openGuestReadOnlyReport();
+  if(currentFilter==='approved') openStatusReport('approved');
   else if(currentFilter==='rejected') openStatusReport('rejected');
   else if(currentFilter==='visited') openStatusReport('visited');
   else if(currentFilter==='cancelled') openStatusReport('cancelled');
   else if(currentFilter==='male') openGenderReport('m');
   else if(currentFilter==='female') openGenderReport('f');
-  else openGuestReadOnlyReport();
+  else openStatusReport('approved');
 }
 let _closingReport=false;
 function closeReport(){
@@ -3723,19 +3726,41 @@ td{padding:9px 12px;border-bottom:1px solid #e5e7eb;font-size:12px;font-family:'
 }
 
 // --- Status Reports (approved / rejected) ------------------------
+function _getVisitDropdownStyle(vs) {
+  if(vs==='done') return 'background:#dcfce7;color:#15803d;border-color:#16a34a;font-weight:700;';
+  if(vs==='cancelled') return 'background:#fef9c3;color:#92400e;border-color:#ca8a04;font-weight:700;';
+  return 'background:#f1f5f9;color:#64748b;border-color:#cbd5e1;';
+}
+function _getContentDropdownStyle(cs) {
+  if(cs==='published') return 'background:#fef9c3;color:#92400e;border-color:#ca8a04;font-weight:700;';
+  if(cs==='unpublished') return 'background:#f3e8ff;color:#6d28d9;border-color:#7c3aed;font-weight:700;';
+  return 'background:#f1f5f9;color:#64748b;border-color:#cbd5e1;';
+}
+function _getCardBorderColor(vs, cs) {
+  if(cs==='published') return '#ca8a04';
+  if(cs==='unpublished') return '#7c3aed';
+  if(vs==='done') return '#16a34a';
+  if(vs==='cancelled') return '#dc2626';
+  return '#e2e8f0';
+}
+function _getCardBg(vs, cs) {
+  if(cs==='published') return '#fffbeb';
+  if(cs==='unpublished') return '#faf5ff';
+  if(vs==='done') return '#f0fdf4';
+  if(vs==='cancelled') return '#fff7f7';
+  return '#ffffff';
+}
+
 function openStatusReport(type) {
   const isApproved=type==='approved';
   let list=influencers.filter(i=>i.status===type);
-  // Sort approved: done → cancelled → has date → no date
   if(isApproved) {
     list = list.sort((a,b)=>{
-    // عندهم موعد أولاً (من الأقدم للأحدث)، ثم بدون موعد (أبجدي)
     const hasDateA = !!(a.visitDate);
     const hasDateB = !!(b.visitDate);
     if(hasDateA && !hasDateB) return -1;
     if(!hasDateA && hasDateB) return 1;
     if(hasDateA && hasDateB) return a.visitDate.localeCompare(b.visitDate);
-    // بدون موعد: أبجدي عربي ثم إنجليزي
     const nameA = (a.name || a.ig || '').trim();
     const nameB = (b.name || b.ig || '').trim();
     const isArA = /[\u0600-\u06FF]/.test(nameA.charAt(0));
@@ -3748,78 +3773,189 @@ function openStatusReport(type) {
   logActivity('report', `فتح كشف: ${type==='approved'?'المقبولين':'المرفوضين'} — Admin`);
   if(!list.length){showToast(isApproved?'⚠️ لا يوجد مقبولين!':'⚠️ لا يوجد مرفوضين!','#d97706');return;}
   const today=new Date().toLocaleDateString('ar-KW',{year:'numeric',month:'long',day:'numeric'});
-  const title=isApproved?'✅ كشف المؤثرين المقبولين':'❌ كشف المؤثرين المرفوضين';
+  const title=isApproved?'كشف المقبولين':'كشف المرفوضين';
+  const titleEmoji=isApproved?'✅':'❌';
   const thBg=isApproved?'#0a3d62':'#7f1d1d';
   const countColor=isApproved?'#16a34a':'#dc2626';
-  const rows=list.map((item,i)=>{
-    const realIdx=influencers.indexOf(item);
-    const name=item.name||'—';
-    const gLabel=item.gender==='m'?'<span style="color:#1a6fa8;font-weight:700;">👨 ذكر</span>':item.gender==='f'?'<span style="color:#a21caf;font-weight:700;">👩 أنثى</span>':'—';
-    const natCell=item.nationality?`<span style="background:#e6f7f1;color:#0a7a55;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:700;">🌍 ${displayNationality(item.nationality)}</span>`:'—';
-    const phoneCell=item.phone?`<span onclick="showPhonePopup('${item.phone.replace(/'/g,"\\'")}','${(item.name||item.ig||'').replace(/'/g,"\\'")}',event)" style="color:#0369a1;direction:ltr;display:block;white-space:nowrap;font-size:12px;cursor:pointer;font-weight:600;" title="اضغط للتواصل">📞 ${item.phone}</span>`:'—';
-    if(isApproved){
-      const dateStr=item.visitDate?formatDateAr(item.visitDate):'—';
+
+  if(isApproved) {
+    // helper: row left-border color + row bg
+    function _rowBorderColor(vs,cs){
+      if(cs==='published') return '#ca8a04';
+      if(cs==='unpublished') return '#7c3aed';
+      if(vs==='done') return '#16a34a';
+      if(vs==='cancelled') return '#dc2626';
+      return '#e2e8f0';
+    }
+    function _rowBg(vs,cs){
+      if(cs==='published') return '#fffbeb';
+      if(cs==='unpublished') return '#faf5ff';
+      if(vs==='done') return '#f0fdf4';
+      if(vs==='cancelled') return '#fff7f7';
+      return '#ffffff';
+    }
+    // helper: status label under name
+    function _statusLabel(vs,cs){
+      if(cs==='published') return '<span style="font-size:10px;color:#ca8a04;font-weight:700;white-space:nowrap;">🌟 تم النشر</span>';
+      if(cs==='unpublished') return '<span style="font-size:10px;color:#7c3aed;font-weight:700;white-space:nowrap;">🟣 لم يتم النشر</span>';
+      if(vs==='done') return '<span style="font-size:10px;color:#16a34a;font-weight:700;white-space:nowrap;">✅ تمت الزيارة</span>';
+      if(vs==='cancelled') return '<span style="font-size:10px;color:#dc2626;font-weight:700;white-space:nowrap;">⚠️ ألغيت الزيارة</span>';
+      return '';
+    }
+    // dropdown select style
+    function _vsSel(vs){
+      if(vs==='done') return 'background:#dcfce7;color:#15803d;border-color:#16a34a;';
+      if(vs==='cancelled') return 'background:#fef9c3;color:#92400e;border-color:#ca8a04;';
+      return 'background:#f8fafc;color:#64748b;border-color:#cbd5e1;';
+    }
+    function _csSel(cs){
+      if(cs==='published') return 'background:#fef9c3;color:#92400e;border-color:#ca8a04;';
+      if(cs==='unpublished') return 'background:#f3e8ff;color:#6d28d9;border-color:#7c3aed;';
+      return 'background:#f8fafc;color:#64748b;border-color:#cbd5e1;';
+    }
+
+    const rows=list.map((item,i)=>{
+      const realIdx=influencers.indexOf(item);
+      const name=item.name||'—';
       const vs=item.visitStatus||'';
-      const doneA=vs===''?'background:#f0fdf4;color:#15803d;opacity:1;'
-        :vs==='done'?'background:#15803d;color:#fff;opacity:1;'
-        :'background:#e5e7eb;color:#9ca3af;opacity:0.45;';
-      const cancA=vs===''?'background:#fefce8;color:#ca8a04;opacity:1;'
-        :vs==='cancelled'?'background:#ca8a04;color:#fff;opacity:1;'
-        :'background:#e5e7eb;color:#9ca3af;opacity:0.45;';
-      const svcLabel=(item.services&&item.services.length)?item.services.map(s=>`<span style="display:inline-block;background:#f3e8ff;color:#7c3aed;border:1px solid #c084fc;border-radius:5px;padding:2px 7px;font-size:11px;margin:1px;">${s}</span>`).join(' '):'—';
       const cs=item.contentStatus||'';
-      const pubStyle=cs===''?'background:#fefce8;color:#ca8a04;opacity:1;'
-        :cs==='published'?'background:#ca8a04;color:#fff;opacity:1;'
-        :'background:#e5e7eb;color:#9ca3af;opacity:0.45;';
-      const unpubStyle=cs===''?'background:#f3e8ff;color:#7c3aed;opacity:1;'
-        :cs==='unpublished'?'background:#7c3aed;color:#fff;opacity:1;'
-        :'background:#e5e7eb;color:#9ca3af;opacity:0.45;';
-      const rowBg=cs==='published'?'#fef9c3':cs==='unpublished'?'#f3e8ff':vs==='done'?'#bbf7d0':vs==='cancelled'?'#fee2e2':(i%2===1?'#f8fafc':'#fff');
-      const rowBorder=cs==='published'?'border-right:4px solid #ca8a04;':cs==='unpublished'?'border-right:4px solid #7c3aed;':vs==='done'?'border-right:4px solid #16a34a;':vs==='cancelled'?'border-right:4px solid #dc2626;':'';
-      const vsLabel=vs==='done'?'<br><span style="font-size:10px;color:#16a34a;font-weight:700;">✅ تمت الزيارة</span>':vs==='cancelled'?'<br><span style="font-size:10px;color:#dc2626;font-weight:700;">⚠️ ألغيت الزيارة</span>':'';
-      return `<tr id="rrow_${realIdx}" style="background:${rowBg};${rowBorder}">
-        <td style="text-align:center;font-weight:900;color:${thBg};width:30px;padding:8px 6px;">${i+1}</td>
-        <td style="font-weight:700;font-size:13px;min-width:100px;cursor:pointer;" onclick="showApptCard(${realIdx})" title="اضغط لعرض تفاصيل المؤثر"><span style="border-bottom:2px dotted #1a6fa8;color:#1a6fa8;">${name}</span>${vsLabel}</td>
-        <td style="min-width:50px;">${gLabel}</td>
-        <td style="min-width:70px;">${natCell}</td>
-        <td style="direction:ltr;min-width:90px;">${phoneCell}</td>
-        <td style="font-size:11px;color:#555;direction:ltr;min-width:80px;">${item.civil||'—'}</td>
-        <td style="min-width:90px;"><div style="display:flex;flex-direction:column;gap:3px;">${buildSocialsHtml(item)}</div></td>
-        <td style="white-space:nowrap;color:${thBg};font-weight:600;min-width:90px;">${dateStr}</td>
-        <td style="min-width:80px;">
-          <div style="display:flex;align-items:center;gap:5px;min-width:80px;" id="rptSvcBtn_${realIdx}">
-            <span style="flex:1;font-size:11px;color:${(item.services&&item.services.length)?'#7c3aed':'#9ca3af'};">${svcLabel}</span>
-            <button onclick="openServicePopupFromReport(${realIdx},event)" title="تعديل الخدمة" style="flex-shrink:0;width:24px;height:24px;border-radius:6px;border:1px solid #7c3aed;background:#f3e8ff;color:#7c3aed;font-size:13px;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0;line-height:1;">✏️</button>
+      const bg=_rowBg(vs,cs);
+      const bc=_rowBorderColor(vs,cs);
+      const dateStr=item.visitDate?formatDateAr(item.visitDate):'<span style="color:#9ca3af;font-size:11px;">لا يوجد موعد</span>';
+      const gLabel=item.gender==='m'
+        ?`<span style="background:#eff6ff;color:#1d4ed8;border:1px solid #bfdbfe;padding:3px 10px;border-radius:20px;font-size:12px;font-weight:700;">ذكر</span>`
+        :item.gender==='f'
+        ?`<span style="background:#fdf4ff;color:#a21caf;border:1px solid #f0abfc;padding:3px 10px;border-radius:20px;font-size:12px;font-weight:700;">أنثى</span>`
+        :'—';
+      const natLabel=item.nationality
+        ?`<span style="background:#ecfdf5;color:#065f46;border:1px solid #6ee7b7;padding:3px 10px;border-radius:20px;font-size:12px;font-weight:700;">${displayNationality(item.nationality)}</span>`
+        :'—';
+      const phoneHtml=item.phone
+        ?`<div onclick="showPhonePopup('${item.phone.replace(/'/g,"\\'")}','${(item.name||item.ig||'').replace(/'/g,"\\'")}',event)" style="color:#0369a1;direction:ltr;font-size:13px;cursor:pointer;font-weight:700;">${item.phone}</div>
+           ${item.civil?`<div style="color:#94a3b8;font-size:11px;direction:ltr;">${item.civil}</div>`:''}`
+        :'<span style="color:#9ca3af;">—</span>';
+      const socialsHtml=buildSocialsHtml(item);
+      const svcLabel=(item.services&&item.services.length)
+        ?item.services.map(s=>`<span style="display:inline-block;background:#f3e8ff;color:#7c3aed;border:1px solid #c084fc;border-radius:20px;padding:3px 10px;font-size:11px;font-weight:700;margin:1px;">${s}</span>`).join('<br>')
+        :'<span style="color:#9ca3af;">—</span>';
+      const stLbl=_statusLabel(vs,cs);
+      const sigHtml=item.signature
+        ?`<div style="position:relative;">
+            <img src="${item.signature}" class="sig-print-img" style="width:120px;height:44px;object-fit:contain;display:block;border:1px solid #e5e7eb;border-radius:6px;" />
+            <button onclick="clearSignature(${realIdx})" class="no-print" style="position:absolute;top:0;left:0;background:#dc2626;color:#fff;border:none;border-radius:4px;font-size:9px;padding:1px 5px;cursor:pointer;">✕</button>
+          </div>`
+        :`<div class="no-print">
+            <canvas id="sigCanvas_${realIdx}" width="120" height="44"
+              style="border:1.5px dashed #9ca3af;border-radius:6px;cursor:crosshair;touch-action:none;display:block;"
+              onmousedown="startSig(event,${realIdx})" ontouchstart="startSig(event,${realIdx})"></canvas>
+            <div style="display:flex;gap:3px;margin-top:2px;">
+              <button onclick="saveSig(${realIdx})" style="flex:1;padding:2px;border:1px solid #059669;background:#f0fdf4;color:#059669;border-radius:4px;font-size:10px;cursor:pointer;font-family:Tajawal,sans-serif;">✓ حفظ</button>
+              <button onclick="clearCanvas(${realIdx})" style="flex:1;padding:2px;border:1px solid #9ca3af;background:#f9fafb;color:#555;border-radius:4px;font-size:10px;cursor:pointer;font-family:Tajawal,sans-serif;">مسح</button>
+            </div>
+          </div>
+          <div class="sig-print-line no-print-hide" style="display:none;height:44px;border-bottom:1.5px solid #374151;margin:4px 0;"></div>`;
+
+      return `<tr id="rrow_${realIdx}" style="background:${bg};border-right:5px solid ${bc};transition:background .2s;">
+        <td style="text-align:center;font-weight:900;color:${thBg};font-size:14px;padding:10px 8px;min-width:32px;">${i+1}</td>
+        <td style="padding:10px 10px;min-width:110px;">
+          <div onclick="showApptCard(${realIdx})" style="font-weight:900;font-size:13px;color:#0a3d62;cursor:pointer;line-height:1.4;">${name}</div>
+          ${stLbl?`<div style="margin-top:3px;">${stLbl}</div>`:''}
+        </td>
+        <td style="text-align:center;padding:10px 8px;">${gLabel}</td>
+        <td style="text-align:center;padding:10px 8px;">${natLabel}</td>
+        <td style="padding:10px 10px;min-width:100px;">${phoneHtml}</td>
+        <td style="padding:10px 10px;min-width:100px;"><div style="display:flex;flex-direction:column;gap:3px;">${socialsHtml}</div></td>
+        <td style="padding:10px 10px;min-width:100px;text-align:center;">
+          <div id="rptSvcBtn_${realIdx}" style="display:flex;flex-direction:column;align-items:center;gap:4px;">
+            <div>${svcLabel}</div>
+            <button onclick="openServicePopupFromReport(${realIdx},event)" class="no-print" title="تعديل الخدمة" style="padding:4px 12px;border-radius:8px;border:1px solid #7c3aed;background:#f3e8ff;color:#7c3aed;font-size:11px;font-weight:700;cursor:pointer;font-family:Tajawal,sans-serif;margin-top:2px;">تعديل</button>
           </div>
         </td>
-        <td style="min-width:100px;"><div style="display:flex;gap:4px;flex-direction:column;">
-          <button onclick="setVisitStatus(${realIdx},'done')" style="padding:5px 8px;border-radius:6px;border:1px solid #15803d;font-size:11px;font-weight:700;cursor:pointer;font-family:Tajawal,sans-serif;white-space:nowrap;${doneA}">✅ تمت</button>
-          <button onclick="setVisitStatus(${realIdx},'cancelled')" style="padding:5px 8px;border-radius:6px;border:1px solid #ca8a04;font-size:11px;font-weight:700;cursor:pointer;font-family:Tajawal,sans-serif;white-space:nowrap;${cancA}">⚠️ ألغيت</button>
-        </div></td>
-        <td style="min-width:110px;" id="pubCell_${realIdx}"><div style="display:flex;gap:4px;flex-direction:column;">
-          <button onclick="setContentStatus(${realIdx},'published')" style="padding:5px 8px;border-radius:6px;border:1px solid #ca8a04;font-size:11px;font-weight:700;cursor:pointer;font-family:Tajawal,sans-serif;white-space:nowrap;${pubStyle}">🌟 تم النشر</button>
-          <button onclick="setContentStatus(${realIdx},'unpublished')" style="padding:5px 8px;border-radius:6px;border:1px solid #7c3aed;font-size:11px;font-weight:700;cursor:pointer;font-family:Tajawal,sans-serif;white-space:nowrap;${unpubStyle}">🟣 لم يتم</button>
-        </div></td>
-        <td style="min-width:150px;border-left:1px solid #e5e7eb;padding:4px;">
-          ${item.signature
-            ? `<div style="position:relative;">
-                <img src="${item.signature}" class="sig-print-img" style="width:140px;height:50px;object-fit:contain;display:block;" />
-                <button onclick="clearSignature(${realIdx})" class="no-print" style="position:absolute;top:0;left:0;background:#dc2626;color:#fff;border:none;border-radius:4px;font-size:9px;padding:1px 5px;cursor:pointer;">✕</button>
-               </div>`
-            : `<canvas id="sigCanvas_${realIdx}" width="140" height="50"
-                class="no-print"
-                style="border:1.5px dashed #9ca3af;border-radius:4px;cursor:crosshair;touch-action:none;display:block;"
-                onmousedown="startSig(event,${realIdx})"
-                ontouchstart="startSig(event,${realIdx})"></canvas>
-               <div class="sig-print-line no-print-hide" style="display:none;"></div>
-               <div class="no-print" style="display:flex;gap:4px;margin-top:3px;">
-                 <button onclick="saveSig(${realIdx})" style="flex:1;padding:2px;border:1px solid #059669;background:#f0fdf4;color:#059669;border-radius:4px;font-size:10px;cursor:pointer;font-family:Tajawal,sans-serif;">✓ حفظ</button>
-                 <button onclick="clearCanvas(${realIdx})" style="flex:1;padding:2px;border:1px solid #9ca3af;background:#f9fafb;color:#555;border-radius:4px;font-size:10px;cursor:pointer;font-family:Tajawal,sans-serif;">مسح</button>
-               </div>`
-          }
+        <td style="padding:10px 10px;min-width:110px;text-align:center;font-weight:700;color:${thBg};font-size:13px;">${dateStr}</td>
+        <td style="padding:6px 8px;min-width:110px;" class="no-print">
+          <select id="vsSelect_${realIdx}" onchange="setVisitStatusFromSelect(${realIdx},this.value)"
+            style="width:100%;padding:7px 8px;border-radius:10px;border:1.5px solid;font-size:12px;font-weight:700;font-family:Tajawal,sans-serif;cursor:pointer;direction:rtl;appearance:none;-webkit-appearance:none;${_vsSel(vs)}">
+            <option value="" ${vs===''?'selected':''}>— اختر —</option>
+            <option value="done" ${vs==='done'?'selected':''}>✅ تمت</option>
+            <option value="cancelled" ${vs==='cancelled'?'selected':''}>⚠️ ألغيت</option>
+          </select>
         </td>
+        <td style="padding:6px 8px;min-width:120px;" class="no-print">
+          <select id="csSelect_${realIdx}" onchange="setContentStatusFromSelect(${realIdx},this.value)"
+            style="width:100%;padding:7px 8px;border-radius:10px;border:1.5px solid;font-size:12px;font-weight:700;font-family:Tajawal,sans-serif;cursor:pointer;direction:rtl;appearance:none;-webkit-appearance:none;${_csSel(cs)}">
+            <option value="" ${cs===''?'selected':''}>— اختر —</option>
+            <option value="published" ${cs==='published'?'selected':''}>🌟 تم النشر</option>
+            <option value="unpublished" ${cs==='unpublished'?'selected':''}>🟣 لم يتم</option>
+          </select>
+        </td>
+        <td style="padding:6px 8px;min-width:130px;">${sigHtml}</td>
       </tr>`;
-    } else {
+    }).join('');
+
+    // legend + header + table
+    const legendHtml=`<div class="no-print" style="display:flex;flex-wrap:wrap;gap:14px;justify-content:flex-end;align-items:center;margin-bottom:1rem;font-size:12px;font-weight:700;">
+      <span style="display:flex;align-items:center;gap:5px;"><span style="width:14px;height:14px;border-radius:50%;background:#16a34a;display:inline-block;"></span> تمت الزيارة</span>
+      <span style="display:flex;align-items:center;gap:5px;"><span style="width:14px;height:14px;border-radius:50%;background:#dc2626;display:inline-block;"></span> ألغيت الزيارة</span>
+      <span style="display:flex;align-items:center;gap:5px;"><span style="width:14px;height:14px;border-radius:50%;background:#3b82f6;display:inline-block;"></span> موعد جاي</span>
+      <span style="display:flex;align-items:center;gap:5px;"><span style="width:14px;height:14px;border-radius:50%;background:#e2e8f0;display:inline-block;border:1px solid #cbd5e1;"></span> بدون موعد</span>
+      <span style="display:flex;align-items:center;gap:5px;"><span style="width:14px;height:14px;border-radius:50%;background:#ca8a04;display:inline-block;"></span> تم النشر</span>
+      <span style="display:flex;align-items:center;gap:5px;"><span style="width:14px;height:14px;border-radius:50%;background:#7c3aed;display:inline-block;"></span> لم يتم النشر</span>
+    </div>`;
+
+    const html=`<div class="report-overlay open" id="reportOverlay" onclick="if(event.target===this)closeReport()">
+      <div class="report-modal" style="max-width:100%;width:100%;margin:0;border-radius:0;min-height:100vh;padding:0;background:#f1f5f9;">
+        <!-- sticky toolbar -->
+        <div class="report-actions no-print" style="position:sticky;top:0;background:#fff;z-index:10;padding:.6rem 1.2rem;border-bottom:2px solid #e5e7eb;display:flex;gap:8px;align-items:center;">
+          <button class="report-btn-close" onclick="closeReport()">✕ إغلاق</button>
+          <button class="report-btn-print" style="background:${thBg}" onclick="window.print()">🖨️ طباعة / PDF</button>
+          <button class="report-btn-share" onclick="shareStatusReport('${type}')">📤 مشاركة</button>
+        </div>
+        <!-- header card -->
+        <div style="background:linear-gradient(135deg,#0a3d62 0%,#1a6fa8 100%);color:#fff;padding:1.4rem 1.6rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;">
+          <div>
+            <div style="font-size:22px;font-weight:900;">كشف المؤثرين المقبولين</div>
+            <div style="font-size:13px;opacity:.85;margin-top:3px;">مركز كيور الطبي —— ${today}</div>
+          </div>
+          <div style="background:rgba(255,255,255,.15);border-radius:12px;padding:8px 20px;font-size:18px;font-weight:900;">${list.length} مؤثر</div>
+        </div>
+        <!-- table area -->
+        <div style="padding:1.2rem 1rem;">
+          ${legendHtml}
+          <div style="width:100%;overflow-x:auto;border-radius:14px;box-shadow:0 2px 16px rgba(0,0,0,.07);">
+            <table style="width:100%;border-collapse:separate;border-spacing:0 6px;background:transparent;min-width:900px;direction:rtl;">
+              <thead>
+                <tr style="background:transparent;">
+                  <th style="background:${thBg};color:#fff;padding:10px 8px;font-size:12px;font-weight:700;text-align:center;border-radius:10px 0 0 10px;width:36px;">#</th>
+                  <th style="background:${thBg};color:#fff;padding:10px 12px;font-size:12px;font-weight:700;text-align:right;min-width:110px;">الاسم</th>
+                  <th style="background:${thBg};color:#fff;padding:10px 8px;font-size:12px;font-weight:700;text-align:center;min-width:60px;">الجنس</th>
+                  <th style="background:${thBg};color:#fff;padding:10px 8px;font-size:12px;font-weight:700;text-align:center;min-width:75px;">الجنسية</th>
+                  <th style="background:${thBg};color:#fff;padding:10px 10px;font-size:12px;font-weight:700;text-align:right;min-width:100px;">الموبايل / المدني</th>
+                  <th style="background:${thBg};color:#fff;padding:10px 10px;font-size:12px;font-weight:700;text-align:right;min-width:100px;">السوشيال</th>
+                  <th style="background:${thBg};color:#fff;padding:10px 10px;font-size:12px;font-weight:700;text-align:center;min-width:100px;">الخدمة</th>
+                  <th style="background:${thBg};color:#fff;padding:10px 10px;font-size:12px;font-weight:700;text-align:center;min-width:110px;">الموعد</th>
+                  <th style="background:${thBg};color:#fff;padding:10px 8px;font-size:12px;font-weight:700;text-align:center;min-width:110px;" class="no-print">حالة الزيارة</th>
+                  <th style="background:${thBg};color:#fff;padding:10px 8px;font-size:12px;font-weight:700;text-align:center;min-width:120px;" class="no-print">حالة المحتوى</th>
+                  <th style="background:${thBg};color:#fff;padding:10px 8px;font-size:12px;font-weight:700;text-align:center;min-width:130px;border-radius:0 10px 10px 0;">توقيع المؤثر</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${rows}
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <div class="report-footer-note" style="margin:0;border-radius:0;">هذا الكشف سري ومخصص للاستخدام الداخلي — مركز كيور الطبي © 2026</div>
+      </div></div>`;
+    const div=document.createElement('div');div.id='reportContainer';div.innerHTML=html;document.body.appendChild(div);_hideBannerForReport();
+
+  } else {
+    // --- Table layout for rejected (unchanged) ---
+    const rows=list.map((item,i)=>{
+      const realIdx=influencers.indexOf(item);
+      const name=item.name||'—';
+      const gLabel=item.gender==='m'?'<span style="color:#1a6fa8;font-weight:700;">👨 ذكر</span>':item.gender==='f'?'<span style="color:#a21caf;font-weight:700;">👩 أنثى</span>':'—';
+      const natCell=item.nationality?`<span style="background:#e6f7f1;color:#0a7a55;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:700;">🌍 ${displayNationality(item.nationality)}</span>`:'—';
+      const phoneCell=item.phone?`<span onclick="showPhonePopup('${item.phone.replace(/'/g,"\\'")}','${(item.name||item.ig||'').replace(/'/g,"\\'")}',event)" style="color:#0369a1;direction:ltr;display:block;white-space:nowrap;font-size:12px;cursor:pointer;font-weight:600;">📞 ${item.phone}</span>`:'—';
       return `<tr style="background:${i%2===1?'#f8fafc':'#fff'}">
         <td style="text-align:center;font-weight:900;color:${thBg};width:30px;">${i+1}</td>
         <td style="font-weight:700;font-size:13px;">${name}</td><td>${gLabel}</td>
@@ -3828,32 +3964,70 @@ function openStatusReport(type) {
         <td style="font-size:11px;color:#555;direction:ltr;">${item.civil||'—'}</td>
         <td><div style="display:flex;flex-direction:column;gap:3px;">${buildSocialsHtml(item)}</div></td>
       </tr>`;
-    }
-  }).join('');
-  const extraH=isApproved?`<th style="background:${thBg};min-width:90px;">موعد الزيارة</th><th style="background:${thBg};min-width:80px;">الخدمة</th><th style="background:${thBg};min-width:100px;">حالة الزيارة</th><th style="background:${thBg};min-width:110px;">حالة النشر</th><th style="background:${thBg};min-width:150px;">توقيع المؤثر</th>`:'';
-  const html=`<div class="report-overlay open" id="reportOverlay" onclick="if(event.target===this)closeReport()">
-    <div class="report-modal" style="max-width:100%;width:100%;margin:0;border-radius:0;min-height:100vh;">
-      <div class="report-actions" style="position:sticky;top:0;background:#fff;z-index:10;padding:.5rem 0;border-bottom:1px solid #e5e7eb;">
-        <button class="report-btn-close" onclick="closeReport()">✕ إغلاق</button>
-        <button class="report-btn-print" style="background:${thBg}" onclick="window.print()">🖨️ طباعة / PDF</button>
-        <button class="report-btn-share" onclick="shareStatusReport('${type}')">📤 مشاركة</button>
-      </div>
-      <div class="report-header"><h2 style="color:${thBg}">${title}</h2>
-        <p>مركز كيور الطبي — الحملة الإعلانية | ${today}</p>
-        <p style="font-weight:700;color:${countColor};margin-top:4px;">الإجمالي: ${list.length} مؤثر</p>
-      </div>
-      <div class="report-table-wrap" style="overflow-x:auto;"><table class="report-table" style="min-width:900px;"><thead><tr>
-        <th style="background:${thBg};width:30px;text-align:center;">#</th>
-        <th style="background:${thBg};min-width:100px;">الاسم</th>
-        <th style="background:${thBg};min-width:50px;">الجنس</th>
-        <th style="background:${thBg};min-width:70px;">الجنسية</th>
-        <th style="background:${thBg};min-width:90px;">الهاتف</th>
-        <th style="background:${thBg};min-width:80px;">الرقم المدني</th>
-        <th style="background:${thBg};min-width:90px;">الصفحات</th>${extraH}
-      </tr></thead><tbody>${rows}</tbody></table></div>
-      <div class="report-footer-note">هذا الكشف سري ومخصص للاستخدام الداخلي — مركز كيور الطبي © 2026</div>
-    </div></div>`;
-  const div=document.createElement('div');div.id='reportContainer';div.innerHTML=html;document.body.appendChild(div);_hideBannerForReport();
+    }).join('');
+    const html=`<div class="report-overlay open" id="reportOverlay" onclick="if(event.target===this)closeReport()">
+      <div class="report-modal" style="max-width:100%;width:100%;margin:0;border-radius:0;min-height:100vh;">
+        <div class="report-actions" style="position:sticky;top:0;background:#fff;z-index:10;padding:.5rem 0;border-bottom:1px solid #e5e7eb;">
+          <button class="report-btn-close" onclick="closeReport()">✕ إغلاق</button>
+          <button class="report-btn-print" style="background:${thBg}" onclick="window.print()">🖨️ طباعة / PDF</button>
+          <button class="report-btn-share" onclick="shareStatusReport('${type}')">📤 مشاركة</button>
+        </div>
+        <div class="report-header"><h2 style="color:${thBg}">${titleEmoji} ${title}</h2>
+          <p>مركز كيور الطبي — الحملة الإعلانية | ${today}</p>
+          <p style="font-weight:700;color:${countColor};margin-top:4px;">الإجمالي: ${list.length} مؤثر</p>
+        </div>
+        <div class="report-table-wrap" style="overflow-x:auto;"><table class="report-table" style="min-width:600px;"><thead><tr>
+          <th style="background:${thBg};width:30px;text-align:center;">#</th>
+          <th style="background:${thBg};min-width:100px;">الاسم</th>
+          <th style="background:${thBg};min-width:50px;">الجنس</th>
+          <th style="background:${thBg};min-width:70px;">الجنسية</th>
+          <th style="background:${thBg};min-width:90px;">الهاتف</th>
+          <th style="background:${thBg};min-width:80px;">الرقم المدني</th>
+          <th style="background:${thBg};min-width:90px;">الصفحات</th>
+        </tr></thead><tbody>${rows}</tbody></table></div>
+        <div class="report-footer-note">هذا الكشف سري ومخصص للاستخدام الداخلي — مركز كيور الطبي © 2026</div>
+      </div></div>`;
+    const div=document.createElement('div');div.id='reportContainer';div.innerHTML=html;document.body.appendChild(div);_hideBannerForReport();
+  }
+}
+
+// Dropdown handlers for approved report table rows
+function _applyRowColors(realIdx){
+  const item=influencers[realIdx]; if(!item) return;
+  const vs=item.visitStatus||''; const cs=item.contentStatus||'';
+  // row border + bg
+  const bc=cs==='published'?'#ca8a04':cs==='unpublished'?'#7c3aed':vs==='done'?'#16a34a':vs==='cancelled'?'#dc2626':'#e2e8f0';
+  const bg=cs==='published'?'#fffbeb':cs==='unpublished'?'#faf5ff':vs==='done'?'#f0fdf4':vs==='cancelled'?'#fff7f7':'#ffffff';
+  const row=document.getElementById('rrow_'+realIdx);
+  if(row){ row.style.background=bg; row.style.borderRightColor=bc; }
+  // visit dropdown color
+  const vsSel=document.getElementById('vsSelect_'+realIdx);
+  if(vsSel){ Object.assign(vsSel.style,{background:vs==='done'?'#dcfce7':vs==='cancelled'?'#fef9c3':'#f8fafc',color:vs==='done'?'#15803d':vs==='cancelled'?'#92400e':'#64748b',borderColor:vs==='done'?'#16a34a':vs==='cancelled'?'#ca8a04':'#cbd5e1',fontWeight:vs?'700':'400'}); }
+  // content dropdown color
+  const csSel=document.getElementById('csSelect_'+realIdx);
+  if(csSel){ Object.assign(csSel.style,{background:cs==='published'?'#fef9c3':cs==='unpublished'?'#f3e8ff':'#f8fafc',color:cs==='published'?'#92400e':cs==='unpublished'?'#6d28d9':'#64748b',borderColor:cs==='published'?'#ca8a04':cs==='unpublished'?'#7c3aed':'#cbd5e1',fontWeight:cs?'700':'400'}); }
+}
+
+function setVisitStatusFromSelect(realIdx, newVal) {
+  const item=influencers[realIdx]; if(!item) return;
+  item.visitStatus = newVal;
+  saveFile(realIdx); updateStats();
+  logActivity(newVal==='done'?'done':'cancelled', `${newVal==='done'?'تمت الزيارة':'ألغيت الزيارة'}: ${getDisplayName(item,realIdx)}`);
+  const apptOverlay=document.getElementById('apptPanelOverlay');
+  if(apptOverlay&&apptOverlay.classList.contains('open')) openApptPanel();
+  _applyRowColors(realIdx);
+  renderGrid();
+  showToast(newVal==='done'?'✅ تمت الزيارة':newVal==='cancelled'?'⚠️ ألغيت الزيارة':'↺ تم إعادة ضبط الزيارة', newVal==='done'?'#16a34a':newVal==='cancelled'?'#ca8a04':'#64748b');
+}
+
+function setContentStatusFromSelect(realIdx, newVal) {
+  const item=influencers[realIdx]; if(!item) return;
+  item.contentStatus = newVal;
+  saveFile(realIdx); renderGrid();
+  const apptOverlay=document.getElementById('apptPanelOverlay');
+  if(apptOverlay&&apptOverlay.classList.contains('open')) openApptPanel();
+  _applyRowColors(realIdx);
+  showToast(newVal==='published'?'🌟 تم تسجيل نشر المحتوى':newVal==='unpublished'?'🟣 تم تسجيل عدم نشر المحتوى':'↺ تم إعادة ضبط المحتوى', newVal==='published'?'#ca8a04':newVal==='unpublished'?'#7c3aed':'#64748b');
 }
 
 // --- Gender Reports (male / female) ------------------------------
@@ -4270,143 +4444,181 @@ function openGuestReadOnlyReport() {
   const countColor = '#16a34a';
   let list = influencers.filter(i => i.status === 'approved');
   list = list.sort((a, b) => {
-    // عندهم موعد أولاً (من الأقدم للأحدث)، ثم بدون موعد (أبجدي)
-    const hasDateA = !!(a.visitDate);
-    const hasDateB = !!(b.visitDate);
+    const hasDateA = !!(a.visitDate), hasDateB = !!(b.visitDate);
     if(hasDateA && !hasDateB) return -1;
     if(!hasDateA && hasDateB) return 1;
     if(hasDateA && hasDateB) return a.visitDate.localeCompare(b.visitDate);
-    // بدون موعد: أبجدي عربي ثم إنجليزي
-    const nameA = (a.name || a.ig || '').trim();
-    const nameB = (b.name || b.ig || '').trim();
-    const isArA = /[\u0600-\u06FF]/.test(nameA.charAt(0));
-    const isArB = /[\u0600-\u06FF]/.test(nameB.charAt(0));
-    if(isArA && !isArB) return -1;
-    if(!isArA && isArB) return 1;
+    const nameA = (a.name || a.ig || '').trim(), nameB = (b.name || b.ig || '').trim();
+    const isArA = /[\u0600-\u06FF]/.test(nameA.charAt(0)), isArB = /[\u0600-\u06FF]/.test(nameB.charAt(0));
+    if(isArA && !isArB) return -1; if(!isArA && isArB) return 1;
     return nameA.localeCompare(nameB, isArA ? 'ar' : 'en', {sensitivity:'base'});
   });
   if(!list.length){ showToast('⚠️ لا يوجد مقبولين!','#d97706'); return; }
   const today = new Date().toLocaleDateString('ar-KW',{year:'numeric',month:'long',day:'numeric'});
+
+  function _rowBorderColor(vs,cs){
+    if(cs==='published') return '#ca8a04';
+    if(cs==='unpublished') return '#7c3aed';
+    if(vs==='done') return '#16a34a';
+    if(vs==='cancelled') return '#dc2626';
+    return '#e2e8f0';
+  }
+  function _rowBg(vs,cs){
+    if(cs==='published') return '#fffbeb';
+    if(cs==='unpublished') return '#faf5ff';
+    if(vs==='done') return '#f0fdf4';
+    if(vs==='cancelled') return '#fff7f7';
+    return '#ffffff';
+  }
+  function _statusLabel(vs,cs){
+    if(cs==='published') return '<span style="font-size:10px;color:#ca8a04;font-weight:700;white-space:nowrap;">🌟 تم النشر</span>';
+    if(cs==='unpublished') return '<span style="font-size:10px;color:#7c3aed;font-weight:700;white-space:nowrap;">🟣 لم يتم النشر</span>';
+    if(vs==='done') return '<span style="font-size:10px;color:#16a34a;font-weight:700;white-space:nowrap;">✅ تمت الزيارة</span>';
+    if(vs==='cancelled') return '<span style="font-size:10px;color:#dc2626;font-weight:700;white-space:nowrap;">⚠️ ألغيت الزيارة</span>';
+    return '';
+  }
+  function _vsSel(vs){
+    if(vs==='done') return 'background:#dcfce7;color:#15803d;border-color:#16a34a;';
+    if(vs==='cancelled') return 'background:#fef9c3;color:#92400e;border-color:#ca8a04;';
+    return 'background:#f8fafc;color:#64748b;border-color:#cbd5e1;';
+  }
+  function _csSel(cs){
+    if(cs==='published') return 'background:#fef9c3;color:#92400e;border-color:#ca8a04;';
+    if(cs==='unpublished') return 'background:#f3e8ff;color:#6d28d9;border-color:#7c3aed;';
+    return 'background:#f8fafc;color:#64748b;border-color:#cbd5e1;';
+  }
+
   const rows = list.map((item, i) => {
     const realIdx = influencers.indexOf(item);
     const name = item.name || '—';
+    const vs = item.visitStatus || '';
+    const cs = item.contentStatus || '';
+    const bg = _rowBg(vs,cs);
+    const bc = _rowBorderColor(vs,cs);
+    const dateStr = item.visitDate ? formatDateAr(item.visitDate) : '<span style="color:#9ca3af;font-size:11px;">لا يوجد موعد</span>';
     const gLabel = item.gender==='m'
-      ? '<span style="color:#1a6fa8;font-weight:700;">👨 ذكر</span>'
+      ? '<span style="background:#eff6ff;color:#1d4ed8;border:1px solid #bfdbfe;padding:3px 10px;border-radius:20px;font-size:12px;font-weight:700;">ذكر</span>'
       : item.gender==='f'
-      ? '<span style="color:#a21caf;font-weight:700;">👩 أنثى</span>'
+      ? '<span style="background:#fdf4ff;color:#a21caf;border:1px solid #f0abfc;padding:3px 10px;border-radius:20px;font-size:12px;font-weight:700;">أنثى</span>'
       : '—';
-    const natCell = item.nationality
-      ? `<span style="background:#e6f7f1;color:#0a7a55;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:700;">🌍 ${displayNationality(item.nationality)}</span>`
+    const natLabel = item.nationality
+      ? `<span style="background:#ecfdf5;color:#065f46;border:1px solid #6ee7b7;padding:3px 10px;border-radius:20px;font-size:12px;font-weight:700;">${displayNationality(item.nationality)}</span>`
       : '—';
-    const phoneCell = guest
+    const phoneHtml = guest
       ? '<span style="color:#9ca3af;font-size:11px;">🔒 مخفي</span>'
       : item.phone
-      ? `<span onclick="showPhonePopup('${item.phone.replace(/'/g,"\\'")}','${(item.name||item.ig||'').replace(/'/g,"\\'")}',event)" style="color:#0369a1;direction:ltr;display:block;white-space:nowrap;font-size:12px;cursor:pointer;font-weight:600;" title="اضغط للتواصل">📞 ${item.phone}</span>`
+      ? `<div onclick="showPhonePopup('${item.phone.replace(/'/g,"\\'")}','${(item.name||item.ig||'').replace(/'/g,"\\'")}',event)" style="color:#0369a1;direction:ltr;font-size:13px;cursor:pointer;font-weight:700;">${item.phone}</div>${item.civil?`<div style="color:#94a3b8;font-size:11px;direction:ltr;">${item.civil}</div>`:''}`
       : '—';
     const socialsCell = guest
       ? '<span style="color:#9ca3af;font-size:11px;">🔒 مخفي</span>'
       : `<div style="display:flex;flex-direction:column;gap:3px;">${buildSocialsHtml(item)}</div>`;
-    const dateStr = item.visitDate ? formatDateAr(item.visitDate) : '—';
-    const vs = item.visitStatus || '';
-    const vsLabel = vs==='done'
-      ? '<br><span style="font-size:10px;color:#16a34a;font-weight:700;">✅ تمت الزيارة</span>'
-      : vs==='cancelled'
-      ? '<br><span style="font-size:10px;color:#dc2626;font-weight:700;">⚠️ ألغيت الزيارة</span>'
-      : '';
     const svcLabel = (item.services&&item.services.length)
-      ? item.services.map(s=>`<span style="display:inline-block;background:#f3e8ff;color:#7c3aed;border:1px solid #c084fc;border-radius:5px;padding:2px 7px;font-size:11px;margin:1px;">${s}</span>`).join(' ')
-      : '—';
-    const cs = item.contentStatus || '';
-    const hasDate = !!item.visitDate;
-    const rowBg = cs==='published'?'#fef9c3':cs==='unpublished'?'#f3e8ff':vs==='cancelled'?'#fee2e2':vs==='done'?'#86efac':hasDate?'#dcfce7':'#fff';
-    const rowBorder = cs==='published'?'border-right:4px solid #ca8a04;':cs==='unpublished'?'border-right:4px solid #7c3aed;':vs==='cancelled'?'border-right:4px solid #dc2626;':vs==='done'?'border-right:4px solid #16a34a;':hasDate?'border-right:4px solid #16a34a;':'';
-    const doneA = vs===''?'background:#f0fdf4;color:#15803d;opacity:1;'
-      :vs==='done'?'background:#15803d;color:#fff;opacity:1;'
-      :'background:#e5e7eb;color:#9ca3af;opacity:0.45;';
-    const cancA = vs===''?'background:#fefce8;color:#ca8a04;opacity:1;'
-      :vs==='cancelled'?'background:#ca8a04;color:#fff;opacity:1;'
-      :'background:#e5e7eb;color:#9ca3af;opacity:0.45;';
-    const pubA  = cs===''?'background:#fefce8;color:#ca8a04;opacity:1;'
-      :cs==='published'?'background:#ca8a04;color:#fff;opacity:1;'
-      :'background:#e5e7eb;color:#9ca3af;opacity:0.45;';
-    const unpubA= cs===''?'background:#f3e8ff;color:#7c3aed;opacity:1;'
-      :cs==='unpublished'?'background:#7c3aed;color:#fff;opacity:1;'
-      :'background:#e5e7eb;color:#9ca3af;opacity:0.45;';
-    const visitBtns = `<div style="display:flex;gap:4px;flex-direction:column;align-items:center;">
-          <button ${!guest?`onclick="setVisitStatus(${realIdx},'done')"`:''} style="padding:4px 8px;border-radius:6px;border:1px solid #15803d;font-size:11px;font-weight:700;font-family:Tajawal,sans-serif;white-space:nowrap;${guest?'pointer-events:none;cursor:default;':'cursor:pointer;'};width:100%;${doneA}">✅ تمت</button>
-          <button ${!guest?`onclick="setVisitStatus(${realIdx},'cancelled')"`:''} style="padding:4px 8px;border-radius:6px;border:1px solid #ca8a04;font-size:11px;font-weight:700;font-family:Tajawal,sans-serif;white-space:nowrap;${guest?'pointer-events:none;cursor:default;':'cursor:pointer;'};width:100%;${cancA}">⚠️ ألغيت</button>
-        </div>`;
-    const pubBtns = `<div style="display:flex;gap:4px;flex-direction:column;align-items:center;">
-          <button ${!guest?`onclick="setContentStatus(${realIdx},'published')"`:''} style="padding:4px 8px;border-radius:6px;border:1px solid #ca8a04;font-size:11px;font-weight:700;font-family:Tajawal,sans-serif;white-space:nowrap;${guest?'pointer-events:none;cursor:default;':'cursor:pointer;'};width:100%;${pubA}">🌟 تم النشر</button>
-          <button ${!guest?`onclick="setContentStatus(${realIdx},'unpublished')"`:''} style="padding:4px 8px;border-radius:6px;border:1px solid #7c3aed;font-size:11px;font-weight:700;font-family:Tajawal,sans-serif;white-space:nowrap;${guest?'pointer-events:none;cursor:default;':'cursor:pointer;'};width:100%;${unpubA}">🟣 لم يتم</button>
-        </div>`;
+      ? item.services.map(s=>`<span style="display:inline-block;background:#f3e8ff;color:#7c3aed;border:1px solid #c084fc;border-radius:20px;padding:3px 10px;font-size:11px;font-weight:700;margin:1px;">${s}</span>`).join('<br>')
+      : '<span style="color:#9ca3af;">—</span>';
+    const stLbl = _statusLabel(vs,cs);
     const sigCell = guest
-      ? (item.signature ? `<img src="${item.signature}" style="width:140px;height:50px;object-fit:contain;display:block;" />` : '—')
+      ? (item.signature ? `<img src="${item.signature}" style="width:120px;height:44px;object-fit:contain;display:block;" />` : '—')
       : item.signature
       ? `<div style="position:relative;">
-           <img src="${item.signature}" style="width:140px;height:50px;object-fit:contain;display:block;" />
+           <img src="${item.signature}" class="sig-print-img" style="width:120px;height:44px;object-fit:contain;display:block;border:1px solid #e5e7eb;border-radius:6px;" />
            <button onclick="clearSignature(${realIdx})" style="position:absolute;top:0;left:0;background:#dc2626;color:#fff;border:none;border-radius:4px;font-size:9px;padding:1px 5px;cursor:pointer;">✕</button>
          </div>`
-      : `<canvas id="sigCanvas_${realIdx}" width="140" height="50"
-           style="border:1.5px dashed #9ca3af;border-radius:4px;cursor:crosshair;touch-action:none;display:block;"
-           onmousedown="startSig(event,${realIdx})"
-           ontouchstart="startSig(event,${realIdx})"></canvas>
-         <div style="display:flex;gap:4px;margin-top:3px;">
+      : `<canvas id="sigCanvas_${realIdx}" width="120" height="44"
+           style="border:1.5px dashed #9ca3af;border-radius:6px;cursor:crosshair;touch-action:none;display:block;"
+           onmousedown="startSig(event,${realIdx})" ontouchstart="startSig(event,${realIdx})"></canvas>
+         <div style="display:flex;gap:3px;margin-top:2px;">
            <button onclick="saveSig(${realIdx})" style="flex:1;padding:2px;border:1px solid #059669;background:#f0fdf4;color:#059669;border-radius:4px;font-size:10px;cursor:pointer;font-family:Tajawal,sans-serif;">✓ حفظ</button>
            <button onclick="clearCanvas(${realIdx})" style="flex:1;padding:2px;border:1px solid #9ca3af;background:#f9fafb;color:#555;border-radius:4px;font-size:10px;cursor:pointer;font-family:Tajawal,sans-serif;">مسح</button>
          </div>`;
-    return `<tr id="rrow_${realIdx}" style="background:${rowBg};${rowBorder}">
-      <td style="text-align:center;font-weight:900;color:${thBg};">${i+1}</td>
-      <td style="font-weight:700;font-size:12px;text-align:right;${!guest?'cursor:pointer;':''}" ${!guest?`onclick="showApptCard(${realIdx})" title="اضغط لعرض تفاصيل المؤثر"`:''}>
-        ${!guest?`<span style="border-bottom:2px dotted #1a6fa8;color:#1a6fa8;">${name}</span>`:name}${vsLabel}</td>
-      <td style="text-align:center;">${gLabel}</td>
-      <td style="text-align:center;">${natCell}</td>
-      <td style="direction:ltr;text-align:center;">${phoneCell}</td>
-      <td style="font-size:11px;color:#555;direction:ltr;text-align:center;">${item.civil||'—'}</td>
-      <td style="text-align:center;">${socialsCell}</td>
-      <td style="text-align:center;">
-        <div style="display:flex;flex-direction:column;align-items:center;gap:4px;">
-          <span style="font-weight:600;color:${thBg};white-space:nowrap;">${dateStr}</span>
-          ${!guest?`<button onclick="openInlineDate(${realIdx},this,event)" style="padding:3px 8px;border-radius:6px;border:1px solid #dc2626;background:#fff;color:#dc2626;font-size:11px;font-weight:700;cursor:pointer;font-family:Tajawal,sans-serif;" title="تعديل الموعد">تعديل</button>`:''}
-        </div>
+
+    const visitSel = guest
+      ? `<div style="font-size:12px;font-weight:700;${vs==='done'?'color:#15803d;':vs==='cancelled'?'color:#92400e;':'color:#64748b;'}">${vs==='done'?'✅ تمت':vs==='cancelled'?'⚠️ ألغيت':'—'}</div>`
+      : `<select id="vsSelect_${realIdx}" onchange="setVisitStatusFromSelect(${realIdx},this.value)"
+          style="width:100%;padding:6px 8px;border-radius:10px;border:1.5px solid;font-size:12px;font-weight:700;font-family:Tajawal,sans-serif;cursor:pointer;direction:rtl;appearance:none;-webkit-appearance:none;${_vsSel(vs)}">
+          <option value="" ${vs===''?'selected':''}>— اختر —</option>
+          <option value="done" ${vs==='done'?'selected':''}>✅ تمت</option>
+          <option value="cancelled" ${vs==='cancelled'?'selected':''}>⚠️ ألغيت</option>
+        </select>`;
+
+    const contentSel = guest
+      ? `<div style="font-size:12px;font-weight:700;${cs==='published'?'color:#92400e;':cs==='unpublished'?'color:#6d28d9;':'color:#64748b;'}">${cs==='published'?'🌟 تم النشر':cs==='unpublished'?'🟣 لم يتم':'—'}</div>`
+      : `<select id="csSelect_${realIdx}" onchange="setContentStatusFromSelect(${realIdx},this.value)"
+          style="width:100%;padding:6px 8px;border-radius:10px;border:1.5px solid;font-size:12px;font-weight:700;font-family:Tajawal,sans-serif;cursor:pointer;direction:rtl;appearance:none;-webkit-appearance:none;${_csSel(cs)}">
+          <option value="" ${cs===''?'selected':''}>— اختر —</option>
+          <option value="published" ${cs==='published'?'selected':''}>🌟 تم النشر</option>
+          <option value="unpublished" ${cs==='unpublished'?'selected':''}>🟣 لم يتم</option>
+        </select>`;
+
+    return `<tr id="rrow_${realIdx}" style="background:${bg};border-right:5px solid ${bc};transition:background .2s;">
+      <td style="text-align:center;font-weight:900;color:${thBg};font-size:14px;padding:10px 8px;">${i+1}</td>
+      <td style="padding:10px 10px;min-width:110px;">
+        <div ${!guest?`onclick="showApptCard(${realIdx})" style="font-weight:900;font-size:13px;color:#0a3d62;cursor:pointer;line-height:1.4;"`:' style="font-weight:900;font-size:13px;color:#0a3d62;line-height:1.4;"'}>${name}</div>
+        ${stLbl?`<div style="margin-top:3px;">${stLbl}</div>`:''}
       </td>
-      <td style="text-align:center;">
-        <div style="display:flex;flex-direction:column;align-items:center;gap:4px;">
-          <span id="svcDisplay_${realIdx}">${svcLabel}</span>
-          ${!guest?`<button onclick="openInlineSvc(${realIdx},this,event)" style="padding:3px 8px;border-radius:6px;border:1px solid #dc2626;background:#fff;color:#dc2626;font-size:11px;font-weight:700;cursor:pointer;font-family:Tajawal,sans-serif;" title="تعديل الخدمة">تعديل</button>`:''}
-        </div>
+      <td style="text-align:center;padding:10px 8px;">${gLabel}</td>
+      <td style="text-align:center;padding:10px 8px;">${natLabel}</td>
+      <td style="padding:10px 10px;min-width:100px;">${phoneHtml}</td>
+      <td style="padding:10px 10px;min-width:90px;">${socialsCell}</td>
+      <td style="padding:10px 10px;min-width:100px;text-align:center;">
+        <div id="svcDisplay_${realIdx}" style="margin-bottom:4px;">${svcLabel}</div>
+        ${!guest?`<button onclick="openInlineSvc(${realIdx},this,event)" style="padding:4px 12px;border-radius:8px;border:1px solid #dc2626;background:#fff;color:#dc2626;font-size:11px;font-weight:700;cursor:pointer;font-family:Tajawal,sans-serif;">تعديل</button>`:''}
       </td>
-      <td style="text-align:center;">${visitBtns}</td>
-      <td style="text-align:center;">${pubBtns}</td>
-      <td style="text-align:center;padding:4px;">${sigCell}</td>
+      <td style="padding:10px 10px;min-width:110px;text-align:center;">
+        <div style="font-weight:700;color:${thBg};font-size:13px;margin-bottom:4px;">${dateStr}</div>
+        ${!guest?`<button onclick="openInlineDate(${realIdx},this,event)" style="padding:4px 12px;border-radius:8px;border:1px solid #dc2626;background:#fff;color:#dc2626;font-size:11px;font-weight:700;cursor:pointer;font-family:Tajawal,sans-serif;">تعديل</button>`:''}
+      </td>
+      <td style="padding:6px 8px;min-width:115px;" class="no-print">${visitSel}</td>
+      <td style="padding:6px 8px;min-width:125px;" class="no-print">${contentSel}</td>
+      <td style="padding:6px 8px;min-width:135px;">${sigCell}</td>
     </tr>`;
   }).join('');
+
+  const legendHtml = `<div class="no-print" style="display:flex;flex-wrap:wrap;gap:14px;justify-content:flex-end;align-items:center;margin-bottom:1rem;font-size:12px;font-weight:700;">
+    <span style="display:flex;align-items:center;gap:5px;"><span style="width:14px;height:14px;border-radius:50%;background:#16a34a;display:inline-block;"></span> تمت الزيارة</span>
+    <span style="display:flex;align-items:center;gap:5px;"><span style="width:14px;height:14px;border-radius:50%;background:#dc2626;display:inline-block;"></span> ألغيت الزيارة</span>
+    <span style="display:flex;align-items:center;gap:5px;"><span style="width:14px;height:14px;border-radius:50%;background:#e2e8f0;display:inline-block;border:1px solid #cbd5e1;"></span> بدون موعد</span>
+    <span style="display:flex;align-items:center;gap:5px;"><span style="width:14px;height:14px;border-radius:50%;background:#ca8a04;display:inline-block;"></span> تم النشر</span>
+    <span style="display:flex;align-items:center;gap:5px;"><span style="width:14px;height:14px;border-radius:50%;background:#7c3aed;display:inline-block;"></span> لم يتم النشر</span>
+  </div>`;
+
   const html = `<div class="report-overlay open" id="reportOverlay" onclick="if(event.target===this)closeReport()">
-    <div class="report-modal" style="max-width:100%;width:100%;margin:0;border-radius:0;min-height:100vh;">
-      <div class="report-actions" style="position:sticky;top:0;background:#fff;z-index:10;padding:.5rem 0;border-bottom:1px solid #e5e7eb;">
+    <div class="report-modal" style="max-width:100%;width:100%;margin:0;border-radius:0;min-height:100vh;padding:0;background:#f1f5f9;">
+      <div class="report-actions no-print" style="position:sticky;top:0;background:#fff;z-index:10;padding:.6rem 1.2rem;border-bottom:2px solid #e5e7eb;display:flex;gap:8px;align-items:center;">
         <button class="report-btn-close" onclick="closeReport()">✕ إغلاق</button>
         <button class="report-btn-print" style="background:${thBg}" onclick="window.print()">🖨️ طباعة / PDF</button>
         <button class="report-btn-share" onclick="shareStatusReport('approved')">📤 مشاركة</button>
       </div>
-      <div class="report-header"><h2 style="color:${thBg}">✅ كشف المؤثرين المقبولين</h2>
-        <p>مركز كيور الطبي — الحملة الإعلانية | ${today}</p>
-        <p style="font-weight:700;color:${countColor};margin-top:4px;">الإجمالي: ${list.length} مؤثر</p>
+      <div style="background:linear-gradient(135deg,#0a3d62 0%,#1a6fa8 100%);color:#fff;padding:1.4rem 1.6rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;">
+        <div>
+          <div style="font-size:22px;font-weight:900;">كشف المؤثرين المقبولين</div>
+          <div style="font-size:13px;opacity:.85;margin-top:3px;">مركز كيور الطبي —— ${today}</div>
+        </div>
+        <div style="background:rgba(255,255,255,.15);border-radius:12px;padding:8px 20px;font-size:18px;font-weight:900;">${list.length} مؤثر</div>
       </div>
-      <div class="report-table-wrap" style="overflow-x:auto;"><table class="report-table" style="min-width:960px;"><thead><tr>
-        <th style="width:30px;">#</th>
-        <th style="width:110px;text-align:right;">الاسم</th>
-        <th style="width:55px;">الجنس</th>
-        <th style="width:75px;">الجنسية</th>
-        <th style="width:85px;">الهاتف</th>
-        <th style="width:100px;">الرقم المدني</th>
-        <th style="width:80px;">الصفحات</th>
-        <th style="width:100px;">موعد الزيارة</th>
-        <th style="width:85px;">الخدمة</th>
-        <th style="width:100px;">حالة الزيارة</th>
-        <th style="width:105px;">حالة النشر</th>
-        <th style="width:135px;">توقيع المؤثر</th>
-      </tr></thead><tbody>${rows}</tbody></table></div>
-      <div class="report-footer-note">هذا الكشف سري ومخصص للاستخدام الداخلي — مركز كيور الطبي © 2026</div>
+      <div style="padding:1.2rem 1rem;">
+        ${legendHtml}
+        <div style="width:100%;overflow-x:auto;border-radius:14px;box-shadow:0 2px 16px rgba(0,0,0,.07);">
+          <table style="width:100%;border-collapse:separate;border-spacing:0 6px;background:transparent;min-width:950px;direction:rtl;">
+            <thead>
+              <tr>
+                <th style="background:${thBg};color:#fff;padding:10px 8px;font-size:12px;font-weight:700;text-align:center;border-radius:10px 0 0 10px;width:36px;">#</th>
+                <th style="background:${thBg};color:#fff;padding:10px 12px;font-size:12px;font-weight:700;text-align:right;min-width:110px;">الاسم</th>
+                <th style="background:${thBg};color:#fff;padding:10px 8px;font-size:12px;font-weight:700;text-align:center;">الجنس</th>
+                <th style="background:${thBg};color:#fff;padding:10px 8px;font-size:12px;font-weight:700;text-align:center;">الجنسية</th>
+                <th style="background:${thBg};color:#fff;padding:10px 10px;font-size:12px;font-weight:700;text-align:right;">الموبايل / المدني</th>
+                <th style="background:${thBg};color:#fff;padding:10px 10px;font-size:12px;font-weight:700;text-align:right;">السوشيال</th>
+                <th style="background:${thBg};color:#fff;padding:10px 10px;font-size:12px;font-weight:700;text-align:center;">الخدمة</th>
+                <th style="background:${thBg};color:#fff;padding:10px 10px;font-size:12px;font-weight:700;text-align:center;">الموعد</th>
+                <th style="background:${thBg};color:#fff;padding:10px 8px;font-size:12px;font-weight:700;text-align:center;" class="no-print">حالة الزيارة</th>
+                <th style="background:${thBg};color:#fff;padding:10px 8px;font-size:12px;font-weight:700;text-align:center;" class="no-print">حالة المحتوى</th>
+                <th style="background:${thBg};color:#fff;padding:10px 8px;font-size:12px;font-weight:700;text-align:center;border-radius:0 10px 10px 0;">توقيع المؤثر</th>
+              </tr>
+            </thead>
+            <tbody>${rows}</tbody>
+          </table>
+        </div>
+      </div>
+      <div class="report-footer-note" style="margin:0;border-radius:0;">هذا الكشف سري ومخصص للاستخدام الداخلي — مركز كيور الطبي © 2026</div>
     </div></div>`;
   const div = document.createElement('div'); div.id = 'reportContainer'; div.innerHTML = html; document.body.appendChild(div); _hideBannerForReport();
 }
@@ -5083,6 +5295,10 @@ window.setBulkDecision=setBulkDecision; window.applyBulkDecisions=applyBulkDecis
 window.openReportFromBtn=openReportFromBtn;
 window.closeReport=closeReport; window.closeReportIfBg=closeReportIfBg;
 window.openStatusReport=openStatusReport; window.openGenderReport=openGenderReport;
+window.setVisitStatusFromSelect=setVisitStatusFromSelect; window.setContentStatusFromSelect=setContentStatusFromSelect;
+window._applyRowColors=_applyRowColors;
+window._getVisitDropdownStyle=_getVisitDropdownStyle; window._getContentDropdownStyle=_getContentDropdownStyle;
+window._getCardBorderColor=_getCardBorderColor; window._getCardBg=_getCardBg;
 window.setVisitStatus=setVisitStatus;
 window.setContentStatus=setContentStatus;
 window.shareStatusReport=shareStatusReport; window.shareGenderReport=shareGenderReport;
