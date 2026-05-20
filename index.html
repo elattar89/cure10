@@ -2156,14 +2156,6 @@ function addInfluencer() {
   const newItem={name,phone,civil,nationality,gender,ig:igHandle,ig_url:igRaw.startsWith('http')?igRaw:(igRaw?'https://www.instagram.com/'+igRaw.replace('@',''):''),tt:ttHandle,tt_url:ttRaw.startsWith('http')?ttRaw:(ttRaw?'https://www.tiktok.com/'+ttHandle:''),snap,status:'pending',visitDate:'',dialects:autoDialect?[autoDialect]:[]};
   const dup=findDuplicate(newItem);
   if(dup){closeModal();showSingleDupWarning(newItem,dup);return;}
-  getFirebaseTimestamp().then(ts => {
-    newItem.addedAt = ts;
-    newItem._uid = genUID();
-    newItem._updatedAt = ts;
-    influencers.push(newItem);
-    renderGrid(); saveFile(); showToast('✅ تم إضافة المؤثر بنجاح!','#059669');
-    updateStats(); updateDupReviewBtn();
-  });
   closeModal();
   ['mName','mPhone','mCivil','mIg','mTt','mSnap'].forEach(id=>document.getElementById(id).value='');
   document.getElementById('mNationality').value='';
@@ -2172,7 +2164,19 @@ function addInfluencer() {
   document.getElementById('mGenderM').dataset.selected='0';
   document.getElementById('mGenderF').style.cssText=base+'background:#21262d;color:#8b949e;border:1px solid #30363d;';
   document.getElementById('mGenderF').dataset.selected='0';
-  renderGrid(); saveFile(); showToast('✅ تم إضافة المؤثر بنجاح!','#059669');
+  getFirebaseTimestamp().then(ts => {
+    newItem.addedAt = ts;
+    newItem._uid = genUID();
+    newItem._updatedAt = ts;
+    influencers.push(newItem);
+    // تأكد من اللهجة بعد الإضافة مباشرة
+    if(!newItem.dialects || newItem.dialects.length === 0) {
+      const d = getAutoDialect(newItem.nationality || '');
+      if(d) newItem.dialects = [d];
+    }
+    renderGrid(); saveFile(); showToast('✅ تم إضافة المؤثر بنجاح!','#059669');
+    updateStats(); updateDupReviewBtn();
+  });
 }
 
 function openEditModal(idx) {
