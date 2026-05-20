@@ -2073,6 +2073,7 @@ function saveEditInfluencer() {
   logActivity('edit', `تعديل بيانات: ${item.name||item.ig||'مؤثر'}`);
   showToast('✅ تم حفظ التعديلات','#1a6fa8');
   if(document.getElementById('apptCardOverlay').style.display==='flex') showApptCard(savedIdx);
+  _refreshReportRow(savedIdx);
 }
 
 function openBulkModal(){ document.getElementById('bulkModalOverlay').classList.remove('hidden'); }
@@ -2102,11 +2103,61 @@ function parseSheetRow(line) {
   }
   if(tokens.length < 4) return null;
   const fullname=tokens[0]||'', genderRaw=tokens[1]||'', civil=tokens[2]||'', phone=tokens[3]||'';
-  const nationality=tokens[4]||'', igRaw=tokens[5]||'', ttRaw=tokens[6]||'', snapRaw=tokens[7]||'';
+  const nationalityRaw=tokens[4]||'', igRaw=tokens[5]||'', ttRaw=tokens[6]||'', snapRaw=tokens[7]||'';
   const timestamp=tokens[11]||tokens[10]||'';
   if(!fullname && !phone && !igRaw) return null;
   function extractIg(url) { const m=url.match(/instagram\.com\/([^?&\/\s]+)/); return m?'@'+m[1]:''; }
   function extractTt(url) { const m=url.match(/tiktok\.com\/@?([^?&\/\s]+)/); return m?'@'+m[1]:''; }
+  // تحويل اسم الدولة من الـ sheet للقيمة الموحدة في NATIONALITIES
+  function normalizeNat(raw){
+    if(!raw) return '';
+    const natMap={
+      'مصر':'مصري','مصرية':'مصري','egypt':'مصري',
+      'الكويت':'كويتي','kuwait':'كويتي','كويت':'كويتي',
+      'السعودية':'سعودي','سعودية':'سعودي','saudi':'سعودي','ksa':'سعودي',
+      'الإمارات':'إماراتي','إمارات':'إماراتي','uae':'إماراتي',
+      'البحرين':'بحريني','بحرين':'بحريني','bahrain':'بحريني',
+      'قطر':'قطري','qatar':'قطري',
+      'عمان':'عماني','سلطنة عمان':'عماني','oman':'عماني',
+      'العراق':'عراقي','عراق':'عراقي','iraq':'عراقي',
+      'اليمن':'يمني','يمن':'يمني','yemen':'يمني',
+      'سوريا':'سوري','سورية':'سوري','syria':'سوري',
+      'لبنان':'لبناني','lebanon':'لبناني',
+      'الأردن':'أردني','أردن':'أردني','jordan':'أردني',
+      'فلسطين':'فلسطيني','palestine':'فلسطيني',
+      'السودان':'سوداني','سودان':'سوداني','sudan':'سوداني',
+      'ليبيا':'ليبي','libya':'ليبي',
+      'تونس':'تونسي','tunisia':'تونسي',
+      'المغرب':'مغربي','مغرب':'مغربي','morocco':'مغربي',
+      'الجزائر':'جزائري','جزائر':'جزائري','algeria':'جزائري',
+      'باكستان':'باكستاني','pakistan':'باكستاني',
+      'الهند':'هندي','هند':'هندي','india':'هندي',
+      'بنغلاديش':'بنغلاديشي','bangladesh':'بنغلاديشي',
+      'الفلبين':'فلبيني','فلبين':'فلبيني','philippines':'فلبيني',
+      'إندونيسيا':'إندونيسي','indonesia':'إندونيسي',
+      'سريلانكا':'سريلانكي','sri lanka':'سريلانكي',
+      'تركيا':'تركي','turkey':'تركي',
+      'إيران':'إيراني','iran':'إيراني',
+      'أفغانستان':'أفغاني','afghanistan':'أفغاني',
+      'إثيوبيا':'إثيوبي','ethiopia':'إثيوبي',
+      'كينيا':'كيني','kenya':'كيني',
+      'أمريكا':'أمريكي','الولايات المتحدة':'أمريكي','usa':'أمريكي','america':'أمريكي',
+      'بريطانيا':'بريطاني','المملكة المتحدة':'بريطاني','uk':'بريطاني',
+      'كندا':'كندي','canada':'كندي',
+      'أستراليا':'أسترالي','australia':'أسترالي',
+      'فرنسا':'فرنسي','france':'فرنسي',
+      'ألمانيا':'ألماني','germany':'ألماني',
+    };
+    const key = raw.trim().toLowerCase();
+    // أولاً جرب المطابقة المباشرة
+    if(natMap[raw.trim()]) return natMap[raw.trim()];
+    // ثم المطابقة بدون حساسية للحالة
+    for(const k in natMap){ if(k.toLowerCase()===key) return natMap[k]; }
+    // لو القيمة موجودة أصلاً في NATIONALITIES ارجعها كما هي
+    if(typeof NATIONALITIES !== 'undefined' && NATIONALITIES.includes(raw.trim())) return raw.trim();
+    return raw.trim();
+  }
+  const nationality = normalizeNat(nationalityRaw);
   const gender=/أنثى|انثى|female/i.test(genderRaw)?'f':/ذكر|male/i.test(genderRaw)?'m':'';
   const ig_url=igRaw.includes('instagram.com')?(igRaw.startsWith('http')?igRaw:'https://'+igRaw):'';
   const ig=ig_url?(extractIg(ig_url)||''):(igRaw.startsWith('@')?igRaw:'');
@@ -3557,10 +3608,38 @@ function showApptCard(idx) {
   const initial = getInitial(item);
   const isApproved = item.status === 'approved';
   // Socials
+  function _sh(val){
+    if(!val) return '';
+    val=val.trim();
+    let m=val.match(/(?:instagram\.com|tiktok\.com|snapchat\.com\/add)\/@?([^/?&#\s]+)/i);
+    if(m) return '@'+m[1];
+    try{const u=new URL(val);const parts=u.pathname.replace(/\/$/,'').split('/').filter(Boolean);const last=parts[parts.length-1];if(last)return '@'+last.replace('@','');}catch(e){}
+    if(val.startsWith('@')) return '@'+val.slice(1).split('?')[0].split('&')[0].trim();
+    return '@'+val.split('?')[0].split('&')[0].trim();
+  }
+  function _buildUrl(val, base){
+    if(!val) return base;
+    val=val.trim();
+    if(val.startsWith('http')) return val;
+    const handle=(val.startsWith('@')?val.slice(1):val).split('?')[0].split('&')[0].trim();
+    return base+handle;
+  }
   let socials = '';
-  if(item.ig){ const igUrl=item.ig_url&&item.ig_url.startsWith('http')?item.ig_url:'https://www.instagram.com/'+item.ig.replace('@',''); socials+=`<a class="social-link" href="${igUrl}" target="_blank"><span class="social-icon ig-icon"><svg width="11" height="11" viewBox="0 0 24 24" fill="url(#ig-grad)"><defs><linearGradient id="ig-grad" x1="0%" y1="100%" x2="100%" y2="0%"><stop offset="0%" style="stop-color:#f09433"/><stop offset="50%" style="stop-color:#dc2743"/><stop offset="100%" style="stop-color:#bc1888"/></linearGradient></defs><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg></span><span>${item.ig}</span></a>`; }
-  if(item.tt){ const ttUrl=item.tt_url&&item.tt_url.startsWith('http')?item.tt_url:'https://www.tiktok.com/'+item.tt; socials+=`<a class="social-link" href="${ttUrl}" target="_blank"><span class="social-icon tt-icon"><svg width="11" height="11" viewBox="0 0 24 24"><path fill="#69C9D0" d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-2.88 2.5 2.89 2.89 0 0 1-2.89-2.89 2.89 2.89 0 0 1 2.89-2.89c.28 0 .54.04.79.1V9.01a6.34 6.34 0 0 0-.79-.05 6.34 6.34 0 0 0-6.34 6.34 6.34 6.34 0 0 0 6.34 6.34 6.34 6.34 0 0 0 6.33-6.34V8.69a8.18 8.18 0 0 0 4.78 1.52V6.76a4.86 4.86 0 0 1-3-.07z"/></svg></span><span>${item.tt}</span></a>`; }
-  if(item.snap){ const snapUrl=item.snap.startsWith('http')?item.snap:'https://snapchat.com/add/'+item.snap; const snapHandle=getSnapHandle(item.snap); socials+=`<a class="social-link" href="${snapUrl}" target="_blank"><span class="social-icon snap-icon"><svg width="11" height="11" viewBox="0 0 24 24" fill="#000"><path d="M12.166.011C9.033.011 6.099 1.871 4.91 4.66c-.53 1.236-.425 3.566-.362 4.994-.33.15-.727.24-1.17.133-.315-.075-.627.154-.68.475-.081.497.286.898.75 1.012.63.154 1.236.124 1.784-.047.083-.024.163-.054.241-.086.41 1.24 1.14 2.41 2.177 3.299-.754.378-2.15.89-3.914 1.01-.282.018-.52.208-.573.488-.245 1.304 2.36 2.014 3.69 2.338.244.059.41.28.4.53-.02.457.02.76.107.97.068.163.237.255.408.215.332-.079.654-.232.997-.232.388 0 .639.104 1.012.316.762.437 1.627.943 3.219.943 1.57 0 2.44-.498 3.193-.934.372-.213.63-.325 1.012-.325.338 0 .657.152.987.23.172.041.342-.052.41-.214.086-.21.127-.513.107-.97-.01-.25.156-.47.4-.53 1.33-.323 3.934-1.033 3.69-2.337-.054-.28-.291-.47-.573-.488-1.765-.12-3.16-.632-3.914-1.01 1.036-.889 1.767-2.059 2.177-3.299.078.032.158.062.241.086.548.171 1.154.201 1.784.047.464-.114.831-.515.75-1.012-.053-.321-.365-.55-.68-.475-.443.107-.84.017-1.17-.133.063-1.428.168-3.758-.362-4.994C17.9 1.871 14.966.011 12.166.011z"/></svg></span><span>${snapHandle}</span></a>`; }
+  if(item.ig){
+    const igUrl=item.ig_url&&item.ig_url.startsWith('http')?item.ig_url:_buildUrl(item.ig,'https://www.instagram.com/');
+    const igH=_sh(item.ig_url||item.ig);
+    socials+=`<a class="social-link" href="${igUrl}" target="_blank"><span class="social-icon ig-icon"><svg width="11" height="11" viewBox="0 0 24 24" fill="url(#ig-grad)"><defs><linearGradient id="ig-grad" x1="0%" y1="100%" x2="100%" y2="0%"><stop offset="0%" style="stop-color:#f09433"/><stop offset="50%" style="stop-color:#dc2743"/><stop offset="100%" style="stop-color:#bc1888"/></linearGradient></defs><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg></span><span>${igH}</span></a>`;
+  }
+  if(item.tt){
+    const ttUrl=item.tt_url&&item.tt_url.startsWith('http')?item.tt_url:_buildUrl(item.tt,'https://www.tiktok.com/@');
+    const ttH=_sh(item.tt_url||item.tt);
+    socials+=`<a class="social-link" href="${ttUrl}" target="_blank"><span class="social-icon tt-icon"><svg width="11" height="11" viewBox="0 0 24 24"><path fill="#69C9D0" d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-2.88 2.5 2.89 2.89 0 0 1-2.89-2.89 2.89 2.89 0 0 1 2.89-2.89c.28 0 .54.04.79.1V9.01a6.34 6.34 0 0 0-.79-.05 6.34 6.34 0 0 0-6.34 6.34 6.34 6.34 0 0 0 6.34 6.34 6.34 6.34 0 0 0 6.33-6.34V8.69a8.18 8.18 0 0 0 4.78 1.52V6.76a4.86 4.86 0 0 1-3-.07z"/></svg></span><span>${ttH}</span></a>`;
+  }
+  if(item.snap){
+    const snapUrl=item.snap.startsWith('http')?item.snap:'https://snapchat.com/add/'+_sh(item.snap).replace('@','');
+    const snapH=_sh(item.snap);
+    socials+=`<a class="social-link" href="${snapUrl}" target="_blank"><span class="social-icon snap-icon"><svg width="11" height="11" viewBox="0 0 24 24" fill="#000"><path d="M12.166.011C9.033.011 6.099 1.871 4.91 4.66c-.53 1.236-.425 3.566-.362 4.994-.33.15-.727.24-1.17.133-.315-.075-.627.154-.68.475-.081.497.286.898.75 1.012.63.154 1.236.124 1.784-.047.083-.024.163-.054.241-.086.41 1.24 1.14 2.41 2.177 3.299-.754.378-2.15.89-3.914 1.01-.282.018-.52.208-.573.488-.245 1.304 2.36 2.014 3.69 2.338.244.059.41.28.4.53-.02.457.02.76.107.97.068.163.237.255.408.215.332-.079.654-.232.997-.232.388 0 .639.104 1.012.316.762.437 1.627.943 3.219.943 1.57 0 2.44-.498 3.193-.934.372-.213.63-.325 1.012-.325.338 0 .657.152.987.23.172.041.342-.052.41-.214.086-.21.127-.513.107-.97-.01-.25.156-.47.4-.53 1.33-.323 3.934-1.033 3.69-2.337-.054-.28-.291-.47-.573-.488-1.765-.12-3.16-.632-3.914-1.01 1.036-.889 1.767-2.059 2.177-3.299.078.032.158.062.241.086.548.171 1.154.201 1.784.047.464-.114.831-.515.75-1.012-.053-.321-.365-.55-.68-.475-.443.107-.84.017-1.17-.133.063-1.428.168-3.758-.362-4.994C17.9 1.871 14.966.011 12.166.011z"/></svg></span><span>${snapH}</span></a>`;
+  }
   const svcLabel=item.services&&item.services.length?'الخدمة : '+item.services.join(' · '):'اختر الخدمة';
   const hasSvc=item.services&&item.services.length>0;
   const hasDate=!!item.visitDate;
@@ -3615,21 +3694,50 @@ const scSVG_rpt='<svg width="13" height="13" viewBox="0 0 24 24" fill="#FFFC00" 
 
 function buildSocialsHtml(item) {
   let s='';
+
+  // يستخرج اسم الحساب النضيف بدون query params
   function shortHandle(val){
     if(!val) return '';
     val = val.trim();
-    // رابط يحتوي على اسم الحساب
-    let m = val.match(/(?:instagram\.com|tiktok\.com|snapchat\.com\/add)\/([^/?&#\s]+)/i);
+    let m = val.match(/(?:instagram\.com|tiktok\.com|snapchat\.com\/add)\/@?([^/?&#\s]+)/i);
     if(m) return '@'+m[1];
-    // أي رابط عام — خذ آخر جزء من الـ path
-    try { const u=new URL(val); const parts=u.pathname.replace(/\/$/,'').split('/').filter(Boolean); const last=parts[parts.length-1]; if(last) return '@'+last; } catch(e){}
-    // @ username مباشرة أو نص عادي
-    if(val.startsWith('@')) return val;
-    return '@'+val;
+    try { const u=new URL(val); const parts=u.pathname.replace(/\/$/,'').split('/').filter(Boolean); const last=parts[parts.length-1]; if(last) return '@'+last.replace('@',''); } catch(e){}
+    if(val.startsWith('@')) return '@'+val.slice(1).split('?')[0].split('&')[0].trim();
+    return '@'+val.split('?')[0].split('&')[0].trim();
   }
-  if(item.ig){const u=item.ig_url&&item.ig_url.startsWith('http')?item.ig_url:'https://www.instagram.com/'+item.ig.replace('@','');const h=shortHandle(item.ig||item.ig_url);s+=`<a href="${u}" target="_blank" style="display:flex;align-items:center;gap:4px;margin-bottom:2px;text-decoration:none;">${igSVG_rpt}<span style="color:#c13584;font-size:12px;font-weight:700;">${h}</span></a>`;}
-  if(item.tt){const u=item.tt_url&&item.tt_url.startsWith('http')?item.tt_url:'https://www.tiktok.com/'+item.tt;const h=shortHandle(item.tt||item.tt_url);s+=`<a href="${u}" target="_blank" style="display:flex;align-items:center;gap:4px;margin-bottom:2px;text-decoration:none;">${ttSVG_rpt}<span style="color:#333;font-size:12px;font-weight:700;">${h}</span></a>`;}
-  if(item.snap){const m2=item.snap.match(/snapchat\.com\/add\/([^/?]+)/i);const h=m2?('@'+m2[1]):(item.snap.startsWith('@')?item.snap:item.snap.startsWith('http')?shortHandle(item.snap):item.snap);const u=item.snap.startsWith('http')?item.snap:'https://www.snapchat.com/add/'+item.snap;s+=`<a href="${u}" target="_blank" style="display:flex;align-items:center;gap:4px;margin-bottom:2px;text-decoration:none;">${scSVG_rpt}<span style="color:#d97706;font-size:12px;font-weight:700;">${h}</span></a>`;}
+
+  // يبني URL صحيح قابل للفتح من أي قيمة
+  function buildUrl(val, baseUrl){
+    if(!val) return baseUrl;
+    val = val.trim();
+    // لو رابط كامل → استخدمه كما هو
+    if(val.startsWith('http')) return val;
+    // لو @ مع query params → ابني URL نضيف من الـ handle فقط
+    const handle = val.startsWith('@') ? val.slice(1).split('?')[0].split('&')[0].trim() : val.split('?')[0].trim();
+    return baseUrl + handle;
+  }
+
+  if(item.ig){
+    const u = item.ig_url && item.ig_url.startsWith('http')
+      ? item.ig_url
+      : buildUrl(item.ig, 'https://www.instagram.com/');
+    const h = shortHandle(item.ig_url || item.ig);
+    s+=`<a href="${u}" target="_blank" style="display:flex;align-items:center;gap:4px;margin-bottom:2px;text-decoration:none;">${igSVG_rpt}<span style="color:#c13584;font-size:12px;font-weight:700;">${h}</span></a>`;
+  }
+  if(item.tt){
+    const u = item.tt_url && item.tt_url.startsWith('http')
+      ? item.tt_url
+      : buildUrl(item.tt, 'https://www.tiktok.com/@');
+    const h = shortHandle(item.tt_url || item.tt);
+    s+=`<a href="${u}" target="_blank" style="display:flex;align-items:center;gap:4px;margin-bottom:2px;text-decoration:none;">${ttSVG_rpt}<span style="color:#333;font-size:12px;font-weight:700;">${h}</span></a>`;
+  }
+  if(item.snap){
+    const m2 = item.snap.match(/snapchat\.com\/add\/([^/?&#\s]+)/i);
+    const handle = m2 ? m2[1] : (item.snap.startsWith('@') ? item.snap.slice(1).split('?')[0] : item.snap.split('?')[0].replace('@',''));
+    const u = item.snap.startsWith('http') ? item.snap : 'https://www.snapchat.com/add/'+handle;
+    const h = '@'+handle;
+    s+=`<a href="${u}" target="_blank" style="display:flex;align-items:center;gap:4px;margin-bottom:2px;text-decoration:none;">${scSVG_rpt}<span style="color:#d97706;font-size:12px;font-weight:700;">${h}</span></a>`;
+  }
   return s||'—';
 }
 
@@ -4043,18 +4151,83 @@ function openStatusReport(type) {
 function _applyRowColors(realIdx){
   const item=influencers[realIdx]; if(!item) return;
   const vs=item.visitStatus||''; const cs=item.contentStatus||'';
-  // row border + bg
-  const bc=cs==='published'?'#ca8a04':cs==='unpublished'?'#7c3aed':vs==='done'?'#16a34a':vs==='cancelled'?'#dc2626':'#e2e8f0';
-  const bg=cs==='published'?'#fffbeb':cs==='unpublished'?'#faf5ff':vs==='done'?'#f0fdf4':vs==='cancelled'?'#fff7f7':'#ffffff';
+  const bc=cs==='published'?'#92400e':cs==='unpublished'?'#5b21b6':vs==='done'?'#15803d':vs==='cancelled'?'#b91c1c':'#cbd5e1';
+  const bg=cs==='published'?'#fef3c7':cs==='unpublished'?'#ede9fe':vs==='done'?'#bbf7d0':vs==='cancelled'?'#fecaca':'#ffffff';
   const row=document.getElementById('rrow_'+realIdx);
   if(row){ row.style.background=bg; row.style.borderRightColor=bc; }
-  // visit dropdown color
   const vsSel=document.getElementById('vsSelect_'+realIdx);
   if(vsSel){ Object.assign(vsSel.style,{background:vs==='done'?'#dcfce7':vs==='cancelled'?'#fef9c3':'#f8fafc',color:vs==='done'?'#15803d':vs==='cancelled'?'#92400e':'#64748b',borderColor:vs==='done'?'#16a34a':vs==='cancelled'?'#ca8a04':'#cbd5e1',fontWeight:vs?'700':'400'}); }
-  // content dropdown color
   const csSel=document.getElementById('csSelect_'+realIdx);
   if(csSel){ Object.assign(csSel.style,{background:cs==='published'?'#fef9c3':cs==='unpublished'?'#f3e8ff':'#f8fafc',color:cs==='published'?'#92400e':cs==='unpublished'?'#6d28d9':'#64748b',borderColor:cs==='published'?'#ca8a04':cs==='unpublished'?'#7c3aed':'#cbd5e1',fontWeight:cs?'700':'400'}); }
 }
+
+// تحديث شامل لكرت الشخص في الكشف المفتوح بعد أي تعديل
+function _refreshReportRow(realIdx){
+  const row=document.getElementById('rrow_'+realIdx);
+  if(!row) return;
+  const item=influencers[realIdx]; if(!item) return;
+  const vs=item.visitStatus||''; const cs=item.contentStatus||'';
+  // اسم + status label
+  const nameTd=row.querySelector('td:nth-child(2)');
+  if(nameTd){
+    const nameDiv=nameTd.querySelector('div:first-child');
+    if(nameDiv) nameDiv.textContent=item.name||'—';
+    let stLbl='';
+    if(cs==='published') stLbl='<span style="font-size:10px;color:#ca8a04;font-weight:700;white-space:nowrap;">🌟 تم النشر</span>';
+    else if(cs==='unpublished') stLbl='<span style="font-size:10px;color:#7c3aed;font-weight:700;white-space:nowrap;">🟣 لم يتم النشر</span>';
+    else if(vs==='done') stLbl='<span style="font-size:10px;color:#16a34a;font-weight:700;white-space:nowrap;">✅ تمت الزيارة</span>';
+    else if(vs==='cancelled') stLbl='<span style="font-size:10px;color:#dc2626;font-weight:700;white-space:nowrap;">⚠️ ألغيت الزيارة</span>';
+    let lblDiv=nameTd.querySelector('div:nth-child(2)');
+    if(stLbl){ if(lblDiv) lblDiv.innerHTML=stLbl; else nameTd.insertAdjacentHTML('beforeend',`<div style="margin-top:3px;">${stLbl}</div>`); }
+    else if(lblDiv) lblDiv.remove();
+  }
+  // جنس — td:nth-child(3)
+  const genderTd=row.querySelector('td:nth-child(3)');
+  if(genderTd){
+    genderTd.innerHTML=item.gender==='m'
+      ?'<span style="background:#1d4ed8;color:#fff;border:1px solid #1d4ed8;padding:3px 12px;border-radius:20px;font-size:12px;font-weight:700;">👨 ذكر</span>'
+      :item.gender==='f'
+      ?'<span style="background:#a21caf;color:#fff;border:1px solid #a21caf;padding:3px 12px;border-radius:20px;font-size:12px;font-weight:700;">👩 أنثى</span>'
+      :'—';
+  }
+  // جنسية — td:nth-child(4)
+  const natTd=row.querySelector('td:nth-child(4)');
+  if(natTd){
+    natTd.innerHTML=item.nationality
+      ?`<span style="background:#065f46;color:#fff;border:1px solid #065f46;padding:3px 10px;border-radius:20px;font-size:12px;font-weight:700;">${displayNationality(item.nationality)}</span>`
+      :'—';
+  }
+  // موبايل — td:nth-child(5)
+  const phoneTd=row.querySelector('td:nth-child(5)');
+  if(phoneTd){
+    phoneTd.innerHTML=item.phone
+      ?`<div onclick="showPhonePopup('${item.phone.replace(/'/g,"\\'")}','${(item.name||item.ig||'').replace(/'/g,"\\'")}',event)" style="color:#0369a1;direction:ltr;font-size:13px;cursor:pointer;font-weight:700;">📞 ${item.phone}</div>`
+      :'<span style="color:#9ca3af;">—</span>';
+  }
+  // رقم مدني — td:nth-child(6)
+  const civilTd=row.querySelector('td:nth-child(6)');
+  if(civilTd){
+    civilTd.innerHTML=item.civil
+      ?`<div style="color:#0f766e;direction:ltr;font-size:13px;font-weight:700;">🪪 ${item.civil}</div>`
+      :'<span style="color:#9ca3af;">—</span>';
+  }
+  // موعد الزيارة — td:nth-child(9)
+  const dateTd=row.querySelector('td:nth-child(9)');
+  if(dateTd){
+    const dateDiv=dateTd.querySelector('div:first-child');
+    if(dateDiv) dateDiv.innerHTML=item.visitDate?formatDateAr(item.visitDate):'<span style="color:#9ca3af;font-size:11px;">لا يوجد موعد</span>';
+  }
+  // خدمات
+  const svcEl=document.getElementById('svcDisplay_'+realIdx);
+  if(svcEl){
+    svcEl.innerHTML=(item.services&&item.services.length)
+      ?item.services.map(s=>`<span style="display:inline-block;background:#f3e8ff;color:#7c3aed;border:1px solid #c084fc;border-radius:20px;padding:3px 10px;font-size:11px;font-weight:700;margin:1px;">${s}</span>`).join('<br>')
+      :'<span style="color:#9ca3af;">—</span>';
+  }
+  // ألوان الكرت
+  _applyRowColors(realIdx);
+}
+window._refreshReportRow=_refreshReportRow;
 
 function setVisitStatusFromSelect(realIdx, newVal) {
   const item=influencers[realIdx]; if(!item) return;
@@ -4063,7 +4236,7 @@ function setVisitStatusFromSelect(realIdx, newVal) {
   logActivity(newVal==='done'?'done':'cancelled', `${newVal==='done'?'تمت الزيارة':'ألغيت الزيارة'}: ${getDisplayName(item,realIdx)}`);
   const apptOverlay=document.getElementById('apptPanelOverlay');
   if(apptOverlay&&apptOverlay.classList.contains('open')) openApptPanel();
-  _applyRowColors(realIdx);
+  _refreshReportRow(realIdx);
   renderGrid();
   showToast(newVal==='done'?'✅ تمت الزيارة':newVal==='cancelled'?'⚠️ ألغيت الزيارة':'↺ تم إعادة ضبط الزيارة', newVal==='done'?'#16a34a':newVal==='cancelled'?'#ca8a04':'#64748b');
 }
@@ -4074,7 +4247,7 @@ function setContentStatusFromSelect(realIdx, newVal) {
   saveFile(realIdx); renderGrid();
   const apptOverlay=document.getElementById('apptPanelOverlay');
   if(apptOverlay&&apptOverlay.classList.contains('open')) openApptPanel();
-  _applyRowColors(realIdx);
+  _refreshReportRow(realIdx);
   showToast(newVal==='published'?'🌟 تم تسجيل نشر المحتوى':newVal==='unpublished'?'🟣 تم تسجيل عدم نشر المحتوى':'↺ تم إعادة ضبط المحتوى', newVal==='published'?'#ca8a04':newVal==='unpublished'?'#7c3aed':'#64748b');
 }
 
@@ -4862,18 +5035,7 @@ closeDatePicker = function() {
   _origCloseDp();
   _inlineDateRowIdx = null;
   if(idx !== null) {
-    // Update the date cell text in the report table without closing report
-    const row = document.getElementById('rrow_' + idx);
-    if(row) {
-      const td = row.querySelector('td:nth-child(8)');
-      if(td) {
-        const item = influencers[idx];
-        const newDateStr = item.visitDate ? formatDateAr(item.visitDate) : '—';
-        const span = td.querySelector('span');
-        if(span) span.textContent = newDateStr;
-      }
-    }
-    // make sure merge-save fires with correct idx
+    _refreshReportRow(idx);
     saveFile(idx);
   }
 };
@@ -4906,13 +5068,7 @@ closeServicePopup = function() {
   _origCloseSvc();
   _inlineSvcRowIdx = null;
   if(idx !== null) {
-    const item = influencers[idx];
-    const el = document.getElementById('svcDisplay_' + idx);
-    if(el) {
-      el.innerHTML = (item.services && item.services.length)
-        ? item.services.map(s=>`<span style="display:inline-block;background:#f3e8ff;color:#7c3aed;border:1px solid #c084fc;border-radius:5px;padding:2px 7px;font-size:11px;margin:1px;">${s}</span>`).join('')
-        : '—';
-    }
+    _refreshReportRow(idx);
   }
 };
 window.closeServicePopup = closeServicePopup;
@@ -5257,7 +5413,21 @@ async function init() {
     loaded = await loadFromStorage(); // محاولة ثانية فوراً
   }
   if(!loaded || !influencers.length) { showToast('❌ تعذر التحميل — تحقق من الاتصال', '#dc2626'); }
-  influencers.forEach(item => { if(item.phone) item.phone = normalizePhone(item.phone); });
+  influencers.forEach(item => {
+    // normalize phone
+    if(item.phone) item.phone = normalizePhone(item.phone);
+    // normalize gender — لو محفوظ كنص عربي بدل 'm'/'f'
+    if(item.gender && item.gender !== 'm' && item.gender !== 'f'){
+      if(/أنثى|انثى|female/i.test(item.gender)) item.gender='f';
+      else if(/ذكر|male/i.test(item.gender)) item.gender='m';
+      else item.gender='';
+    }
+    // normalize nationality — لو محفوظ كاسم دولة بدل الـ adjective
+    if(item.nationality){
+      const natMap={'مصر':'مصري','الكويت':'كويتي','السعودية':'سعودي','الإمارات':'إماراتي','البحرين':'بحريني','قطر':'قطري','عمان':'عماني','العراق':'عراقي','اليمن':'يمني','سوريا':'سوري','سورية':'سوري','لبنان':'لبناني','الأردن':'أردني','أردن':'أردني','فلسطين':'فلسطيني','السودان':'سوداني','سودان':'سوداني','ليبيا':'ليبي','تونس':'تونسي','المغرب':'مغربي','مغرب':'مغربي','الجزائر':'جزائري','جزائر':'جزائري','باكستان':'باكستاني','الهند':'هندي','هند':'هندي','بنغلاديش':'بنغلاديشي','الفلبين':'فلبيني','فلبين':'فلبيني','إندونيسيا':'إندونيسي','سريلانكا':'سريلانكي','تركيا':'تركي','إيران':'إيراني','أفغانستان':'أفغاني','إثيوبيا':'إثيوبي','كينيا':'كيني','أمريكا':'أمريكي','الولايات المتحدة':'أمريكي','بريطانيا':'بريطاني','المملكة المتحدة':'بريطاني','كندا':'كندي','أستراليا':'أسترالي','فرنسا':'فرنسي','ألمانيا':'ألماني','مصرية':'مصري','مصر':'مصري'};
+      if(natMap[item.nationality]) item.nationality=natMap[item.nationality];
+    }
+  });
   if(isGuest()) {
     clearTimeout(safetyTimer);
     const ol = document.getElementById('loadingOverlay'); if(ol) ol.style.display = 'none';
