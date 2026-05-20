@@ -57,7 +57,8 @@ body{font-family:'Tajawal',sans-serif;direction:rtl;background:#0d1117;color:#e6
 .status-badge.approved{background:#14532d;color:#4ade80;border:1px solid #16a34a;}
 .status-badge.rejected{background:#450a0a;color:#f87171;border:1px solid #dc2626;}
 .social-links{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:.8rem;}
-.social-link{display:flex;align-items:center;gap:4px;padding:4px 9px;border-radius:7px;text-decoration:none;font-size:11px;font-weight:600;border:1px solid #30363d;background:#21262d;color:#8b949e;transition:all .15s;}
+.social-link{display:flex;align-items:center;gap:4px;padding:4px 9px;border-radius:7px;text-decoration:none;font-size:11px;font-weight:600;border:1px solid #30363d;background:#21262d;color:#8b949e;transition:all .15s;max-width:100%;overflow:hidden;}
+.social-link span:last-child{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:110px;}
 .social-link:hover{opacity:.85;}
 .social-icon{width:16px;height:16px;border-radius:4px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
 .ig-icon{background:linear-gradient(45deg,#f09433,#e6683c,#dc2743,#cc2366,#bc1888);}
@@ -799,7 +800,7 @@ body{font-family:'Tajawal',sans-serif;direction:rtl;background:#0d1117;color:#e6
 <script>
 // --- Nationalities list -------------------------------------------
 const NATIONALITIES = [
-  'كويتي','بدون','سعودي','إماراتي','بحريني','قطري','عماني',
+  'كويتي','غير محدد الجنسية','سعودي','إماراتي','بحريني','قطري','عماني',
   'مصري','أردني','لبناني','سوري','عراقي','يمني','فلسطيني','سوداني','ليبي','تونسي','مغربي','جزائري',
   'باكستاني','هندي','بنغلاديشي','فلبيني','إندونيسي','سريلانكي',
   'أمريكي','بريطاني','كندي','أسترالي','فرنسي','ألماني',
@@ -812,7 +813,7 @@ const NAT_NORMALIZE = {
   // كويت
   'كويت':'كويتي','الكويت':'كويتي','kuwait':'كويتي','kuwaiti':'كويتي',
   // بدون
-  'بدون جنسية':'بدون','stateless':'بدون',
+  'بدون جنسية':'غير محدد الجنسية','stateless':'غير محدد الجنسية',
   // سعودية
   'سعودية':'سعودي','السعودية':'سعودي','saudi':'سعودي','saudi arabia':'سعودي','سعودياً':'سعودي',
   // إمارات
@@ -849,8 +850,8 @@ const NAT_NORMALIZE = {
   'جزائر':'جزائري','الجزائر':'جزائري','جزائرية':'جزائري','algeria':'جزائري','algerian':'جزائري',
   // باكستان
   'باكستان':'باكستاني','باكستانية':'باكستاني','pakistan':'باكستاني','pakistani':'باكستاني',
-  // هند
-  'هند':'هندي','الهند':'هندي','هندية':'هندي','india':'هندي','indian':'هندي',
+  // هند - بكل الصيغ
+  'هند':'هندي','الهند':'هندي','هندية':'هندي','india':'هندي','indian':'هندي','India':'هندي',
   // بنغلاديش
   'بنغلاديش':'بنغلاديشي','bangladesh':'بنغلاديشي','bangladeshi':'بنغلاديشي',
   // فلبين
@@ -884,8 +885,8 @@ const NAT_NORMALIZE = {
   // أخرى
   'other':'أخرى','أخري':'أخرى','اخرى':'أخرى','غير ذلك':'أخرى',
   // غير محدد الجنسية — بيجي من الفورم
-  'غير محدد الجنسية':'أخرى','غير محدد':'أخرى','غير_محدد':'أخرى',
-  'stateless':'بدون','بدون جنسية':'بدون',
+  'غير محدد':'غير محدد الجنسية','غير_محدد':'غير محدد الجنسية',
+  'stateless':'غير محدد الجنسية','بدون جنسية':'غير محدد الجنسية',
   // أردن بدون همزة
   'الاردن':'أردني','اردن':'أردني','اردني':'أردني',
   // لبنان
@@ -906,8 +907,8 @@ function normalizeNationality(raw) {
   if(NAT_NORMALIZE[key]) return NAT_NORMALIZE[key];
   // مطابقة من جدول التحويل (as-is)
   if(NAT_NORMALIZE[trimmed]) return NAT_NORMALIZE[trimmed];
-  // غير محدد الجنسية — أي نص فيه "غير محدد"
-  if(trimmed.includes('غير محدد')) return 'أخرى';
+  // غير محدد الجنسية — يفضل كما هو
+  if(trimmed.includes('غير محدد')) return 'غير محدد الجنسية';
   // بحث جزئي كـ fallback
   const found = NATIONALITIES.find(n => n.includes(trimmed) || trimmed.includes(n));
   return found || trimmed;
@@ -1495,7 +1496,7 @@ function setFilterFromStat(f) {
 
 // -- Nationality groups --------------------------------------------
 const NAT_GROUPS = {
-  kuwait:  ['كويتي','كويتية','بدون','غير محدد الجنسية','الكويت','Kuwait'],
+  kuwait:  ['كويتي','كويتية','غير محدد الجنسية','غير محدد الجنسية','الكويت','Kuwait'],
   gulf:    ['سعودي','سعودية','إماراتي','إماراتية','بحريني','بحرينية','قطري','قطرية','عماني','عمانية','عراقي','عراقية','يمني','يمنية','السعودية','الإمارات','البحرين','قطر','عمان','العراق','اليمن'],
   egypt:   ['مصري','مصرية','مصر','Egypt'],
   sham:    ['سوري','سورية','لبناني','لبنانية','أردني','أردنية','فلسطيني','فلسطينية','سوريا','لبنان','الأردن','فلسطين'],
@@ -1698,11 +1699,13 @@ function renderGrid() {
     let socials='';
     if(item.ig){
       const url=item.ig_url&&item.ig_url.startsWith('http')?item.ig_url:`https://www.instagram.com/${item.ig.replace('@','')}`;
-      socials+=`<a class="social-link" href="${url}" target="_blank"><span class="social-icon ig-icon"><svg width="11" height="11" viewBox="0 0 24 24" fill="white"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg></span><span>${item.ig}</span></a>`;
+      const handle = normalizeIg(item.ig) ? '@'+normalizeIg(item.ig) : item.ig;
+      socials+=`<a class="social-link" href="${url}" target="_blank"><span class="social-icon ig-icon"><svg width="11" height="11" viewBox="0 0 24 24" fill="white"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg></span><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:120px;display:inline-block;">${handle}</span></a>`;
     }
     if(item.tt){
       const url=item.tt_url&&item.tt_url.startsWith('http')?item.tt_url:`https://www.tiktok.com/${item.tt}`;
-      socials+=`<a class="social-link" href="${url}" target="_blank"><span class="social-icon tt-icon"><svg width="11" height="11" viewBox="0 0 24 24" fill="white"><path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-2.88 2.5 2.89 2.89 0 0 1-2.89-2.89 2.89 2.89 0 0 1 2.89-2.89c.28 0 .54.04.79.1V9.01a6.34 6.34 0 0 0-.79-.05 6.34 6.34 0 0 0-6.34 6.34 6.34 6.34 0 0 0 6.34 6.34 6.34 6.34 0 0 0 6.33-6.34V8.69a8.18 8.18 0 0 0 4.78 1.52V6.76a4.86 4.86 0 0 1-3-.07z"/></svg></span><span>${item.tt}</span></a>`;
+      const ttHandle = item.tt.includes('tiktok.com') ? '@'+(item.tt.split('/@').pop()||'').split('?')[0] : item.tt.startsWith('@')?item.tt:'@'+item.tt;
+      socials+=`<a class="social-link" href="${url}" target="_blank"><span class="social-icon tt-icon"><svg width="11" height="11" viewBox="0 0 24 24" fill="white"><path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-2.88 2.5 2.89 2.89 0 0 1-2.89-2.89 2.89 2.89 0 0 1 2.89-2.89c.28 0 .54.04.79.1V9.01a6.34 6.34 0 0 0-.79-.05 6.34 6.34 0 0 0-6.34 6.34 6.34 6.34 0 0 0 6.34 6.34 6.34 6.34 0 0 0 6.33-6.34V8.69a8.18 8.18 0 0 0 4.78 1.52V6.76a4.86 4.86 0 0 1-3-.07z"/></svg></span><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:120px;display:inline-block;">${ttHandle}</span></a>`;
     }
     if(item.snap){
       const snapUrl=item.snap.startsWith('http')?item.snap:'https://snapchat.com/add/'+item.snap;
@@ -2279,7 +2282,7 @@ function parseSheetRow(line) {
     const key = trimmed.toLowerCase();
     if(NAT_NORMALIZE[key]) return NAT_NORMALIZE[key];
     if(NAT_NORMALIZE[trimmed]) return NAT_NORMALIZE[trimmed];
-    if(trimmed.includes('غير محدد')) return 'أخرى';
+    if(trimmed.includes('غير محدد')) return 'غير محدد الجنسية';
     const found = NATIONALITIES.find(n => n.includes(trimmed) || trimmed.includes(n));
     return found || trimmed;
   }
@@ -2290,7 +2293,18 @@ function parseSheetRow(line) {
   const tt_url=ttRaw.includes('tiktok.com')?(ttRaw.startsWith('http')?ttRaw:'https://'+ttRaw):'';
   const tt=tt_url?(extractTt(tt_url)||''):(ttRaw.startsWith('@')?ttRaw:'');
   const snap=snapRaw||'';
-  const ts=timestamp?new Date(timestamp).getTime()||Date.now():Date.now();
+  // تحويل التاريخ من صيغة DD/MM/YYYY HH:MM:SS إلى timestamp
+  function parseFormTimestamp(ts) {
+    if(!ts) return Date.now();
+    // صيغة الفورم: 04/05/2026 13:42:20
+    const m = ts.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})\s+(\d{1,2}):(\d{2})(?::(\d{2}))?/);
+    if(m) {
+      const [,dd,mm,yyyy,hh,min,ss] = m;
+      return new Date(+yyyy, +mm-1, +dd, +hh, +min, +(ss||0)).getTime();
+    }
+    return new Date(ts).getTime() || Date.now();
+  }
+  const ts = parseFormTimestamp(timestamp);
   return {name:fullname,phone:normalizePhone(phone),civil,nationality,gender,ig,ig_url,tt,tt_url,snap,status:'pending',addedAt:ts,autoAdded:true};
 }
 
