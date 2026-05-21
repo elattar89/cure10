@@ -3135,7 +3135,10 @@ function openRecovery() {
   html += `<div style="margin-top:1rem;display:flex;gap:8px;flex-wrap:wrap;">
     <button onclick="document.getElementById('recoveryOverlay').remove()" style="flex:1;min-width:100px;padding:10px;border-radius:9px;border:1px solid #30363d;background:#21262d;color:#8b949e;font-size:13px;cursor:pointer;font-family:Tajawal,sans-serif;">إغلاق</button>
     <button onclick="exportCurrentToExcel()" style="flex:2;min-width:140px;padding:10px;border-radius:9px;border:1px solid #0891b2;background:#0c2030;color:#22d3ee;font-size:13px;font-weight:700;cursor:pointer;font-family:Tajawal,sans-serif;">💾 تصدير البيانات الحالية Excel</button>
+    <button onclick="exportFullJSON()" style="flex:2;min-width:140px;padding:10px;border-radius:9px;border:1px solid #16a34a;background:#0d1f14;color:#4ade80;font-size:13px;font-weight:700;cursor:pointer;font-family:Tajawal,sans-serif;">🗂️ حفظ JSON كامل (مع التوقيعات)</button>
     <button onclick="triggerCsvImport()" style="flex:2;min-width:140px;padding:10px;border-radius:9px;border:1px solid #7c3aed;background:#1a1040;color:#c084fc;font-size:13px;font-weight:700;cursor:pointer;font-family:Tajawal,sans-serif;">📂 استيراد من CSV</button>
+    <button onclick="triggerJsonImport()" style="flex:2;min-width:140px;padding:10px;border-radius:9px;border:1px solid #16a34a;background:#0d1f14;color:#4ade80;font-size:13px;font-weight:700;cursor:pointer;font-family:Tajawal,sans-serif;">📂 استيراد من JSON (مع التوقيعات)</button>
+    <input type="file" id="jsonImportInput" accept=".json" style="display:none" onchange="handleJsonImport(event)">
     <button onclick="recoverFromFirebase()" style="flex:2;min-width:140px;padding:10px;border-radius:9px;border:none;background:#1a6fa8;color:#fff;font-size:13px;font-weight:700;cursor:pointer;font-family:Tajawal,sans-serif;">☁️ إعادة تحميل من Firebase</button>
   </div>
   <div style="margin-top:1.2rem;">
@@ -3281,6 +3284,21 @@ function exportCurrentToExcel() {
   buildExcelFromData(influencers, `مؤثرين-كيور-${today}.csv`);
 }
 
+function exportFullJSON() {
+  try {
+    const today = new Date().toISOString().slice(0,10);
+    const time = new Date().toLocaleTimeString('ar-KW', {hour:'2-digit', minute:'2-digit'}).replace(':','-');
+    const fileName = `cure-full-backup-${today}_${time}_(${influencers.length}-influencers).json`;
+    const jsonStr = JSON.stringify({ exportedAt: new Date().toISOString(), count: influencers.length, data: influencers }, null, 2);
+    const blob = new Blob([jsonStr], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = fileName; a.click();
+    URL.revokeObjectURL(url);
+    showToast(`✅ تم حفظ ${influencers.length} مؤثر بالتوقيعات`, '#16a34a');
+  } catch(e) { showToast('❌ خطأ: ' + e.message, '#dc2626'); }
+}
+
 function exportKeyToExcel(key) {
   try {
     const raw = localStorage.getItem(key);
@@ -3297,6 +3315,49 @@ function exportKeyToExcel(key) {
 function triggerCsvImport() {
   const inp = document.getElementById('csvImportInput');
   if(inp) inp.click();
+}
+
+function triggerJsonImport() {
+  const inp = document.getElementById('jsonImportInput');
+  if(inp) inp.click();
+}
+
+function handleJsonImport(event) {
+  const file = event.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = async function(e) {
+    try {
+      const json = JSON.parse(e.target.result);
+      let list = [];
+      if(Array.isArray(json)) list = json;
+      else if(json.data && Array.isArray(json.data)) list = json.data;
+      else { showToast('❌ ملف JSON غلط', '#dc2626'); return; }
+
+      if(!list.length) { showToast('❌ الملف فارغ', '#dc2626'); return; }
+
+      const confirmed = confirm(`هتستورد ${list.length} مؤثر من JSON (مع التوقيعات)، هذا سيستبدل البيانات الحالية. متأكد؟`);
+      if(!confirmed) return;
+
+      // Save to Firebase
+      influencers = list;
+      const res = await fetch(DB_URL + '/' + DB_PATH + '.json', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ data: JSON.stringify(influencers) })
+      });
+      if(!res.ok) throw new Error('Firebase error');
+
+      try { localStorage.setItem(LS_KEY, JSON.stringify(influencers)); } catch(ex) {}
+      renderAll();
+      updateStats();
+      showToast(`✅ تم استيراد ${list.length} مؤثر بالتوقيعات`, '#16a34a');
+      event.target.value = '';
+    } catch(e) {
+      showToast('❌ خطأ: ' + e.message, '#dc2626');
+    }
+  };
+  reader.readAsText(file);
 }
 
 function handleCsvImport(event) {
@@ -3403,7 +3464,7 @@ function handleCsvImport(event) {
 window.triggerCsvImport=triggerCsvImport;
 window.handleCsvImport=handleCsvImport;
 
-window.exportCurrentToExcel=exportCurrentToExcel;
+window.exportCurrentToExcel=exportCurrentToExcel; window.exportFullJSON=exportFullJSON; window.triggerJsonImport=triggerJsonImport; window.handleJsonImport=handleJsonImport;
 window.exportKeyToExcel=exportKeyToExcel;
 
 window.openRecovery=openRecovery; window.recoverFromKey=recoverFromKey; window.recoverFromFirebase=recoverFromFirebase;
