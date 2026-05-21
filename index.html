@@ -1199,6 +1199,11 @@ async function tryLoadFirebase() {
                   }
                   // normalize nationality
                   if(i.nationality) { const n = normalizeNationality(i.nationality); if(n) i.nationality = n; }
+                  // auto-assign dialect based on nationality if missing
+                  if(!i.dialects || i.dialects.length === 0) {
+                    const d = getAutoDialect(i.nationality || '');
+                    if(d) i.dialects = [d];
+                  }
                   return i;
                 });
                 _bulkPending = dupNew;
@@ -2244,7 +2249,9 @@ function saveEditInfluencer() {
   item.name=tempItem.name;
   item.phone=tempItem.phone;
   item.civil=tempItem.civil;
-  item.nationality=normalizeNationality(document.getElementById('eNationality').value);
+  const newNat=normalizeNationality(document.getElementById('eNationality').value);
+  if(newNat !== item.nationality){ const autoD=getAutoDialect(newNat); if(autoD) item.dialects=[autoD]; }
+  item.nationality=newNat;
   item.gender=document.getElementById('eGenderM').dataset.selected==='1'?'m':document.getElementById('eGenderF').dataset.selected==='1'?'f':'';
   item.ig=tempItem.ig;
   item.ig_url=igRaw.startsWith('http')?igRaw:(igRaw?'https://www.instagram.com/'+igRaw.replace('@',''):'');
