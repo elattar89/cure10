@@ -2297,8 +2297,6 @@ function parseSheetRow(line) {
   const nationalityRaw=tokens[4]||'', igRaw=tokens[5]||'', ttRaw=tokens[6]||'', snapRaw=tokens[7]||'';
   const timestamp=tokens[11]||tokens[10]||'';
   if(!fullname && !phone && !igRaw) return null;
-  function extractIg(url) { const m=url.match(/instagram\.com\/([^?&\/\s]+)/); return m?'@'+m[1]:''; }
-  function extractTt(url) { const m=url.match(/tiktok\.com\/@?([^?&\/\s]+)/); return m?'@'+m[1]:''; }
   // تحويل اسم الدولة — بيستخدم الجدول الشامل NAT_NORMALIZE
   function normalizeNat(raw){
     if(!raw) return '';
@@ -3142,8 +3140,14 @@ function openRecovery() {
     <button onclick="recoverFromFirebase()" style="flex:2;min-width:140px;padding:10px;border-radius:9px;border:none;background:#1a6fa8;color:#fff;font-size:13px;font-weight:700;cursor:pointer;font-family:Tajawal,sans-serif;">☁️ إعادة تحميل من Firebase</button>
   </div>
   <div style="margin-top:1.2rem;">
-    <p style="font-size:12px;color:#8b949e;margin-bottom:.6rem;">☁️ نسخ احتياطية يومية على Firebase (آخر 5 أيام):</p>
+    <p style="font-size:12px;color:#8b949e;margin-bottom:.6rem;">☁️ نسخ Firebase — CSV (آخر 5 أيام):</p>
     <div id="firebaseBackupsList" style="display:flex;flex-direction:column;gap:8px;">
+      <div style="color:#484f58;font-size:12px;text-align:center;padding:.5rem;">⏳ جاري التحميل...</div>
+    </div>
+  </div>
+  <div style="margin-top:1.2rem;">
+    <p style="font-size:12px;color:#8b949e;margin-bottom:.6rem;">🗂️ نسخ Google Drive — JSON كامل مع التوقيعات (آخر 5):</p>
+    <div id="driveBackupsList" style="display:flex;flex-direction:column;gap:8px;">
       <div style="color:#484f58;font-size:12px;text-align:center;padding:.5rem;">⏳ جاري التحميل...</div>
     </div>
   </div>
@@ -3151,6 +3155,7 @@ function openRecovery() {
   </div></div>`;
 
   const div=document.createElement('div');div.innerHTML=html;document.body.appendChild(div.firstElementChild);
+  loadDriveBackups();
 
   // تحميل الـ Firebase backups
   (async () => {
@@ -3176,6 +3181,7 @@ function openRecovery() {
             ${isNewest?'<span style="background:#14532d;color:#4ade80;font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px;margin-left:6px;">⭐ الأحدث</span>':''}
             <span style="color:#e2e8f0;font-size:13px;font-weight:700;">${label}</span>
             <span style="color:#4ade80;font-size:12px;margin-right:8px;">📦 ${snap.count} شخص</span>
+            <span style="background:#1a3a5c;color:#60a5fa;font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px;margin-right:4px;">📄 CSV</span>
           </div>
           <div style="display:flex;gap:6px;">
             <button onclick="recoverFromFirebaseBackup('${date}')" style="background:#14532d;color:#4ade80;border:1px solid #16a34a;border-radius:7px;padding:6px 12px;font-size:12px;font-weight:700;cursor:pointer;font-family:Tajawal,sans-serif;">↩ استرجاع</button>
@@ -3208,6 +3214,68 @@ async function recoverFromFirebaseBackup(date) {
   }
 }
 window.recoverFromFirebaseBackup = recoverFromFirebaseBackup;
+
+const DRIVE_API_URL = 'https://script.google.com/macros/s/AKfycbyQ_XuVy0wohLUSCm17_qD2fm2v1hvM63LbKPRk8WS0NFvFh4uu5iMvbH2tJT6GHMl6Cw/exec';
+
+async function loadDriveBackups() {
+  const container = document.getElementById('driveBackupsList');
+  if(!container) return;
+  try {
+    const res = await fetch(DRIVE_API_URL + '?action=list');
+    const json = await res.json();
+    if(!json.ok || !json.files || !json.files.length) {
+      container.innerHTML = '<div style="color:#484f58;font-size:12px;text-align:center;padding:.5rem;">لا توجد نسخ JSON بعد — ستُحفظ تلقائياً كل يوم</div>';
+      return;
+    }
+    const days = ['الأحد','الاثنين','الثلاثاء','الأربعاء','الخميس','الجمعة','السبت'];
+    const months = ['يناير','فبراير','مارس','أبريل','مايو','يونيو','يوليو','أغسطس','سبتمبر','أكتوبر','نوفمبر','ديسمبر'];
+    container.innerHTML = json.files.map((f, i) => {
+      const d = new Date(f.date);
+      const label = `${days[d.getDay()]} ${d.getDate()} ${months[d.getMonth()]} ${d.getFullYear()}`;
+      const isNewest = i === 0;
+      const sizeKB = Math.round(f.size / 1024);
+      return `<div style="display:flex;align-items:center;justify-content:space-between;background:${isNewest?'rgba(22,163,74,0.08)':'rgba(255,255,255,0.03)'};border:1px solid ${isNewest?'#16a34a':'#30363d'};border-radius:8px;padding:10px 14px;">
+        <div>
+          ${isNewest?'<span style="background:#14532d;color:#4ade80;font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px;margin-left:6px;">⭐ الأحدث</span>':''}
+          <span style="color:#e2e8f0;font-size:13px;font-weight:700;">${label}</span>
+          <span style="color:#c084fc;font-size:12px;margin-right:8px;">💾 ${sizeKB} KB</span>
+          <span style="background:#1a1040;color:#c084fc;font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px;margin-right:4px;">🗂️ JSON + توقيعات</span>
+        </div>
+        <button onclick="recoverFromDriveBackup('${f.id}')" style="background:#14532d;color:#4ade80;border:1px solid #16a34a;border-radius:7px;padding:6px 12px;font-size:12px;font-weight:700;cursor:pointer;font-family:Tajawal,sans-serif;">↩ استرجاع</button>
+      </div>`;
+    }).join('');
+  } catch(e) {
+    container.innerHTML = '<div style="color:#484f58;font-size:12px;text-align:center;padding:.5rem;">تعذر تحميل نسخ Drive</div>';
+  }
+}
+
+async function recoverFromDriveBackup(fileId) {
+  if(!confirm('هتسترجع النسخة دي؟ البيانات الحالية هتتبدل بما فيها التوقيعات.')) return;
+  try {
+    showToast('⏳ جاري تحميل النسخة من Drive...', '#1a6fa8');
+    const res = await fetch(DRIVE_API_URL + '?action=get&id=' + fileId);
+    const json = await res.json();
+    let list = [];
+    if(Array.isArray(json)) list = json;
+    else if(json.data && Array.isArray(json.data)) list = json.data;
+    else throw new Error('بيانات غلط');
+    if(!list.length) throw new Error('الملف فارغ');
+    influencers = list;
+    const saveRes = await fetch(DB_URL + '/' + DB_PATH + '.json', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ data: JSON.stringify(influencers) })
+    });
+    if(!saveRes.ok) throw new Error('Firebase error');
+    try { localStorage.setItem(LS_KEY, JSON.stringify(influencers)); } catch(ex) {}
+    renderAll(); updateStats();
+    document.getElementById('recoveryOverlay').remove();
+    showToast(`✅ تم استرجاع ${list.length} شخص بالتوقيعات من Drive`, '#16a34a');
+  } catch(e) {
+    showToast('❌ فشل الاسترجاع: ' + e.message, '#dc2626');
+  }
+}
+window.recoverFromDriveBackup = recoverFromDriveBackup;
 
 async function recoverFromKey(key) {
   if(!confirm('سيتم استبدال البيانات الحالية بهذه النسخة. متأكد؟')) return;
