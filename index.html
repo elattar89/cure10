@@ -176,8 +176,8 @@ body{font-family:'Tajawal',sans-serif;direction:rtl;background:#0d1117;color:#e6
 .appt-name{font-size:13px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .appt-sub{font-size:11px;color:#6e7681;}
 .appt-status-tag{font-size:10px;padding:2px 7px;border-radius:10px;white-space:nowrap;flex-shrink:0;}
-.appt-status-tag.approved{background:#14532d;color:#4ade80;border:1px solid #16a34a;}
-.appt-status-tag.rejected{background:#450a0a;color:#f87171;border:1px solid #dc2626;}
+.appt-status-tag
+.appt-status-tag
 .appt-status-tag.pending{background:#21262d;color:#8b949e;border:1px solid #30363d;}
 .appt-item.approved{background:#0d1f14;}
 .appt-item.rejected{background:#1f0d0d;opacity:.85;}
@@ -3612,7 +3612,7 @@ function toggleServiceById(svc, cb) {
     rptBtn.style.background  = hasSvc ? '#f3e8ff' : '#f9fafb';
     rptBtn.style.color       = hasSvc ? '#7c3aed' : '#6b7280';
     // Also update the service cell in the appt panel row if visible
-    const svcCell = document.querySelector(`#rrow_${_svcTargetIdx} td:nth-child(9)`);
+    const svcCell = document.querySelector(`#rrow_${_svcTargetIdx} td:nth-child(8)`);
     if(svcCell) {
       svcCell.innerHTML = `<div style="display:flex;align-items:center;gap:5px;min-width:80px;" id="rptSvcBtn_${_svcTargetIdx}">
         <span style="flex:1;font-size:11px;color:${hasSvc?'#7c3aed':'#9ca3af'};">${svcText}</span>
@@ -4034,7 +4034,7 @@ function buildSocialsHtml(item) {
 function openReportFromBtn(){
   if(currentFilter==='approved') openStatusReport('approved');
   else if(currentFilter==='rejected') openStatusReport('rejected');
-  else if(currentFilter==='visited') openStatusReport('visited');
+  else if(currentFilter==='visited') openStatusReport('approved');
   else if(currentFilter==='cancelled') openStatusReport('cancelled');
   else if(currentFilter==='male') openGenderReport('m');
   else if(currentFilter==='female') openGenderReport('f');
