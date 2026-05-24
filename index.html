@@ -3604,22 +3604,21 @@ function toggleServiceById(svc, cb) {
   if(lbl) lbl.textContent = svcText;
   if(btn) btn.classList.toggle('has-service', item.services.length > 0);
   // Also update the report row button if open
-  const rptBtn = document.getElementById('rptSvcBtn_' + _svcTargetIdx);
-  if(rptBtn) {
-    const hasSvc = item.services.length > 0;
-    rptBtn.textContent = hasSvc ? 'الخدمة : ' + item.services.join(' · ') : 'اختر الخدمة';
-    rptBtn.style.borderColor = hasSvc ? '#7c3aed' : '#d1d5db';
-    rptBtn.style.background  = hasSvc ? '#f3e8ff' : '#f9fafb';
-    rptBtn.style.color       = hasSvc ? '#7c3aed' : '#6b7280';
-    // Also update the service cell in the appt panel row if visible
-    const svcCell = document.querySelector(`#rrow_${_svcTargetIdx} td:nth-child(8)`);
-    if(svcCell) {
-      svcCell.innerHTML = `<div style="display:flex;align-items:center;gap:5px;min-width:80px;" id="rptSvcBtn_${_svcTargetIdx}">
-        <span style="flex:1;font-size:11px;color:${hasSvc?'#7c3aed':'#9ca3af'};">${svcText}</span>
-        <button onclick="openServicePopupFromReport(${_svcTargetIdx},event)" title="تعديل الخدمة" style="flex-shrink:0;width:24px;height:24px;border-radius:6px;border:1px solid #7c3aed;background:#f3e8ff;color:#7c3aed;font-size:13px;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0;line-height:1;">✏️</button>
-      </div>`;
-    }
+  // Update service display in approved report (rptSvcBtn) and rejected report (svcDisplay)
+  const svcBadges = item.services.length
+    ? item.services.map(s=>`<span style="display:inline-block;background:#f3e8ff;color:#7c3aed;border:1px solid #c084fc;border-radius:20px;padding:3px 10px;font-size:11px;font-weight:700;margin:1px;">${s}</span>`).join('<br>')
+    : '<span style="color:#9ca3af;">—</span>';
+  // Approved report cell
+  const svcCell = document.querySelector(`#rrow_${_svcTargetIdx} td:nth-child(8)`);
+  if(svcCell) {
+    svcCell.innerHTML = `<div id="rptSvcBtn_${_svcTargetIdx}" style="display:flex;flex-direction:column;align-items:center;gap:4px;">
+      <div>${svcBadges}</div>
+      <button onclick="openServicePopupFromReport(${_svcTargetIdx},event)" class="no-print" title="تعديل الخدمة" style="padding:4px 12px;border-radius:8px;border:1px solid #7c3aed;background:#f3e8ff;color:#7c3aed;font-size:11px;font-weight:700;cursor:pointer;font-family:Tajawal,sans-serif;margin-top:2px;">تعديل</button>
+    </div>`;
   }
+  // Rejected/other report cell
+  const svcDisplay = document.getElementById('svcDisplay_' + _svcTargetIdx);
+  if(svcDisplay) svcDisplay.innerHTML = svcBadges;
   saveFile(_svcTargetIdx);
   refreshApptCardIfOpen(_svcTargetIdx);
 }
@@ -4220,11 +4219,12 @@ function openStatusReport(type) {
       if(vs==='cancelled') return '#b91c1c';
       return '#cbd5e1';
     }
-    function _rowBg(vs,cs){
+    function _rowBg(vs,cs,hasDate){
       if(cs==='published') return '#fef3c7';
       if(cs==='unpublished') return '#ede9fe';
       if(vs==='done') return '#bbf7d0';
       if(vs==='cancelled') return '#fecaca';
+      if(hasDate) return '#dcfce7';
       return '#ffffff';
     }
     // helper: status label under name
@@ -4252,7 +4252,7 @@ function openStatusReport(type) {
       const name=item.name||'—';
       const vs=item.visitStatus||'';
       const cs=item.contentStatus||'';
-      const bg=_rowBg(vs,cs);
+      const bg=_rowBg(vs,cs,!!item.visitDate);
       const bc=_rowBorderColor(vs,cs);
       const dateStr=item.visitDate?formatDateAr(item.visitDate):'<span style="color:#9ca3af;font-size:11px;">لا يوجد موعد</span>';
       const gLabel=item.gender==='m'
@@ -5023,11 +5023,12 @@ function openGuestReadOnlyReport() {
     if(vs==='cancelled') return '#b91c1c';
     return '#cbd5e1';
   }
-  function _rowBg(vs,cs){
+  function _rowBg(vs,cs,hasDate){
     if(cs==='published') return '#fef3c7';
     if(cs==='unpublished') return '#ede9fe';
     if(vs==='done') return '#bbf7d0';
     if(vs==='cancelled') return '#fecaca';
+    if(hasDate) return '#dcfce7';
     return '#ffffff';
   }
   function _statusLabel(vs,cs){
@@ -5053,7 +5054,7 @@ function openGuestReadOnlyReport() {
     const name = item.name || '—';
     const vs = item.visitStatus || '';
     const cs = item.contentStatus || '';
-    const bg = _rowBg(vs,cs);
+    const bg = _rowBg(vs,cs,!!item.visitDate);
     const bc = _rowBorderColor(vs,cs);
     const dateStr = item.visitDate ? formatDateAr(item.visitDate) : '<span style="color:#9ca3af;font-size:11px;">لا يوجد موعد</span>';
     const gLabel = item.gender==='m'
