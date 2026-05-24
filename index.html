@@ -4441,8 +4441,9 @@ function openStatusReport(type) {
 function _applyRowColors(realIdx){
   const item=influencers[realIdx]; if(!item) return;
   const vs=item.visitStatus||''; const cs=item.contentStatus||'';
-  const bc=cs==='published'?'#92400e':cs==='unpublished'?'#5b21b6':vs==='done'?'#15803d':vs==='cancelled'?'#b91c1c':'#cbd5e1';
-  const bg=cs==='published'?'#fef3c7':cs==='unpublished'?'#ede9fe':vs==='done'?'#bbf7d0':vs==='cancelled'?'#fecaca':'#ffffff';
+  const hasDate=!!item.visitDate;
+  const bc=cs==='published'?'#92400e':cs==='unpublished'?'#5b21b6':vs==='done'?'#15803d':vs==='cancelled'?'#b91c1c':hasDate?'#16a34a':'#cbd5e1';
+  const bg=cs==='published'?'#fef3c7':cs==='unpublished'?'#ede9fe':vs==='done'?'#bbf7d0':vs==='cancelled'?'#fecaca':hasDate?'#dcfce7':'#ffffff';
   const row=document.getElementById('rrow_'+realIdx);
   if(row){ row.style.background=bg; row.style.borderRightColor=bc; }
   const vsSel=document.getElementById('vsSelect_'+realIdx);
