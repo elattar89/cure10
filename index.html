@@ -176,8 +176,6 @@ body{font-family:'Tajawal',sans-serif;direction:rtl;background:#0d1117;color:#e6
 .appt-name{font-size:13px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .appt-sub{font-size:11px;color:#6e7681;}
 .appt-status-tag{font-size:10px;padding:2px 7px;border-radius:10px;white-space:nowrap;flex-shrink:0;}
-.appt-status-tag
-.appt-status-tag
 .appt-status-tag.pending{background:#21262d;color:#8b949e;border:1px solid #30363d;}
 .appt-item.approved{background:#0d1f14;}
 .appt-item.rejected{background:#1f0d0d;opacity:.85;}
@@ -4217,42 +4215,6 @@ function openStatusReport(type) {
   const countColor=isApproved?'#16a34a':isCancelled?'#ca8a04':'#dc2626';
 
   if(isApproved) {
-    // helper: row left-border color + row bg
-    function _rowBorderColor(vs,cs){
-      if(cs==='published') return '#92400e';
-      if(cs==='unpublished') return '#5b21b6';
-      if(vs==='done') return '#15803d';
-      if(vs==='cancelled') return '#b91c1c';
-      return '#cbd5e1';
-    }
-    function _rowBg(vs,cs,hasDate){
-      if(cs==='published') return '#fef3c7';
-      if(cs==='unpublished') return '#ede9fe';
-      if(vs==='done') return '#bbf7d0';
-      if(vs==='cancelled') return '#fecaca';
-      if(hasDate) return '#dcfce7';
-      return '#ffffff';
-    }
-    // helper: status label under name
-    function _statusLabel(vs,cs){
-      if(cs==='published') return '<span style="font-size:10px;color:#ca8a04;font-weight:700;white-space:nowrap;">🌟 تم النشر</span>';
-      if(cs==='unpublished') return '<span style="font-size:10px;color:#7c3aed;font-weight:700;white-space:nowrap;">🟣 لم يتم النشر</span>';
-      if(vs==='done') return '<span style="font-size:10px;color:#16a34a;font-weight:700;white-space:nowrap;">✅ تمت الزيارة</span>';
-      if(vs==='cancelled') return '<span style="font-size:10px;color:#dc2626;font-weight:700;white-space:nowrap;">⚠️ ألغيت الزيارة</span>';
-      return '';
-    }
-    // dropdown select style
-    function _vsSel(vs){
-      if(vs==='done') return 'background:#dcfce7;color:#15803d;border-color:#16a34a;';
-      if(vs==='cancelled') return 'background:#fef9c3;color:#92400e;border-color:#ca8a04;';
-      return 'background:#f8fafc;color:#64748b;border-color:#cbd5e1;';
-    }
-    function _csSel(cs){
-      if(cs==='published') return 'background:#fef9c3;color:#92400e;border-color:#ca8a04;';
-      if(cs==='unpublished') return 'background:#f3e8ff;color:#6d28d9;border-color:#7c3aed;';
-      return 'background:#f8fafc;color:#64748b;border-color:#cbd5e1;';
-    }
-
     const rows=list.map((item,i)=>{
       const realIdx=influencers.indexOf(item);
       const name=item.name||'—';
@@ -5412,7 +5374,6 @@ closeDatePicker = function() {
     saveFile(idx);
   }
 };
-window.closeDatePicker = closeDatePicker;
 
 // ── Inline Service popup from report ───────────────────────────────
 function openInlineSvc(idx, btn, e) {
@@ -5444,7 +5405,6 @@ closeServicePopup = function() {
     _refreshReportRow(idx);
   }
 };
-window.closeServicePopup = closeServicePopup;
 
 // ─── Duplicate Review ───────────────────────────────────────────────
 function findAllDuplicates() {
