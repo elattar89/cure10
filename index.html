@@ -247,7 +247,7 @@ body{font-family:'Tajawal',sans-serif;direction:rtl;background:#0d1117;color:#e6
 .report-header{text-align:center;border-bottom:2px solid #0a3d62;padding-bottom:1rem;margin-bottom:1.5rem;}
 .report-header h2{font-size:22px;font-weight:900;color:#0a3d62;margin-bottom:4px;}
 .report-header p{font-size:13px;color:#555;}
-.report-table{width:100%;border-collapse:collapse;direction:rtl;table-layout:fixed;}
+.report-table{border-collapse:collapse;direction:rtl;}
 .report-table th{background:#0a3d62;color:#fff;padding:5px 6px;font-size:11px;font-weight:700;text-align:center;vertical-align:middle;overflow:hidden;border-left:1px solid rgba(255,255,255,0.2);}
 .report-table th:last-child{border-left:none;}
 .report-table td{padding:4px 6px;font-size:11px;border-bottom:1px solid #e5e7eb;border-left:1px solid #e5e7eb;vertical-align:middle;text-align:center;overflow:hidden;word-break:break-word;}
@@ -4011,21 +4011,21 @@ function buildSocialsHtml(item) {
       ? item.ig_url
       : buildUrl(item.ig, 'https://www.instagram.com/');
     const h = shortHandle(item.ig_url || item.ig);
-    s+=`<a href="${u}" target="_blank" style="display:flex;align-items:center;gap:4px;margin-bottom:2px;text-decoration:none;">${igSVG_rpt}<span style="color:#c13584;font-size:10px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:70px;display:inline-block;">${h}</span></a>`;
+    s+=`<a href="${u}" target="_blank" style="display:flex;align-items:center;gap:4px;margin-bottom:2px;text-decoration:none;">${igSVG_rpt}<span style="color:#c13584;font-size:11px;font-weight:700;">${h}</span></a>`;
   }
   if(item.tt){
     const u = item.tt_url && item.tt_url.startsWith('http')
       ? item.tt_url
       : buildUrl(item.tt, 'https://www.tiktok.com/@');
     const h = shortHandle(item.tt_url || item.tt);
-    s+=`<a href="${u}" target="_blank" style="display:flex;align-items:center;gap:4px;margin-bottom:2px;text-decoration:none;">${ttSVG_rpt}<span style="color:#333;font-size:10px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:70px;display:inline-block;">${h}</span></a>`;
+    s+=`<a href="${u}" target="_blank" style="display:flex;align-items:center;gap:4px;margin-bottom:2px;text-decoration:none;">${ttSVG_rpt}<span style="color:#333;font-size:11px;font-weight:700;">${h}</span></a>`;
   }
   if(item.snap){
     const m2 = item.snap.match(/snapchat\.com\/add\/([^/?&#\s]+)/i);
     const handle = m2 ? m2[1] : (item.snap.startsWith('@') ? item.snap.slice(1).split('?')[0] : item.snap.split('?')[0].replace('@',''));
     const u = item.snap.startsWith('http') ? item.snap : 'https://www.snapchat.com/add/'+handle;
     const h = '@'+handle;
-    s+=`<a href="${u}" target="_blank" style="display:flex;align-items:center;gap:4px;margin-bottom:2px;text-decoration:none;">${scSVG_rpt}<span style="color:#d97706;font-size:10px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:70px;display:inline-block;">${h}</span></a>`;
+    s+=`<a href="${u}" target="_blank" style="display:flex;align-items:center;gap:4px;margin-bottom:2px;text-decoration:none;">${scSVG_rpt}<span style="color:#d97706;font-size:11px;font-weight:700;">${h}</span></a>`;
   }
   return s||'—';
 }
@@ -4148,7 +4148,7 @@ table{width:100%;border-collapse:collapse;direction:rtl;}
 thead tr th{background:${thBg};color:#fff;padding:10px 12px;font-size:13px;font-weight:700;text-align:right;font-family:'Tajawal',sans-serif;}
 td{padding:9px 12px;border-bottom:1px solid #e5e7eb;font-size:12px;font-family:'Tajawal',sans-serif;vertical-align:middle;}
 .rpt-footer{text-align:center;padding:1rem;font-size:11px;color:#888;border-top:1px solid #e5e7eb;background:#f8fafc;}
-@media print{body{background:#fff;padding:0;}.wrap{box-shadow:none;border-radius:0;}.print-actions{display:none!important;}}@media(max-width:768px){body{padding:.4rem;}table{font-size:10px;}thead tr th,td{padding:4px 5px;font-size:10px;}.rpt-title{font-size:17px;}.print-actions{flex-wrap:wrap;}button{padding:8px 12px;font-size:12px;}}</style></head>
+@media print{body{background:#fff;padding:0;}.wrap{box-shadow:none;border-radius:0;}.print-actions{display:none!important;}}</style></head>
 <body><div class="wrap">
 <div class="rpt-header"><div class="rpt-title">${emoji} ${title}</div><div class="rpt-sub">مركز كيور الطبي — الحملة الإعلانية | ${today}</div><div class="rpt-count">الإجمالي: ${count} مؤثر</div></div>
 <div class="rpt-body"><div class="print-actions"><button onclick="window.close()" style="background:#e5e7eb;color:#333;">✕ إغلاق</button><button onclick="window.print()" style="background:${thBg};color:#fff;">🖨️ طباعة / PDF</button></div>
@@ -4309,7 +4309,7 @@ function openStatusReport(type) {
         <td style="text-align:center;">${natLabel}</td>
         <td>${phoneHtml}</td>
         <td>${civilHtml}</td>
-        <td style="max-width:80px;word-break:break-all;overflow:hidden;"><div style="display:flex;flex-direction:column;gap:2px;">${socialsHtml}</div></td>
+        <td><div style="display:flex;flex-direction:column;gap:2px;">${socialsHtml}</div></td>
         <td style="text-align:center;">
           <div id="rptSvcBtn_${realIdx}" style="display:flex;flex-direction:column;align-items:center;gap:3px;">
             <div>${svcLabel}</div>
