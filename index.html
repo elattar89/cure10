@@ -278,10 +278,22 @@ body{font-family:'Tajawal',sans-serif;direction:rtl;background:#0d1117;color:#e6
   .report-table td.no-print{
     display:none;
   }
-  /* عمود التوقيع يصغر على الموبايل */
-  .report-table th:last-child,
-  .report-table td:last-child{
-    min-width:70px;
+  /* تحديد عرض ثابت للأعمدة على الموبايل */
+  .report-table th:nth-child(1),.report-table td:nth-child(1){width:22px;padding:3px 2px;}
+  .report-table th:nth-child(2),.report-table td:nth-child(2){width:65px;max-width:65px;}
+  .report-table th:nth-child(3),.report-table td:nth-child(3){width:36px;max-width:36px;}
+  .report-table th:nth-child(4),.report-table td:nth-child(4){width:40px;max-width:40px;}
+  .report-table th:nth-child(5),.report-table td:nth-child(5){width:62px;max-width:62px;}
+  .report-table th:nth-child(6),.report-table td:nth-child(6){width:62px;max-width:62px;}
+  .report-table th:nth-child(7),.report-table td:nth-child(7){width:80px;max-width:80px;overflow:hidden;}
+  .report-table th:nth-child(8),.report-table td:nth-child(8){width:52px;max-width:52px;}
+  .report-table th:nth-child(9),.report-table td:nth-child(9){width:60px;max-width:60px;}
+  .report-table th:last-child,.report-table td:last-child{width:72px;max-width:72px;}
+  /* منع أي خلية من تكبير الصف */
+  .report-table td{
+    overflow:hidden;
+    word-break:break-word;
+    vertical-align:middle;
   }
 
   .report-actions{flex-wrap:wrap;gap:6px;}
@@ -4333,15 +4345,15 @@ function openStatusReport(type) {
       const tdS='';
       return `<tr id="rrow_${realIdx}" style="background:${bg};border-right:4px solid ${bc};">
         <td style="text-align:center;font-weight:900;color:${thBg};">${i+1}</td>
-        <td style="text-align:right;">
-          <div onclick="showApptCard(${realIdx})" style="font-weight:700;font-size:11px;color:#0a3d62;cursor:pointer;">${name}</div>
+        <td style="text-align:right;max-width:65px;overflow:hidden;">
+          <div onclick="showApptCard(${realIdx})" style="font-weight:700;font-size:11px;color:#0a3d62;cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:63px;">${name}</div>
           ${stLbl?`<div style="margin-top:2px;">${stLbl}</div>`:''}
         </td>
         <td style="text-align:center;">${gLabel}</td>
         <td style="text-align:center;">${natLabel}</td>
         <td>${phoneHtml}</td>
         <td>${civilHtml}</td>
-        <td><div style="display:flex;flex-direction:column;gap:2px;">${socialsHtml}</div></td>
+        <td style="max-width:110px;overflow:hidden;"><div style="display:flex;flex-direction:column;gap:2px;max-width:110px;overflow:hidden;">${socialsHtml}</div></td>
         <td style="text-align:center;">
           <div id="rptSvcBtn_${realIdx}" style="display:flex;flex-direction:column;align-items:center;gap:3px;">
             <div>${svcLabel}</div>
@@ -4460,7 +4472,7 @@ function openStatusReport(type) {
           <p>مركز كيور الطبي — الحملة الإعلانية | ${today}</p>
           <p style="font-weight:700;color:${countColor};margin-top:4px;">الإجمالي: ${list.length} مؤثر</p>
         </div>
-        <div class="report-table-wrap" style="overflow-x:auto;"><table class="report-table" style="min-width:480px;"><thead><tr>
+        <div class="report-table-wrap" style="overflow-x:auto;"><table class="report-table" style="min-width:480px;table-layout:fixed;width:100%;"><thead><tr>
           <th style="background:${thBg};width:30px;text-align:center;">#</th>
           <th style="background:${thBg};min-width:100px;">الاسم</th>
           <th style="background:${thBg};min-width:50px;">الجنس</th>
