@@ -459,7 +459,7 @@ body{font-family:'Tajawal',sans-serif;direction:rtl;background:#0d1117;color:#e6
       </div>
     </div>
   </div>
-  <button id="guestReportToolbarBtn" class="filter-btn" onclick="openGuestReadOnlyReport()" style="white-space:nowrap;border-color:#16a34a;color:#4ade80;">✅ كشف المقبولين</button>
+  <button id="guestReportToolbarBtn" class="filter-btn" onclick="openStatusReport('approved')" style="white-space:nowrap;border-color:#16a34a;color:#4ade80;">✅ كشف المقبولين</button>
   <button class="filter-btn" onclick="openApptPanel()" style="white-space:nowrap;border-color:#0891b2;color:#22d3ee;">📅 مواعيد</button>
   <button class="filter-btn" id="fb-deleted" onclick="setFilter('deleted',this)" style="display:none;white-space:nowrap;border-color:#6b2020;color:#f87171;flex-shrink:0;">✕ المحذوفين <span id="deletedBadge" style="display:none;background:#dc2626;color:#fff;border-radius:10px;padding:1px 6px;font-size:10px;margin-right:2px;">0</span></button>
   <button id="visitedBtn" style="display:none;padding:7px 14px;border-radius:9px;border:1px solid #059669;font-size:13px;cursor:pointer;font-family:Tajawal,sans-serif;white-space:nowrap;font-weight:700;background:#0d1f14;color:#34d399;transition:.15s;" onclick="openStatusReport('visited')">🏁 كشف اكتملت زيارتهم</button>
@@ -1257,7 +1257,7 @@ function showSaveIndicator() {
   const rc = document.getElementById('reportContainer');
   if(rc) {
     const type = rc.dataset.reportType;
-    if(type === 'approved') openGuestReadOnlyReport();
+    if(type === 'approved') openStatusReport('approved');
     else if(type === 'status') openStatusReport(rc.dataset.statusType);
     else if(type === 'gender') openGenderReport(rc.dataset.genderType);
   }
@@ -5007,10 +5007,10 @@ function guestOpenReport() {
     tryLoadFirebase().then(function() {
       influencers.forEach(function(item){ if(item.phone) item.phone = normalizePhone(item.phone); });
       updateStats();
-      openGuestReadOnlyReport();
-    }).catch(function(){ openGuestReadOnlyReport(); });
+      openStatusReport('approved');
+    }).catch(function(){ openStatusReport('approved'); });
   } else {
-    openGuestReadOnlyReport();
+    openStatusReport('approved');
   }
 }
 
