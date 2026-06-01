@@ -1037,8 +1037,9 @@ async function saveDailyBackup() {
     localStorage.setItem('cure_last_backup_date', today);
   } catch(e) {}
 }
-const LS_KEY = 'cure_influencers_v18';
-const LS_DELETED_KEY = 'cure_deleted_v18';
+// LS_KEY و LS_DELETED_KEY أُزيلا — Firebase هو المصدر الوحيد للبيانات
+// مسح أي cache قديم تلقائياً
+try { localStorage.removeItem('cure_influencers_v18'); localStorage.removeItem('cure_deleted_v18'); } catch(e) {}
 
 let _isSaving = false;
 let _lastSaveTime = 0;
@@ -1139,21 +1140,17 @@ async function tryLoadFirebase() {
               const _cc = c => (c||'').replace(/[٠-٩]/g,d=>'٠١٢٣٤٥٦٧٨٩'.indexOf(d).toString()).replace(/\D/g,'');
 
               // ── Step 1: Sync تعديلات الأجهزة التانية باستخدام _uid ──
-              // لو الجهاز التاني عمل تعديل، نشوفه بالـ _uid ونطبقه فوراً
+              // Firebase هو المصدر الرسمي — بياناته دايماً تفوز على الـ local
               if(!_isSaving) {
                 parsed.forEach(remote => {
-                  if(!remote._uid) return; // مفيش uid = قديم، مش نلمسه
+                  if(!remote._uid) return;
                   const local = influencers.find(i => i._uid === remote._uid);
                   if(local) {
                     if(local._pickingDate || local._editing) return;
-                    // قارن وقت آخر تعديل — الأحدث يفوز
-                    const remoteTime = remote._updatedAt || remote.addedAt || 0;
-                    const localTime  = local._updatedAt  || local.addedAt  || 0;
-                    if(remoteTime > localTime) {
-                      const keepUID = local._uid;
-                      Object.assign(local, remote);
-                      local._uid = keepUID;
-                    }
+                    // Firebase دايماً يفوز — مفيش مقارنة timestamps
+                    const keepUID = local._uid;
+                    Object.assign(local, remote);
+                    local._uid = keepUID;
                   }
                 });
               }
@@ -1226,7 +1223,6 @@ async function tryLoadFirebase() {
               // First load — no local data yet
               influencers = parsed;
             }
-            try { localStorage.setItem(LS_KEY, JSON.stringify(influencers)); } catch(e) {}
             // Also load deleted
             try {
               const res2 = await Promise.race([
@@ -1239,7 +1235,6 @@ async function tryLoadFirebase() {
                   const p2 = JSON.parse(val2.data);
                   if(Array.isArray(p2)) {
                     deletedInfluencers = p2;
-                    try { localStorage.setItem(LS_DELETED_KEY, JSON.stringify(p2)); } catch(e) {}
                   }
                 }
               }
@@ -1303,7 +1298,6 @@ function migrateDialects() {
     }
   });
   if(changed) {
-    try { localStorage.setItem(LS_KEY, JSON.stringify(influencers)); } catch(e) {}
     saveToStorage(); // نحفظ على Firebase عشان كل الأجهزة تستفيد
   }
 }
@@ -3051,96 +3045,19 @@ function manualSave(){
 }
 
 function openRecovery() {
-  // Scan all localStorage keys for any influencer data
-  const keys = [];
-  try {
-    for(let i=0;i<localStorage.length;i++){
-      const k=localStorage.key(i);
-      if(k&&(k.includes('cure')||k.includes('influenc'))&&!k.endsWith('_savedAt')&&!k.includes('auth')&&!k.includes('log')&&!k.includes('migration')) keys.push(k);
-    }
-  } catch(e){}
-
-  // Helper: format timestamp in Arabic
-  function formatSavedAt(ts) {
-    if(!ts) return null;
-    const d = new Date(parseInt(ts));
-    if(isNaN(d.getTime())) return null;
-    const days = ['الأحد','الاثنين','الثلاثاء','الأربعاء','الخميس','الجمعة','السبت'];
-    const months = ['يناير','فبراير','مارس','أبريل','مايو','يونيو','يوليو','أغسطس','سبتمبر','أكتوبر','نوفمبر','ديسمبر'];
-    const day = days[d.getDay()];
-    const date = d.getDate();
-    const month = months[d.getMonth()];
-    const year = d.getFullYear();
-    const hours = d.getHours().toString().padStart(2,'0');
-    const mins = d.getMinutes().toString().padStart(2,'0');
-    // How long ago
-    const diff = Date.now() - d.getTime();
-    let ago = '';
-    if(diff < 60000) ago = 'منذ أقل من دقيقة';
-    else if(diff < 3600000) ago = `منذ ${Math.floor(diff/60000)} دقيقة`;
-    else if(diff < 86400000) ago = `منذ ${Math.floor(diff/3600000)} ساعة`;
-    else if(diff < 604800000) ago = `منذ ${Math.floor(diff/86400000)} يوم`;
-    else ago = `${date} ${month} ${year}`;
-    return { label: `${day} ${date} ${month} ${year} — ${hours}:${mins}`, ago };
-  }
-
-  // Build key list with metadata, sort newest first
-  const keyData = keys.map(k => {
-    let count = '?', ts = null, tsLabel = null, tsAgo = null;
-    try {
-      const raw = localStorage.getItem(k);
-      const savedAtRaw = localStorage.getItem(k+'_savedAt');
-      ts = savedAtRaw ? parseInt(savedAtRaw) : null;
-      const fmt = formatSavedAt(savedAtRaw);
-      if(fmt) { tsLabel = fmt.label; tsAgo = fmt.ago; }
-      const p = JSON.parse(raw);
-      if(Array.isArray(p)) count = p.length + ' شخص';
-      else if(p && p.data) { const arr=JSON.parse(p.data); count=(Array.isArray(arr)?arr.length:'?')+' شخص'; }
-    } catch(e2){}
-    return {k, count, ts, tsLabel, tsAgo};
-  }).sort((a,b) => (b.ts||0)-(a.ts||0)); // newest first
-
   let html = `<div style="position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,.85);display:flex;align-items:center;justify-content:center;padding:1rem;" id="recoveryOverlay">
   <div style="background:#161b22;border:2px solid #dc2626;border-radius:16px;padding:1.5rem;width:100%;max-width:500px;max-height:85vh;overflow-y:auto;font-family:Tajawal,sans-serif;">
     <h3 style="color:#f87171;margin-bottom:.5rem;font-size:16px;">🚨 حالات الطوارئ</h3>
-    <p style="font-size:12px;color:#8b949e;margin-bottom:1rem;">النسخ المحفوظة في هذا الجهاز — مرتّبة من الأحدث للأقدم:</p>`;
-
-  if(!keyData.length) {
-    html += `<div style="color:#484f58;font-size:13px;text-align:center;padding:1rem;">لا توجد نسخ محفوظة في هذا الجهاز</div>`;
-  } else {
-    keyData.forEach((item, idx) => {
-      const isNewest = idx === 0;
-      const borderColor = isNewest ? '#16a34a' : '#30363d';
-      const badge = isNewest ? `<span style="background:#14532d;color:#4ade80;font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px;margin-right:6px;">⭐ الأحدث</span>` : '';
-      const dateHtml = item.tsLabel
-        ? `<div style="font-size:11px;color:#60a5fa;margin-top:3px;">🕐 ${item.tsLabel}</div>
-           <div style="font-size:10px;color:#8b949e;">${item.tsAgo}</div>`
-        : `<div style="font-size:11px;color:#484f58;margin-top:3px;">تاريخ الحفظ: غير متاح</div>`;
-      html += `<div style="background:#21262d;border:1px solid ${borderColor};border-radius:10px;padding:.8rem;margin-bottom:.5rem;">
-        <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;">
-          <div style="flex:1;min-width:0;">
-            <div style="font-size:11px;color:#6e7681;word-break:break-all;">${item.k} ${badge}</div>
-            <div style="font-size:13px;color:#4ade80;font-weight:700;margin-top:2px;">📦 ${item.count}</div>
-            ${dateHtml}
-          </div>
-          <div style="display:flex;flex-direction:column;gap:6px;flex-shrink:0;">
-            <button onclick="recoverFromKey('${item.k}')" style="padding:8px 14px;border-radius:8px;border:1px solid #16a34a;background:#0d1f14;color:#4ade80;font-size:12px;font-weight:700;cursor:pointer;font-family:Tajawal,sans-serif;">↩ استرجاع</button>
-            <button onclick="exportKeyToExcel('${item.k}')" style="padding:8px 14px;border-radius:8px;border:1px solid #0891b2;background:#0c2030;color:#22d3ee;font-size:12px;font-weight:700;cursor:pointer;font-family:Tajawal,sans-serif;">💾 حفظ Excel</button>
-          </div>
-        </div>
-      </div>`;
-    });
-  }
-
-  html += `<div style="margin-top:1rem;display:flex;gap:8px;flex-wrap:wrap;">
-    <button onclick="document.getElementById('recoveryOverlay').remove()" style="flex:1;min-width:100px;padding:10px;border-radius:9px;border:1px solid #30363d;background:#21262d;color:#8b949e;font-size:13px;cursor:pointer;font-family:Tajawal,sans-serif;">إغلاق</button>
-    <button onclick="exportCurrentToExcel()" style="flex:2;min-width:140px;padding:10px;border-radius:9px;border:1px solid #0891b2;background:#0c2030;color:#22d3ee;font-size:13px;font-weight:700;cursor:pointer;font-family:Tajawal,sans-serif;">💾 تصدير البيانات الحالية Excel</button>
-    <button onclick="exportFullJSON()" style="flex:2;min-width:140px;padding:10px;border-radius:9px;border:1px solid #16a34a;background:#0d1f14;color:#4ade80;font-size:13px;font-weight:700;cursor:pointer;font-family:Tajawal,sans-serif;">🗂️ حفظ JSON كامل (مع التوقيعات)</button>
-    <button onclick="triggerCsvImport()" style="flex:2;min-width:140px;padding:10px;border-radius:9px;border:1px solid #7c3aed;background:#1a1040;color:#c084fc;font-size:13px;font-weight:700;cursor:pointer;font-family:Tajawal,sans-serif;">📂 استيراد من CSV</button>
-    <button onclick="triggerJsonImport()" style="flex:2;min-width:140px;padding:10px;border-radius:9px;border:1px solid #16a34a;background:#0d1f14;color:#4ade80;font-size:13px;font-weight:700;cursor:pointer;font-family:Tajawal,sans-serif;">📂 استيراد من JSON (مع التوقيعات)</button>
-    <input type="file" id="jsonImportInput" accept=".json" style="display:none" onchange="handleJsonImport(event)">
-    <button onclick="recoverFromFirebase()" style="flex:2;min-width:140px;padding:10px;border-radius:9px;border:none;background:#1a6fa8;color:#fff;font-size:13px;font-weight:700;cursor:pointer;font-family:Tajawal,sans-serif;">☁️ إعادة تحميل من Firebase</button>
-  </div>
+    <p style="font-size:12px;color:#8b949e;margin-bottom:1rem;">البيانات محفوظة على Firebase فقط — لا يوجد cache محلي.</p>
+    <div style="margin-bottom:1rem;display:flex;gap:8px;flex-wrap:wrap;">
+      <button onclick="exportCurrentToExcel()" style="flex:2;min-width:140px;padding:10px;border-radius:9px;border:1px solid #0891b2;background:#0c2030;color:#22d3ee;font-size:13px;font-weight:700;cursor:pointer;font-family:Tajawal,sans-serif;">💾 تصدير البيانات الحالية Excel</button>
+      <button onclick="exportFullJSON()" style="flex:2;min-width:140px;padding:10px;border-radius:9px;border:1px solid #16a34a;background:#0d1f14;color:#4ade80;font-size:13px;font-weight:700;cursor:pointer;font-family:Tajawal,sans-serif;">🗂️ حفظ JSON كامل (مع التوقيعات)</button>
+      <button onclick="triggerCsvImport()" style="flex:2;min-width:140px;padding:10px;border-radius:9px;border:1px solid #7c3aed;background:#1a1040;color:#c084fc;font-size:13px;font-weight:700;cursor:pointer;font-family:Tajawal,sans-serif;">📂 استيراد من CSV</button>
+      <button onclick="triggerJsonImport()" style="flex:2;min-width:140px;padding:10px;border-radius:9px;border:1px solid #16a34a;background:#0d1f14;color:#4ade80;font-size:13px;font-weight:700;cursor:pointer;font-family:Tajawal,sans-serif;">📂 استيراد من JSON (مع التوقيعات)</button>
+      <input type="file" id="jsonImportInput" accept=".json" style="display:none" onchange="handleJsonImport(event)">
+      <button onclick="recoverFromFirebase()" style="flex:2;min-width:140px;padding:10px;border-radius:9px;border:none;background:#1a6fa8;color:#fff;font-size:13px;font-weight:700;cursor:pointer;font-family:Tajawal,sans-serif;">☁️ إعادة تحميل من Firebase</button>
+      <button onclick="document.getElementById('recoveryOverlay').remove()" style="flex:1;min-width:100px;padding:10px;border-radius:9px;border:1px solid #30363d;background:#21262d;color:#8b949e;font-size:13px;cursor:pointer;font-family:Tajawal,sans-serif;">إغلاق</button>
+    </div>
   <div style="margin-top:1.2rem;">
     <p style="font-size:12px;color:#8b949e;margin-bottom:.6rem;">☁️ نسخ Firebase — CSV (آخر 5 أيام):</p>
     <div id="firebaseBackupsList" style="display:flex;flex-direction:column;gap:8px;">
@@ -3269,7 +3186,6 @@ async function recoverFromDriveBackup(fileId) {
       body: JSON.stringify({ data: JSON.stringify(influencers) })
     });
     if(!saveRes.ok) throw new Error('Firebase error');
-    try { localStorage.setItem(LS_KEY, JSON.stringify(influencers)); } catch(ex) {}
     renderAll(); updateStats();
     document.getElementById('recoveryOverlay').remove();
     showToast(`✅ تم استرجاع ${list.length} شخص بالتوقيعات من Drive`, '#16a34a');
@@ -3278,25 +3194,6 @@ async function recoverFromDriveBackup(fileId) {
   }
 }
 window.recoverFromDriveBackup = recoverFromDriveBackup;
-
-async function recoverFromKey(key) {
-  if(!confirm('سيتم استبدال البيانات الحالية بهذه النسخة. متأكد؟')) return;
-  try {
-    const raw = localStorage.getItem(key);
-    let arr = null;
-    try {
-      const p = JSON.parse(raw);
-      if(Array.isArray(p)) arr = p;
-      else if(p && p.data) arr = JSON.parse(p.data);
-    } catch(e){}
-    if(!arr || !Array.isArray(arr)) { showToast('❌ تعذر قراءة النسخة', '#dc2626'); return; }
-    influencers = arr;
-    await saveToStorage();
-    renderGrid(); updateStats();
-    document.getElementById('recoveryOverlay').remove();
-    showToast(`✅ تم استرجاع ${arr.length} شخص من النسخة المحفوظة`, '#16a34a');
-  } catch(e) { showToast('❌ خطأ في الاسترجاع: '+e.message, '#dc2626'); }
-}
 
 async function recoverFromFirebase() {
   showToast('⏳ جاري التحميل من Firebase...', '#1a6fa8');
@@ -3369,19 +3266,6 @@ function exportFullJSON() {
   } catch(e) { showToast('❌ خطأ: ' + e.message, '#dc2626'); }
 }
 
-function exportKeyToExcel(key) {
-  try {
-    const raw = localStorage.getItem(key);
-    let arr = null;
-    const p = JSON.parse(raw);
-    if(Array.isArray(p)) arr = p;
-    else if(p && p.data) arr = JSON.parse(p.data);
-    if(!arr) { showToast('❌ تعذر قراءة النسخة', '#dc2626'); return; }
-    const today = new Date().toISOString().slice(0,10);
-    buildExcelFromData(arr, `نسخة-احتياطية-${today}.csv`);
-  } catch(e) { showToast('❌ خطأ في التصدير: '+e.message, '#dc2626'); }
-}
-
 function triggerCsvImport() {
   const inp = document.getElementById('csvImportInput');
   if(inp) inp.click();
@@ -3418,7 +3302,6 @@ function handleJsonImport(event) {
       });
       if(!res.ok) throw new Error('Firebase error');
 
-      try { localStorage.setItem(LS_KEY, JSON.stringify(influencers)); } catch(ex) {}
       renderAll();
       updateStats();
       showToast(`✅ تم استيراد ${list.length} مؤثر بالتوقيعات`, '#16a34a');
@@ -3535,9 +3418,8 @@ window.triggerCsvImport=triggerCsvImport;
 window.handleCsvImport=handleCsvImport;
 
 window.exportCurrentToExcel=exportCurrentToExcel; window.exportFullJSON=exportFullJSON; window.triggerJsonImport=triggerJsonImport; window.handleJsonImport=handleJsonImport;
-window.exportKeyToExcel=exportKeyToExcel;
 
-window.openRecovery=openRecovery; window.recoverFromKey=recoverFromKey; window.recoverFromFirebase=recoverFromFirebase;
+window.openRecovery=openRecovery; window.recoverFromFirebase=recoverFromFirebase;
 window.openFormImport=openFormImport; window.closeFormImport=closeFormImport;
 
 function toggleFabMenu() {
@@ -4751,7 +4633,6 @@ window.print = function() {
   logActivity('report', `طباعة/PDF كشف — ${getAuth()||'غير معروف'}`);
   _origPrint();
 };
-const LOG_KEY = 'cure_activity_log';
 const LOG_ICONS = {
   'login':'🔑','logout':'🚪','add':'➕','edit':'✏️','delete':'🗑',
   'approve':'✅','reject':'❌','restore':'↺','done':'🏁',
@@ -4763,23 +4644,31 @@ function logActivity(action, details='') {
   const now = new Date();
   const time = now.toLocaleString('ar-KW', {day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
   const entry = { user, action, details, time, ts: now.getTime() };
-  const logs = getActivityLogs();
-  logs.unshift(entry);
-  // Keep max 200 entries
-  if(logs.length > 200) logs.splice(200);
-  localStorage.setItem(LOG_KEY, JSON.stringify(logs));
-  // Also save to Firebase
+  // حفظ في Firebase فقط — مش في localStorage عشان كل الأجهزة تشوف النشاط
   fetch(`${DB_URL}/cure_activity_log.json`, {
     method:'POST',
+    headers:{'Content-Type':'application/json'},
     body: JSON.stringify(entry)
   }).catch(()=>{});
 }
-function getActivityLogs() {
-  try { return JSON.parse(localStorage.getItem(LOG_KEY) || '[]'); } catch{ return []; }
+async function getActivityLogs() {
+  try {
+    const res = await fetch(`${DB_URL}/cure_activity_log.json`, { method:'GET', headers:{'Accept':'application/json'}, mode:'cors' });
+    if(!res || !res.ok) return [];
+    const val = await res.json();
+    if(!val) return [];
+    // Firebase POST بيرجع object بـ keys عشوائية — نحوله لـ array ونرتبه
+    const arr = Object.values(val).filter(Boolean);
+    arr.sort((a,b) => (b.ts||0) - (a.ts||0));
+    // نحتفظ بآخر 200 entry بس
+    return arr.slice(0, 200);
+  } catch { return []; }
 }
-function openActivityLog() {
-  const logs = getActivityLogs();
+async function openActivityLog() {
   const list = document.getElementById('activityLogList');
+  list.innerHTML = '<div style="text-align:center;color:#8b949e;padding:1rem;">⏳ جاري التحميل...</div>';
+  document.getElementById('activityLogOverlay').classList.remove('hidden');
+  const logs = await getActivityLogs();
   if(!logs.length) {
     list.innerHTML = '<div style="text-align:center;color:#484f58;padding:1rem;">لا يوجد نشاط مسجل بعد</div>';
   } else {
@@ -4796,14 +4685,18 @@ function openActivityLog() {
       </div>
     `).join('');
   }
-  document.getElementById('activityLogOverlay').classList.remove('hidden');
 }
 function closeActivityLog() {
   document.getElementById('activityLogOverlay').classList.add('hidden');
 }
-function clearActivityLog() {
+async function clearActivityLog() {
   if(!confirm('هل تريد مسح سجل النشاط كاملاً؟')) return;
-  localStorage.removeItem(LOG_KEY);
+  try {
+    await fetch(`${DB_URL}/cure_activity_log.json`, { method:'DELETE' });
+    showToast('✅ تم مسح سجل النشاط', '#16a34a');
+  } catch(e) {
+    showToast('❌ فشل مسح السجل', '#dc2626');
+  }
   openActivityLog();
 }
 window.openActivityLog = openActivityLog;
@@ -4819,11 +4712,11 @@ function togglePassView() {
   inp.type = (cb && cb.checked) ? 'text' : 'password';
 }
 window.togglePassView = togglePassView;
-function doLogin() {
+async function doLogin() {
   const user = document.getElementById('loginUser').value.trim().toLowerCase();
   const pass = document.getElementById('loginPass').value;
   if(USERS[user] && USERS[user] === pass) {
-    setAuth(user);
+    await setAuth(user);
     document.getElementById('loginScreen').style.display = 'none';
     document.getElementById('loadingOverlay').style.display = 'flex';
     updateWelcome();
@@ -4862,23 +4755,28 @@ function checkAuth() {
   document.getElementById('loginScreen').style.display = 'none';
   return true;
 }
-document.cookie = 'cure_auth=;path=/;max-age=0;expires=Thu, 01 Jan 1970 00:00:00 GMT';
-localStorage.removeItem('cure_auth_v2');
 
-// Clear auth on back navigation (all devices)
-window.addEventListener('pageshow', function(e) {
-  if(e.persisted) {
-    // Only clear session; if user had remember-me, localStorage keeps them logged in
-    if(!localStorage.getItem('cure_auth_remember')) {
-      sessionStorage.removeItem('cure_auth');
-      window.location.reload();
-    }
+// تنظيف cookies قديمة
+document.cookie = 'cure_auth=;path=/;max-age=0;expires=Thu, 01 Jan 1970 00:00:00 GMT';
+try { localStorage.removeItem('cure_auth_v2'); } catch(e) {}
+
+// بداية التشغيل — نحاول auto-login من Firebase لو في remember-me
+(async function startup() {
+  if(new URLSearchParams(window.location.search).get('guest') === '1') {
+    sessionStorage.setItem('cure_auth', 'guest');
+  } else if(!sessionStorage.getItem('cure_auth')) {
+    await tryAutoLogin();
+  }
+  init();
+})();
+
+// إعادة المحاولة لو رجع المستخدم للصفحة بـ back button
+window.addEventListener('pageshow', async function(e) {
+  if(e.persisted && !sessionStorage.getItem('cure_auth')) {
+    const loggedIn = await tryAutoLogin();
+    if(!loggedIn) window.location.reload();
   }
 });
-if(new URLSearchParams(window.location.search).get('guest') === '1') {
-  // Auto-login as guest from URL
-  sessionStorage.setItem('cure_auth', 'guest');
-}
 
 var _rememberMe = false;
 function toggleRemember() {
@@ -4886,19 +4784,58 @@ function toggleRemember() {
   _rememberMe = cb ? cb.checked : false;
 }
 window.toggleRemember = toggleRemember;
-function setAuth(user) {
+async function setAuth(user) {
   sessionStorage.setItem('cure_auth', user);
-  if(_rememberMe) {
-    localStorage.setItem('cure_auth_remember', user);
+  if(_rememberMe && user !== 'guest') {
+    // حفظ remember-me في Firebase مرتبط بالجهاز
+    const deviceId = getDeviceId();
+    try {
+      await fetch(`${DB_URL}/cure_sessions/${deviceId}.json`, {
+        method:'PUT', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ user, savedAt: Date.now() })
+      });
+    } catch(e) {}
   } else {
-    localStorage.removeItem('cure_auth_remember');
+    // مسح remember-me لو مش محدد
+    const deviceId = getDeviceId();
+    try { await fetch(`${DB_URL}/cure_sessions/${deviceId}.json`, { method:'DELETE' }); } catch(e) {}
   }
-  if(user !== 'guest') localStorage.setItem('cure_admin_auth', user);
+}
+function getDeviceId() {
+  // ID فريد للجهاز محفوظ في localStorage (مش بيانات مهمة — مجرد معرّف)
+  let id = localStorage.getItem('cure_device_id');
+  if(!id) { id = 'dev_' + Date.now().toString(36) + Math.random().toString(36).substr(2,6); localStorage.setItem('cure_device_id', id); }
+  return id;
 }
 function getAuth() {
-  return sessionStorage.getItem('cure_auth') || localStorage.getItem('cure_auth_remember');
+  return sessionStorage.getItem('cure_auth');
 }
-function clearAuth() { sessionStorage.removeItem('cure_auth'); localStorage.removeItem('cure_auth_remember'); }
+async function tryAutoLogin() {
+  // لو في session حالية اشتغل عادي
+  if(sessionStorage.getItem('cure_auth')) return true;
+  // شوف لو في remember-me محفوظ على Firebase لهذا الجهاز
+  const deviceId = getDeviceId();
+  try {
+    const res = await fetch(`${DB_URL}/cure_sessions/${deviceId}.json`, { method:'GET', mode:'cors' });
+    if(res && res.ok) {
+      const val = await res.json();
+      // remember-me صالح لمدة 30 يوم
+      if(val && val.user && val.savedAt && (Date.now() - val.savedAt) < 30 * 24 * 60 * 60 * 1000) {
+        sessionStorage.setItem('cure_auth', val.user);
+        return true;
+      } else if(val) {
+        // انتهت صلاحيته — نمسحه
+        fetch(`${DB_URL}/cure_sessions/${deviceId}.json`, { method:'DELETE' }).catch(()=>{});
+      }
+    }
+  } catch(e) {}
+  return false;
+}
+function clearAuth() {
+  sessionStorage.removeItem('cure_auth');
+  const deviceId = getDeviceId();
+  fetch(`${DB_URL}/cure_sessions/${deviceId}.json`, { method:'DELETE' }).catch(()=>{});
+}
 function isGuest() { return getAuth() === 'guest'; }
 function updateWelcome() {
   const user = getAuth() || '';
@@ -5876,8 +5813,6 @@ async function init() {
     clearTimeout(safetyTimer);
   }
 }
-init();
-
 // --- Globals ------------------------------------------------------
 window.deleteInfluencer=deleteInfluencer; window.cancelDelete=cancelDelete; window.confirmDelete=confirmDelete;
 window.restoreInfluencer=restoreInfluencer; window.permanentDelete=permanentDelete;
