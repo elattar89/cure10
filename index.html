@@ -2101,6 +2101,7 @@ function setStatus(idx,status){
   logActivity(status==='approved'?'approve':status==='rejected'?'reject':'restore',
     `${status==='approved'?'قبول':status==='rejected'?'رفض':'إعادة'}: ${name}`);
   refreshApptCardIfOpen(idx);
+  _refreshReportRow(idx);
 }
 
 // -- Missed visits check -------------------------------------------
@@ -3841,6 +3842,8 @@ function closeDatePicker(){
     if(influencers[savedIdx]) delete influencers[savedIdx]._pickingDate;
     renderGrid();
     saveFile(savedIdx);
+    _refreshReportRow(savedIdx);
+    refreshApptCardIfOpen(savedIdx);
   } else {
     document.getElementById('datePickerPopup').classList.remove('open');
     document.body.style.overflow = '';
@@ -4581,18 +4584,25 @@ function _refreshReportRow(realIdx){
       ?`<div style="color:#0f766e;direction:ltr;font-size:13px;font-weight:700;">🪪 ${item.civil}</div>`
       :'<span style="color:#9ca3af;">—</span>';
   }
+  // سوشيال ميديا — td:nth-child(7)
+  const socialsTd=row.querySelector('td:nth-child(7)');
+  if(socialsTd){
+    socialsTd.innerHTML=`<div style="display:flex;flex-direction:column;gap:2px;">${buildSocialsHtml(item)}</div>`;
+  }
+  // خدمات — td:nth-child(8) — ID الصحيح هو rptSvcBtn_
+  const svcEl=document.getElementById('rptSvcBtn_'+realIdx);
+  if(svcEl){
+    const svcDiv=svcEl.querySelector('div:first-child');
+    const svcHtml=(item.services&&item.services.length)
+      ?item.services.map(s=>`<span style="display:inline-block;background:#f3e8ff;color:#7c3aed;border:1px solid #c084fc;border-radius:20px;padding:2px 7px;font-size:10px;font-weight:700;margin:1px;">${s}</span>`).join('<br>')
+      :'<span style="color:#9ca3af;">—</span>';
+    if(svcDiv) svcDiv.innerHTML=svcHtml;
+  }
   // موعد الزيارة — td:nth-child(9)
   const dateTd=row.querySelector('td:nth-child(9)');
   if(dateTd){
     const dateDiv=dateTd.querySelector('div:first-child');
     if(dateDiv) dateDiv.innerHTML=item.visitDate?formatDateAr(item.visitDate):'<span style="color:#9ca3af;font-size:11px;">لا يوجد موعد</span>';
-  }
-  // خدمات
-  const svcEl=document.getElementById('svcDisplay_'+realIdx);
-  if(svcEl){
-    svcEl.innerHTML=(item.services&&item.services.length)
-      ?item.services.map(s=>`<span style="display:inline-block;background:#f3e8ff;color:#7c3aed;border:1px solid #c084fc;border-radius:20px;padding:3px 10px;font-size:11px;font-weight:700;margin:1px;">${s}</span>`).join('<br>')
-      :'<span style="color:#9ca3af;">—</span>';
   }
   // ألوان الكرت
   _applyRowColors(realIdx);
@@ -4656,6 +4666,7 @@ function setVisitStatusFromSelect(realIdx, newVal) {
   const apptOverlay=document.getElementById('apptPanelOverlay');
   if(apptOverlay&&apptOverlay.classList.contains('open')) openApptPanel();
   _refreshReportRow(realIdx);
+  refreshApptCardIfOpen(realIdx);
   renderGrid();
   showToast(newVal==='done'?'✅ تمت الزيارة':newVal==='cancelled'?'⚠️ ألغيت الزيارة':'↺ تم إعادة ضبط الزيارة', newVal==='done'?'#16a34a':newVal==='cancelled'?'#ca8a04':'#64748b');
 }
@@ -4667,6 +4678,7 @@ function setContentStatusFromSelect(realIdx, newVal) {
   const apptOverlay=document.getElementById('apptPanelOverlay');
   if(apptOverlay&&apptOverlay.classList.contains('open')) openApptPanel();
   _refreshReportRow(realIdx);
+  refreshApptCardIfOpen(realIdx);
   showToast(newVal==='published'?'🌟 تم تسجيل نشر المحتوى':newVal==='unpublished'?'🟣 تم تسجيل عدم نشر المحتوى':'↺ تم إعادة ضبط المحتوى', newVal==='published'?'#ca8a04':newVal==='unpublished'?'#7c3aed':'#64748b');
 }
 
