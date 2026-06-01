@@ -1393,10 +1393,13 @@ function normalizePhone(p){
   // Convert Arabic-Indic digits to Western digits first
   const converted = (p||'').replace(/[٠-٩]/g, d => '٠١٢٣٤٥٦٧٨٩'.indexOf(d).toString());
   const digits = converted.replace(/\D/g,'').replace(/^00/,'');
-  // لو بيبدأ بكود دولة معروف — نشيله ونحفظ الرقم المحلي فقط
-  // استثناء: نحفظ الكود لو مش 965 عشان displayPhone يعرفه
-  if(digits.startsWith('965')) return digits.slice(3);
-  return digits;
+  if(!digits) return '';
+  // لو عنده كود دولة معروف → نحتفظ بيه
+  for(const code of PHONE_CODES) {
+    if(digits.startsWith(code) && digits.length > code.length + 3) return digits;
+  }
+  // رقم بدون كود → نضيف 965 افتراضياً (أرقام الكويت القديمة)
+  return '965' + digits;
 }
 function normalizeIg(ig){
   if(!ig) return '';
@@ -1473,12 +1476,12 @@ const PHONE_CODES = ['965','966','971','973','974','968','20','962','963','961',
 function splitPhoneCode(p) {
   if(!p) return { code: '965', local: '' };
   const digits = (p||'').replace(/[٠-٩]/g, d => '٠١٢٣٤٥٦٧٨٩'.indexOf(d).toString()).replace(/\D/g,'');
-  // لو الرقم محفوظ بكوده (قديم)
   for(const code of PHONE_CODES) {
     if(digits.startsWith(code) && digits.length > code.length + 3) {
       return { code, local: digits.slice(code.length) };
     }
   }
+  // رقم قديم بدون كود → افتراضي كويت
   return { code: '965', local: digits };
 }
 
@@ -1486,9 +1489,8 @@ function splitPhoneCode(p) {
 function buildPhoneForStorage(code, local) {
   const localDigits = local.replace(/\D/g,'');
   if(!localDigits) return '';
-  // normalizePhone تشيل 965 تلقائياً — لباقي الأكواد نضيف الكود
-  if(code === '965') return localDigits;
-  return code + localDigits;
+  const c = (code && code !== 'other') ? code : '965';
+  return c + localDigits;
 }
 
 // عرض الرقم على الكارت والكشوفات بصيغة +XXX XXXX XXXX
@@ -5891,6 +5893,14 @@ async function init() {
     return;
   }
   migrateDialects();
+  // ترقية الأرقام القديمة (بدون كود) → نضيف 965 تلقائياً
+  let phonesMigrated = false;
+  influencers.forEach(item => {
+    if(!item.phone) return;
+    const fixed = normalizePhone(item.phone);
+    if(fixed !== item.phone) { item.phone = fixed; phonesMigrated = true; }
+  });
+  if(phonesMigrated) saveToStorage();
   renderGrid();
   setTimeout(()=>{const ol=document.getElementById("loadingOverlay");if(ol)ol.style.display="none";},200);
   updateDupReviewBtn();
