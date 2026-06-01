@@ -611,7 +611,37 @@ body{font-family:'Tajawal',sans-serif;direction:rtl;background:#0d1117;color:#e6
       إضافة مؤثر جديد
     </h3>
     <div class="modal-field"><label>الاسم</label><input id="mName" placeholder="اسم المؤثر"></div>
-    <div class="modal-field"><label>رقم الموبايل</label><input id="mPhone" placeholder="مثال: 96512345678" inputmode="tel"></div>
+    <div class="modal-field"><label>رقم الموبايل</label>
+      <div style="display:flex;gap:6px;align-items:center;">
+        <select id="mPhoneCode" style="width:95px;padding:9px 6px;border-radius:9px;border:1px solid #30363d;background:#21262d;color:#e6edf3;font-size:13px;font-family:Tajawal,sans-serif;flex-shrink:0;">
+          <option value="965">🇰🇼 +965</option>
+          <option value="966">🇸🇦 +966</option>
+          <option value="971">🇦🇪 +971</option>
+          <option value="973">🇧🇭 +973</option>
+          <option value="974">🇶🇦 +974</option>
+          <option value="968">🇴🇲 +968</option>
+          <option value="20">🇪🇬 +20</option>
+          <option value="962">🇯🇴 +962</option>
+          <option value="963">🇸🇾 +963</option>
+          <option value="961">🇱🇧 +961</option>
+          <option value="964">🇮🇶 +964</option>
+          <option value="967">🇾🇪 +967</option>
+          <option value="249">🇸🇩 +249</option>
+          <option value="218">🇱🇾 +218</option>
+          <option value="216">🇹🇳 +216</option>
+          <option value="212">🇲🇦 +212</option>
+          <option value="213">🇩🇿 +213</option>
+          <option value="92">🇵🇰 +92</option>
+          <option value="91">🇮🇳 +91</option>
+          <option value="880">🇧🇩 +880</option>
+          <option value="63">🇵🇭 +63</option>
+          <option value="44">🇬🇧 +44</option>
+          <option value="1">🇺🇸 +1</option>
+          <option value="other">🌐 أخرى</option>
+        </select>
+        <input id="mPhone" placeholder="XXXX XXXX" inputmode="tel" style="flex:1;">
+      </div>
+    </div>
     <div class="modal-field"><label>الرقم المدني <span style="color:#6e7681;font-size:11px;">(اختياري)</span></label><input id="mCivil" placeholder="الرقم المدني" inputmode="numeric"></div>
     <div class="modal-field">
       <label>🌍 الجنسية <span style="color:#6e7681;font-size:11px;">(اختياري)</span></label>
@@ -641,7 +671,37 @@ body{font-family:'Tajawal',sans-serif;direction:rtl;background:#0d1117;color:#e6
       تعديل بيانات المؤثر
     </h3>
     <div class="modal-field"><label>الاسم</label><input id="eName" placeholder="اسم المؤثر"></div>
-    <div class="modal-field"><label>رقم الموبايل</label><input id="ePhone" placeholder="مثال: 96512345678" inputmode="tel"></div>
+    <div class="modal-field"><label>رقم الموبايل</label>
+      <div style="display:flex;gap:6px;align-items:center;">
+        <select id="ePhoneCode" style="width:95px;padding:9px 6px;border-radius:9px;border:1px solid #30363d;background:#21262d;color:#e6edf3;font-size:13px;font-family:Tajawal,sans-serif;flex-shrink:0;">
+          <option value="965">🇰🇼 +965</option>
+          <option value="966">🇸🇦 +966</option>
+          <option value="971">🇦🇪 +971</option>
+          <option value="973">🇧🇭 +973</option>
+          <option value="974">🇶🇦 +974</option>
+          <option value="968">🇴🇲 +968</option>
+          <option value="20">🇪🇬 +20</option>
+          <option value="962">🇯🇴 +962</option>
+          <option value="963">🇸🇾 +963</option>
+          <option value="961">🇱🇧 +961</option>
+          <option value="964">🇮🇶 +964</option>
+          <option value="967">🇾🇪 +967</option>
+          <option value="249">🇸🇩 +249</option>
+          <option value="218">🇱🇾 +218</option>
+          <option value="216">🇹🇳 +216</option>
+          <option value="212">🇲🇦 +212</option>
+          <option value="213">🇩🇿 +213</option>
+          <option value="92">🇵🇰 +92</option>
+          <option value="91">🇮🇳 +91</option>
+          <option value="880">🇧🇩 +880</option>
+          <option value="63">🇵🇭 +63</option>
+          <option value="44">🇬🇧 +44</option>
+          <option value="1">🇺🇸 +1</option>
+          <option value="other">🌐 أخرى</option>
+        </select>
+        <input id="ePhone" placeholder="XXXX XXXX" inputmode="tel" style="flex:1;">
+      </div>
+    </div>
     <div class="modal-field"><label>الرقم المدني</label><input id="eCivil" placeholder="الرقم المدني" inputmode="numeric"></div>
     <div class="modal-field">
       <label>🌍 الجنسية</label>
@@ -1332,7 +1392,11 @@ function formatDateAr(iso) {
 function normalizePhone(p){
   // Convert Arabic-Indic digits to Western digits first
   const converted = (p||'').replace(/[٠-٩]/g, d => '٠١٢٣٤٥٦٧٨٩'.indexOf(d).toString());
-  return converted.replace(/\D/g,'').replace(/^965/,'').replace(/^00965/,'');
+  const digits = converted.replace(/\D/g,'').replace(/^00/,'');
+  // لو بيبدأ بكود دولة معروف — نشيله ونحفظ الرقم المحلي فقط
+  // استثناء: نحفظ الكود لو مش 965 عشان displayPhone يعرفه
+  if(digits.startsWith('965')) return digits.slice(3);
+  return digits;
 }
 function normalizeIg(ig){
   if(!ig) return '';
@@ -1393,11 +1457,75 @@ function findDuplicate(newItem) {
 // --- Phone Popup ------------------------------------------------
 function normalizePhoneForLinks(p) {
   const digits = (p||'').replace(/[٠-٩]/g, d => '٠١٢٣٤٥٦٧٨٩'.indexOf(d).toString())
-                         .replace(/\D/g,'');
-  if(digits.startsWith('965')) return digits;
-  if(digits.startsWith('00965')) return digits.replace('00965','965');
-  if(digits.length >= 6) return '965'+digits;
-  return digits;
+                         .replace(/\D/g,'').replace(/^00/,'');
+  // لو عنده كود دولة معروف → استخدمه
+  for(const code of PHONE_CODES) {
+    if(digits.startsWith(code) && digits.length > code.length + 3) return digits;
+  }
+  // افتراضي: كويت
+  return '965' + digits;
+}
+// قائمة أكواد الدول المدعومة — نفس الترتيب في الـ select
+const PHONE_CODES = ['965','966','971','973','974','968','20','962','963','961','964','967','249','218','216','212','213','92','91','880','63','44','1'];
+
+// استخراج كود الدولة والرقم المحلي من رقم مخزّن (بدون كود)
+// الرقم المخزن دايماً بدون كود (normalizePhone بتشيله) → افتراض كويتي +965
+function splitPhoneCode(p) {
+  if(!p) return { code: '965', local: '' };
+  const digits = (p||'').replace(/[٠-٩]/g, d => '٠١٢٣٤٥٦٧٨٩'.indexOf(d).toString()).replace(/\D/g,'');
+  // لو الرقم محفوظ بكوده (قديم)
+  for(const code of PHONE_CODES) {
+    if(digits.startsWith(code) && digits.length > code.length + 3) {
+      return { code, local: digits.slice(code.length) };
+    }
+  }
+  return { code: '965', local: digits };
+}
+
+// بناء الرقم الكامل للحفظ من كود + رقم محلي — نحفظ بدون كود عشان normalizePhone
+function buildPhoneForStorage(code, local) {
+  const localDigits = local.replace(/\D/g,'');
+  if(!localDigits) return '';
+  // normalizePhone تشيل 965 تلقائياً — لباقي الأكواد نضيف الكود
+  if(code === '965') return localDigits;
+  return code + localDigits;
+}
+
+// عرض الرقم على الكارت والكشوفات بصيغة +XXX XXXX XXXX
+function displayPhone(p) {
+  if(!p) return '';
+  const digits = (p||'').replace(/[٠-٩]/g, d => '٠١٢٣٤٥٦٧٨٩'.indexOf(d).toString()).replace(/\D/g,'');
+  if(!digits) return '';
+  // حدد الكود
+  let code = '965', local = digits;
+  for(const c of PHONE_CODES) {
+    if(digits.startsWith(c) && digits.length > c.length + 3) { code = c; local = digits.slice(c.length); break; }
+  }
+  // تنسيق الرقم المحلي
+  const fmt = local.length === 8 ? local.slice(0,4)+' '+local.slice(4)
+            : local.length === 7 ? local.slice(0,3)+' '+local.slice(3)
+            : local;
+  return '+' + code + ' ' + fmt;
+}
+
+// تعيين كود الدولة في سيليكت الـ modal
+function setPhoneCodeSelect(selectId, code) {
+  const sel = document.getElementById(selectId);
+  if(!sel) return;
+  // حاول تطابق الكود
+  let found = false;
+  for(const opt of sel.options) {
+    if(opt.value === code) { sel.value = code; found = true; break; }
+  }
+  if(!found) sel.value = 'other';
+}
+
+// قراءة الرقم الكامل من السيليكت + الـ input
+function getPhoneFromModal(codeSelectId, inputId) {
+  const codeVal = document.getElementById(codeSelectId)?.value || '965';
+  const local = (document.getElementById(inputId)?.value || '').replace(/\D/g,'');
+  if(!local) return '';
+  return buildPhoneForStorage(codeVal === 'other' ? '' : codeVal, local);
 }
 let _currentWALink = '';
 function openWA() {
@@ -1410,7 +1538,7 @@ function showPhonePopup(phone, name, e) {
   const clean = normalizePhoneForLinks(phone);
   _currentWALink = 'https://wa.me/' + clean;
   document.getElementById('phonePopupName').textContent = name || '';
-  document.getElementById('phonePopupNum').textContent = phone;
+  document.getElementById('phonePopupNum').textContent = displayPhone(phone);
   document.getElementById('phonePopupCall').href = 'tel:+' + clean;
   document.getElementById('phonePopupOverlay').style.display = 'block';
   document.body.style.overflow = 'hidden';
@@ -1584,7 +1712,7 @@ function renderGrid() {
           <div class="avatar" style="background:${color};filter:grayscale(.5)">${initial}</div>
           <div class="card-info">
             <div class="card-name" style="color:#9ca3af;">${name}</div>
-            ${item.phone?`<div class="card-phone" onclick="showPhonePopup('${item.phone}','${(item.name||item.ig||'').replace(/'/g,"\\'")}',event)" style="cursor:pointer;">📞 ${item.phone}</div>`:''}
+            ${item.phone?`<div class="card-phone" onclick="showPhonePopup('${item.phone}','${(item.name||item.ig||'').replace(/'/g,"\\'")}',event)" style="cursor:pointer;">📞 ${displayPhone(item.phone)}</div>`:''}
             ${item.nationality?`<div class="nationality-badge">🌍 ${displayNationality(item.nationality)}</div>`:''}
             ${item.gender?`<span class="gender-badge ${item.gender}">${item.gender==='m'?'👨 ذكر':'👩 أنثى'}</span>`:''}
           </div>
@@ -1788,7 +1916,7 @@ function renderGrid() {
             ${isNew?`<span style="background:rgba(37,99,235,0.25);border:1px solid #3b82f6;color:#93c5fd;font-size:10px;font-weight:900;padding:1px 7px;border-radius:20px;">✨ جديد</span>`:''}
             ${item.visitStatus==='done'?`<div style="display:flex;gap:1px;">${[1,2,3,4,5].map(s=>`<span onclick="setVisitRating(${idx},${s})" style="cursor:pointer;font-size:16px;line-height:1;color:${(item.visitRating||0)>=s?'#f59e0b':'#30363d'};transition:.15s;">★</span>`).join('')}</div>`:''}
           </div>
-          ${item.phone?`<div class="card-phone" onclick="showPhonePopup('${item.phone}','${(item.name||item.ig||'').replace(/'/g,"\\'")}',event)" style="cursor:pointer;color:#e6edf3;font-weight:600;" title="اضغط للتواصل">📞 ${item.phone}</div>`:''}
+          ${item.phone?`<div class="card-phone" onclick="showPhonePopup('${item.phone}','${(item.name||item.ig||'').replace(/'/g,"\\'")}',event)" style="cursor:pointer;color:#e6edf3;font-weight:600;" title="اضغط للتواصل">📞 ${displayPhone(item.phone)}</div>`:''}
           ${item.civil?`<div class="civil-badge">🪪 ${item.civil}</div>`:''}
           ${item.nationality?`<div class="nationality-badge">🌍 ${displayNationality(item.nationality)}</div>`:''}
           ${item.gender?`<span class="gender-badge ${item.gender}">${item.gender==='m'?'👨 ذكر':'👩 أنثى'}</span>`:''}
@@ -2135,7 +2263,7 @@ function getAutoDialect(nationality) {
 }
 function addInfluencer() {
   const name=document.getElementById('mName').value.trim();
-  const phone=document.getElementById('mPhone').value.trim();
+  const phone=normalizePhone(getPhoneFromModal('mPhoneCode','mPhone'));
   const civil=document.getElementById('mCivil').value.trim();
   const nationality=document.getElementById('mNationality').value;
   const gender=document.getElementById('mGenderM').dataset.selected==='1'?'m':document.getElementById('mGenderF').dataset.selected==='1'?'f':'';
@@ -2160,6 +2288,7 @@ function addInfluencer() {
   closeModal();
   ['mName','mPhone','mCivil','mIg','mTt','mSnap'].forEach(id=>document.getElementById(id).value='');
   document.getElementById('mNationality').value='';
+  const mpc = document.getElementById('mPhoneCode'); if(mpc) mpc.value='965';
   const base='flex:1;padding:9px;border-radius:9px;font-size:13px;cursor:pointer;font-family:Tajawal,sans-serif;';
   document.getElementById('mGenderM').style.cssText=base+'background:#21262d;color:#8b949e;border:1px solid #30363d;';
   document.getElementById('mGenderM').dataset.selected='0';
@@ -2184,7 +2313,9 @@ function openEditModal(idx) {
   _editIdx=idx; const item=influencers[idx];
   if(item) item._editing = true;
   document.getElementById('eName').value=item.name||'';
-  document.getElementById('ePhone').value=item.phone||'';
+  const ePhoneSplit = splitPhoneCode(item.phone||'');
+  setPhoneCodeSelect('ePhoneCode', ePhoneSplit.code);
+  document.getElementById('ePhone').value=ePhoneSplit.local;
   document.getElementById('eCivil').value=item.civil||'';
 
   // normalize nationality — بيستخدم الجدول الشامل
@@ -2226,7 +2357,7 @@ function saveEditInfluencer() {
   const ttRaw=document.getElementById('eTt').value.trim();
   const tempItem = {
     name: document.getElementById('eName').value.trim(),
-    phone: document.getElementById('ePhone').value.trim(),
+    phone: getPhoneFromModal('ePhoneCode','ePhone'),
     civil: document.getElementById('eCivil').value.trim(),
     ig: igRaw.includes('instagram.com/')?'@'+igRaw.split('instagram.com/').pop().replace('/','').split('?')[0]:igRaw,
     tt: ttRaw.includes('tiktok.com/@')?'@'+ttRaw.split('tiktok.com/@').pop().split('?')[0]:ttRaw,
@@ -2243,7 +2374,7 @@ function saveEditInfluencer() {
   }
   // تطبيق التعديلات
   item.name=tempItem.name;
-  item.phone=tempItem.phone;
+  item.phone=normalizePhone(tempItem.phone);
   item.civil=tempItem.civil;
   const newNat=normalizeNationality(document.getElementById('eNationality').value);
   if(newNat !== item.nationality){ const autoD=getAutoDialect(newNat); if(autoD) item.dialects=[autoD]; }
@@ -2756,7 +2887,7 @@ function parseFormImport() {
           ${item.nationality?`<span style="color:#0e9a6e;font-size:11px;"> · ${displayNationality(item.nationality)}</span>`:''}
         </div>
         <div style="font-size:11px;color:#8b949e;display:flex;flex-wrap:wrap;gap:8px;">
-          ${item.phone?`<span>📞 ${item.phone}</span>`:'<span style="color:#f87171;">📞 —</span>'}
+          ${item.phone?`<span>📞 ${displayPhone(item.phone)}</span>`:'<span style="color:#f87171;">📞 —</span>'}
           ${item.civil?`<span>🪪 ${item.civil}</span>`:''}
           ${item.ig?`<span>📸 ${item.ig}</span>`:''}
           ${item.tt?`<span>🎵 ${item.tt}</span>`:''}
@@ -2910,7 +3041,7 @@ function parseFormImport() {
           ${item.nationality?`<span style="color:#0e9a6e;font-size:11px;"> · ${displayNationality(item.nationality)}</span>`:''}
         </div>
         <div style="font-size:11px;color:#8b949e;display:flex;flex-wrap:wrap;gap:8px;">
-          ${item.phone?`<span>📞 ${item.phone}</span>`:'<span style="color:#f87171;">📞 —</span>'}
+          ${item.phone?`<span>📞 ${displayPhone(item.phone)}</span>`:'<span style="color:#f87171;">📞 —</span>'}
           ${item.civil?`<span>🪪 ${item.civil}</span>`:''}
           ${item.ig?`<span>📸 ${item.ig}</span>`:''}
           ${item.tt?`<span>🎵 ${item.tt}</span>`:''}
@@ -3368,7 +3499,7 @@ function handleCsvImport(event) {
         const svcRaw = get('services');
         const item = {
           name: get('name'),
-          phone: get('phone'),
+          phone: normalizePhone(get('phone')),
           civil: get('civil'),
           nationality: get('nationality'),
           gender: genderRevMap[get('gender')] || '',
@@ -3828,7 +3959,7 @@ function showApptCard(idx) {
           <div class="card-name">${name}</div>
           ${item.visitStatus==='done'?`<div style="display:flex;gap:1px;">${[1,2,3,4,5].map(s=>`<span onclick="setVisitRating(${idx},${s})" style="cursor:pointer;font-size:16px;line-height:1;color:${(item.visitRating||0)>=s?'#f59e0b':'#30363d'};transition:.15s;">★</span>`).join('')}</div>`:''}
         </div>
-        ${item.phone?`<div class="card-phone" onclick="showPhonePopup('${item.phone}','${(item.name||item.ig||'').replace(/'/g,"\\'")}',event)" style="cursor:pointer;color:#e6edf3;font-weight:600;" title="اضغط للتواصل">📞 ${item.phone}</div>`:''}
+        ${item.phone?`<div class="card-phone" onclick="showPhonePopup('${item.phone}','${(item.name||item.ig||'').replace(/'/g,"\\'")}',event)" style="cursor:pointer;color:#e6edf3;font-weight:600;" title="اضغط للتواصل">📞 ${displayPhone(item.phone)}</div>`:''}
         ${item.civil?`<div class="civil-badge">🪪 ${item.civil}</div>`:''}
         ${item.nationality?`<div class="nationality-badge">🌍 ${displayNationality(item.nationality)}</div>`:''}
         ${item.gender?`<span class="gender-badge ${item.gender}">${item.gender==='m'?'👨 ذكر':'👩 أنثى'}</span>`:''}
@@ -4154,7 +4285,7 @@ function openStatusReport(type) {
         ?`<span style="background:#065f46;color:#fff;padding:2px 7px;border-radius:20px;font-size:10px;font-weight:700;">${displayNationality(item.nationality)}</span>`
         :'—';
       const phoneHtml=item.phone
-        ?`<div onclick="showPhonePopup('${item.phone.replace(/'/g,"\\'")}','${(item.name||item.ig||'').replace(/'/g,"\\'")}',event)" style="color:#0369a1;direction:ltr;font-size:11px;cursor:pointer;font-weight:700;">📞 ${item.phone}</div>`
+        ?`<div onclick="showPhonePopup('${item.phone.replace(/'/g,"\\'")}','${(item.name||item.ig||'').replace(/'/g,"\\'")}',event)" style="color:#0369a1;direction:ltr;font-size:11px;cursor:pointer;font-weight:700;">📞 ${displayPhone(item.phone)}</div>`
         :'<span style="color:#9ca3af;">—</span>';
       const civilHtml=item.civil
         ?`<div style="color:#0f766e;direction:ltr;font-size:11px;font-weight:700;">🪪 ${item.civil}</div>`
@@ -4291,7 +4422,7 @@ function openStatusReport(type) {
       const name=item.name||'—';
       const gLabel=item.gender==='m'?'<span style="color:#1a6fa8;font-weight:700;">👨 ذكر</span>':item.gender==='f'?'<span style="color:#a21caf;font-weight:700;">👩 أنثى</span>':'—';
       const natCell=item.nationality?`<span style="background:#e6f7f1;color:#0a7a55;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:700;">🌍 ${displayNationality(item.nationality)}</span>`:'—';
-      const phoneCell=item.phone?`<span onclick="showPhonePopup('${item.phone.replace(/'/g,"\\'")}','${(item.name||item.ig||'').replace(/'/g,"\\'")}',event)" style="color:#0369a1;direction:ltr;display:block;white-space:nowrap;font-size:12px;cursor:pointer;font-weight:600;">📞 ${item.phone}</span>`:'—';
+      const phoneCell=item.phone?`<span onclick="showPhonePopup('${item.phone.replace(/'/g,"\\'")}','${(item.name||item.ig||'').replace(/'/g,"\\'")}',event)" style="color:#0369a1;direction:ltr;display:block;white-space:nowrap;font-size:12px;cursor:pointer;font-weight:600;">📞 ${displayPhone(item.phone)}</span>`:'—';
       return `<tr style="background:${i%2===1?'#f8fafc':'#fff'}">
         <td style="text-align:center;font-weight:900;color:${thBg};width:30px;">${i+1}</td>
         <td style="font-weight:700;font-size:13px;">${name}</td><td>${gLabel}</td>
@@ -4382,7 +4513,7 @@ function _refreshReportRow(realIdx){
   const phoneTd=row.querySelector('td:nth-child(5)');
   if(phoneTd){
     phoneTd.innerHTML=item.phone
-      ?`<div onclick="showPhonePopup('${item.phone.replace(/'/g,"\\'")}','${(item.name||item.ig||'').replace(/'/g,"\\'")}',event)" style="color:#0369a1;direction:ltr;font-size:13px;cursor:pointer;font-weight:700;">📞 ${item.phone}</div>`
+      ?`<div onclick="showPhonePopup('${item.phone.replace(/'/g,"\\'")}','${(item.name||item.ig||'').replace(/'/g,"\\'")}',event)" style="color:#0369a1;direction:ltr;font-size:13px;cursor:pointer;font-weight:700;">📞 ${displayPhone(item.phone)}</div>`
       :'<span style="color:#9ca3af;">—</span>';
   }
   // رقم مدني — td:nth-child(6)
@@ -4492,7 +4623,7 @@ function openGenderReport(gender) {
   const title=isMale?'كشف المؤثرين الذكور':'كشف المؤثرات الإناث';
   const rows=list.map((item,i)=>{
     const stLabel=item.status==='approved'?'<span style="color:#16a34a;font-weight:700;">✅ مقبول</span>':item.status==='rejected'?'<span style="color:#dc2626;font-weight:700;">❌ مرفوض</span>':'<span style="color:#d97706;">⏳ قيد المراجعة</span>';
-    const phoneCell=item.phone?`<span onclick="showPhonePopup('${item.phone.replace(/'/g,"\\'")}','${(item.name||item.ig||'').replace(/'/g,"\\'")}',event)" style="color:#0369a1;direction:ltr;display:block;white-space:nowrap;font-size:12px;cursor:pointer;font-weight:600;" title="اضغط للتواصل">📞 ${item.phone}</span>`:'—';
+    const phoneCell=item.phone?`<span onclick="showPhonePopup('${item.phone.replace(/'/g,"\\'")}','${(item.name||item.ig||'').replace(/'/g,"\\'")}',event)" style="color:#0369a1;direction:ltr;display:block;white-space:nowrap;font-size:12px;cursor:pointer;font-weight:600;" title="اضغط للتواصل">📞 ${displayPhone(item.phone)}</span>`:'—';
     const natCell=item.nationality?`<span style="background:#e6f7f1;color:#0a7a55;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:700;">🌍 ${displayNationality(item.nationality)}</span>`:'—';
     return `<tr style="background:${i%2===1?'#f8fafc':'#fff'}">
       <td style="text-align:center;font-weight:900;color:${thBg};width:36px;">${i+1}</td>
@@ -4542,7 +4673,7 @@ async function shareStatusReport(type) {
   const rows=list.map((item,i)=>{
     const gLabel=item.gender==='m'?'👨 ذكر':item.gender==='f'?'👩 أنثى':'—';
     const natCell=item.nationality?`🌍 ${displayNationality(item.nationality)}`:'—';
-    const phoneCell=item.phone?`<a href="tel:${item.phone}" style="color:#0369a1;text-decoration:none;direction:ltr;font-size:12px;">📞 ${item.phone}</a>`:'—';
+    const phoneCell=item.phone?`<a href="tel:${item.phone}" style="color:#0369a1;text-decoration:none;direction:ltr;font-size:12px;">📞 ${displayPhone(item.phone)}</a>`:'—';
     const rb=i%2===1?'#f8fafc':'#fff';
     if(isApproved){
       const dateStr=item.visitDate?formatDateAr(item.visitDate):'—';
@@ -4572,7 +4703,7 @@ async function shareGenderReport(gender) {
   const rows=list.map((item,i)=>{
     const stLabel=item.status==='approved'?'✅ مقبول':item.status==='rejected'?'❌ مرفوض':item.status==='duplicate_pending'?'🔁 مكرر':'⏳ قيد المراجعة';
     const natCell=item.nationality?`🌍 ${displayNationality(item.nationality)}`:'—';
-    const phoneCell=item.phone?`<a href="tel:${item.phone}" style="color:#0369a1;text-decoration:none;direction:ltr;font-size:12px;">📞 ${item.phone}</a>`:'—';
+    const phoneCell=item.phone?`<a href="tel:${item.phone}" style="color:#0369a1;text-decoration:none;direction:ltr;font-size:12px;">📞 ${displayPhone(item.phone)}</a>`:'—';
     return `<tr style="background:${i%2===1?'#f8fafc':'#fff'}"><td style="text-align:center;font-weight:900;width:36px;">${i+1}</td><td style="font-weight:700;">${item.name||'—'}</td><td>${natCell}</td><td style="direction:ltr;">${phoneCell}</td><td style="font-size:11px;direction:ltr;">${item.civil||'—'}</td><td>${buildSocialsHtml(item)}</td><td>${stLabel}</td></tr>`;
   }).join('');
   const headersHTML=`<th style="background:${thBg};width:36px;text-align:center;">#</th><th style="background:${thBg};">الاسم</th><th style="background:${thBg};">الجنسية</th><th style="background:${thBg};">الهاتف</th><th style="background:${thBg};">الرقم المدني</th><th style="background:${thBg};">الصفحات</th><th style="background:${thBg};">الحالة</th>`;
@@ -5021,7 +5152,7 @@ function openGuestReadOnlyReport() {
     const phoneHtml = guest
       ? '<span style="color:#9ca3af;font-size:11px;">🔒 مخفي</span>'
       : item.phone
-      ? `<div onclick="showPhonePopup('${item.phone.replace(/'/g,"\\'")}','${(item.name||item.ig||'').replace(/'/g,"\\'")}',event)" style="color:#0369a1;direction:ltr;font-size:11px;cursor:pointer;font-weight:700;">📞 ${item.phone}</div>`
+      ? `<div onclick="showPhonePopup('${item.phone.replace(/'/g,"\\'")}','${(item.name||item.ig||'').replace(/'/g,"\\'")}',event)" style="color:#0369a1;direction:ltr;font-size:11px;cursor:pointer;font-weight:700;">📞 ${displayPhone(item.phone)}</div>`
       : '—';
     const civilHtml = guest
       ? '<span style="color:#9ca3af;font-size:11px;">🔒 مخفي</span>'
