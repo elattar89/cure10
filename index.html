@@ -95,7 +95,7 @@ body{font-family:'Tajawal',sans-serif;direction:rtl;background:#0d1117;color:#e6
 .gender-badge.f{background:#4a1942;color:#f0abfc;}
 .page-footer{background:#161b22;border-top:1px solid #21262d;padding:1.2rem;text-align:center;color:#484f58;font-size:12px;}
 /* ── New User Notification Bar ── */
-#newUserNotifBar{display:none;width:100%;box-sizing:border-box;padding:10px 14px;direction:rtl;font-family:'Tajawal',sans-serif;z-index:100;animation:slideDownBar .4s cubic-bezier(.22,.68,0,1.2) both;flex-wrap:wrap;gap:8px;align-items:center;}
+#newUserNotifBar{display:none;width:100%;box-sizing:border-box;padding:10px 14px;direction:rtl;font-family:'Tajawal',sans-serif;z-index:10000;animation:slideDownBar .4s cubic-bezier(.22,.68,0,1.2) both;flex-wrap:wrap;gap:8px;align-items:center;}
 #newUserNotifBar.visible{display:flex;}
 #newUserNotifBar.type-new{background:#064e3b;border-bottom:2px solid #10b981;}
 #newUserNotifBar.type-update{background:#1e3a5f;border-bottom:2px solid #3b82f6;}
@@ -119,6 +119,7 @@ body{font-family:'Tajawal',sans-serif;direction:rtl;background:#0d1117;color:#e6
 .save-bottom-btn{padding:12px 28px;border-radius:12px;background:linear-gradient(135deg,#1a5c3a,#22c55e);border:none;color:#fff;font-size:15px;font-weight:700;cursor:pointer;font-family:'Tajawal',sans-serif;transition:all .15s;}
 .save-bottom-btn.saving{background:linear-gradient(135deg,#0f3a22,#15803d);}
 .fab{position:fixed;top:12px;right:12px;width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,#0a3d62,#1a6fa8);border:none;color:#fff;font-size:22px;cursor:pointer;box-shadow:0 4px 20px rgba(26,111,168,0.5);display:flex;align-items:center;justify-content:center;z-index:9999;transition:transform .2s;}
+#newUserNotifBar.visible ~ * .fab, .fab.notif-visible{z-index:99!important;}
 .fab:hover{transform:scale(1.1);}
 .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:4500;display:flex;align-items:center;justify-content:center;padding:1rem;}
 .modal-overlay.hidden{display:none;}
@@ -2730,6 +2731,8 @@ function applyBulkDecisions(){
         }
       });
       if(changed > 0) ex.wasUpdated = true;
+      // لو الشخص معندوش تاريخ تسجيل → خذه من الفورم/الشيت
+      if(!ex.addedAt && entry.item.addedAt) ex.addedAt = entry.item.addedAt;
       updated++;
     } else skipped++;
   });
@@ -2814,6 +2817,8 @@ function dupSingleApplySelected() {
   });
 
   if(changed > 0) ex.wasUpdated = true;
+  // لو الشخص معندوش تاريخ تسجيل → خذه من الفورم/الشيت
+  if(!ex.addedAt && _pendingSingleItem && _pendingSingleItem.addedAt) ex.addedAt = _pendingSingleItem.addedAt;
   document.getElementById('dupSingleOverlay').classList.add('hidden');
   _pendingSingleItem = null; _pendingSingleDupIdx = null;
   renderGrid(); saveFile();
@@ -6178,7 +6183,7 @@ function _showNotifBar(type, icon, title, sub, btnLabel, btnAction) {
   bar.style.animation = 'none';
   requestAnimationFrame(() => { bar.style.animation = ''; bar.classList.add('visible'); });
   if(_notifBannerTimer) clearTimeout(_notifBannerTimer);
-  _notifBannerTimer = setTimeout(() => { bar.classList.remove('visible'); }, 12000);
+  // تم إزالة الإغلاق التلقائي — الـ bar يُغلق فقط بزر X
 }
 function showNewUserBanner(count) {
   const t = count === 1 ? 'مستخدم جديد انضم! 🎉' : count + ' مستخدمين جدد انضموا! 🎉';
