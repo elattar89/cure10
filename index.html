@@ -484,6 +484,21 @@ body{font-family:'Tajawal',sans-serif;direction:rtl;background:#0d1117;color:#e6
   </div>
 </div>
 
+<!-- Update Review Overlay -->
+<div class="modal-overlay hidden" id="updReviewOverlay" onclick="if(event.target===this)closeUpdReview()">
+  <div class="modal" style="max-width:640px;max-height:90vh;overflow-y:auto;">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;">
+      <h3 style="margin:0;">🔄 مراجعة التحديثات</h3>
+      <button onclick="closeUpdReview()" style="background:#21262d;border:1px solid #30363d;color:#e6edf3;width:32px;height:32px;border-radius:50%;cursor:pointer;font-size:16px;">✕</button>
+    </div>
+    <div id="updReviewSummary" style="background:#0f2318;border:1px solid #059669;border-radius:8px;padding:.6rem .8rem;font-size:12px;color:#4ade80;margin-bottom:.8rem;"></div>
+    <div id="updReviewList" style="display:flex;flex-direction:column;gap:12px;"></div>
+    <div class="modal-actions" style="margin-top:1rem;">
+      <button class="modal-cancel" onclick="closeUpdReview()">إغلاق</button>
+    </div>
+  </div>
+</div>
+
 <div class="page-footer">
   <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-bottom:.8rem;">
     <button class="add-bottom-btn" onclick="openModal()">➕ إضافة مؤثر جديد</button>
@@ -491,6 +506,7 @@ body{font-family:'Tajawal',sans-serif;direction:rtl;background:#0d1117;color:#e6
     <button class="save-bottom-btn" id="manualSaveBtn" onclick="manualSave()">💾 حفظ يدوي</button>
     <button class="add-bottom-btn" onclick="openActivityLog()" style="background:linear-gradient(135deg,#1e3a5f,#1a6fa8);">📋 سجل النشاط</button>
     <button class="add-bottom-btn" onclick="openRecovery()" style="background:linear-gradient(135deg,#7f1d1d,#dc2626);">🚨 حالات الطوارئ</button>
+    <button class="add-bottom-btn" id="updReviewBtn" onclick="openUpdReview()" style="background:linear-gradient(135deg,#064e3b,#059669);display:none;">🔄 مراجعة التحديثات <span id="updReviewCount" style="background:#fff;color:#059669;border-radius:10px;padding:1px 7px;font-size:11px;margin-right:4px;font-weight:900;"></span></button>
     <button class="add-bottom-btn" id="dupReviewBtn" onclick="openDupReview()" style="background:linear-gradient(135deg,#7c2d12,#ea580c);">🔍 مراجعة المكررين <span id="dupReviewCount" style="background:#fff;color:#ea580c;border-radius:10px;padding:1px 7px;font-size:11px;margin-right:4px;font-weight:900;display:none;"></span></button>
   </div>
   <div>مركز كيور الطبي © 2026 — جميع الحقوق محفوظة</div>
@@ -1907,7 +1923,7 @@ function renderGrid() {
           ${isPublished?`<div style="background:rgba(202,138,4,0.15);border:1px solid #ca8a04;color:#fbbf24;font-size:11px;font-weight:700;padding:3px 10px;border-radius:6px;display:inline-block;">🌟 تم نشر المحتوى</div>`:''}
           ${isUnpublished?`<div style="background:rgba(124,58,237,0.15);border:1px solid #7c3aed;color:#c084fc;font-size:11px;font-weight:700;padding:3px 10px;border-radius:6px;display:inline-block;">🟣 لم يتم نشر المحتوى</div>`:''}
           ${isNew?`<div style="background:rgba(37,99,235,0.2);border:1px solid #3b82f6;color:#93c5fd;font-size:11px;font-weight:700;padding:3px 10px;border-radius:6px;display:inline-block;">🆕 جديد</div>`:''}
-        </div>
+          ${item.source==='updated'?`<div onclick="openUpdReview(${idx})" style="background:rgba(5,150,105,0.15);border:1px solid #059669;color:#4ade80;font-size:11px;font-weight:700;padding:3px 10px;border-radius:6px;display:inline-block;cursor:pointer;">🔄 تم تحديث البيانات</div>`:''}        </div>
         ${item.addedAt?`<div style="font-size:10px;color:#6e7681;text-align:left;white-space:nowrap;line-height:1.4;background:rgba(255,255,255,0.05);padding:2px 6px;border-radius:5px;">${new Date(item.addedAt).toLocaleDateString('ar-KW',{day:'numeric',month:'short',year:'numeric'})} ${new Date(item.addedAt).toLocaleTimeString('ar-KW',{hour:'2-digit',minute:'2-digit'})}</div>`:''}
       </div>
       <div class="card-top">
@@ -2307,7 +2323,7 @@ function addInfluencer() {
       if(d) newItem.dialects = [d];
     }
     renderGrid(); saveFile(); showToast('✅ تم إضافة المؤثر بنجاح!','#059669');
-    updateStats(); updateDupReviewBtn();
+    updateStats(); updateDupReviewBtn(); updateUpdReviewBtn();
   });
 }
 
@@ -2389,7 +2405,7 @@ function saveEditInfluencer() {
   item.snap=tempItem.snap;
   item.wasUpdated = true;
   const savedIdx=_editIdx;
-  closeEditModal(); renderGrid(); saveFile(); updateDupReviewBtn();
+  closeEditModal(); renderGrid(); saveFile(); updateDupReviewBtn(); updateUpdReviewBtn();
   logActivity('edit', `تعديل بيانات: ${item.name||item.ig||'مؤثر'}`);
   showToast('✅ تم حفظ التعديلات','#1a6fa8');
   if(document.getElementById('apptCardOverlay').style.display==='flex') showApptCard(savedIdx);
@@ -5775,7 +5791,7 @@ function drApplySelected(gi, primaryIdx, secondaryIdx) {
   // احذف المكرر
   const item2 = influencers[secondaryIdx];
   item2._deletedAt=Date.now(); deletedInfluencers.push(item2); influencers.splice(secondaryIdx,1);
-  saveFile(); renderGrid(); updateStats(); updateDupReviewBtn();
+  saveFile(); renderGrid(); updateStats(); updateDupReviewBtn(); updateUpdReviewBtn();
   closeDupReview(); openDupReview();
   showToast(changed>0?`✅ تم تحديث ${changed} حقل وحذف المكرر`:'✅ تم حذف المكرر','#059669');
 }
@@ -5785,7 +5801,7 @@ window.drApplySelected=drApplySelected;
 function drDeleteDup(idx, gi) {
   if(!confirm('هتحذف هذا الشخص نهائياً؟')) return;
   const item=influencers[idx]; item._deletedAt=Date.now(); deletedInfluencers.push(item); influencers.splice(idx,1);
-  saveFile(); renderGrid(); updateStats(); updateDupReviewBtn(); closeDupReview(); openDupReview();
+  saveFile(); renderGrid(); updateStats(); updateDupReviewBtn(); updateUpdReviewBtn(); closeDupReview(); openDupReview();
   showToast('🗑 تم الحذف','#dc2626');
 }
 window.drDeleteDup=drDeleteDup;
@@ -5794,7 +5810,7 @@ window.drDeleteDup=drDeleteDup;
 function drKeepDup(primaryIdx, secondaryIdx, gi) {
   if(!confirm('هتحذف الأصل وتحتفظ بالمكرر؟')) return;
   const item=influencers[primaryIdx]; item._deletedAt=Date.now(); deletedInfluencers.push(item); influencers.splice(primaryIdx,1);
-  saveFile(); renderGrid(); updateStats(); updateDupReviewBtn(); closeDupReview(); openDupReview();
+  saveFile(); renderGrid(); updateStats(); updateDupReviewBtn(); updateUpdReviewBtn(); closeDupReview(); openDupReview();
   showToast('✅ تم الاحتفاظ بالمكرر وحذف الأصل','#d97706');
 }
 window.drKeepDup=drKeepDup;
@@ -5803,7 +5819,7 @@ window.drKeepDup=drKeepDup;
 function drMergeKeepBoth(primaryIdx, secondaryIdx, gi) {
   const dup=influencers[secondaryIdx];
   if(dup && dup.status==='duplicate_pending') { dup.status='pending'; delete dup.duplicateOf; }
-  saveFile(); renderGrid(); updateStats(); updateDupReviewBtn(); closeDupReview(); openDupReview();
+  saveFile(); renderGrid(); updateStats(); updateDupReviewBtn(); updateUpdReviewBtn(); closeDupReview(); openDupReview();
   showToast('↩️ تم تجاهل التكرار وإبقاء السجلين','#6e7681');
 }
 window.drMergeKeepBoth=drMergeKeepBoth;
@@ -5812,7 +5828,7 @@ window.drMergeKeepBoth=drMergeKeepBoth;
 function drConvertToPending(idx, gi) {
   const item=influencers[idx];
   if(item) { item.status='pending'; delete item.duplicateOf; }
-  saveFile(); renderGrid(); updateStats(); updateDupReviewBtn(); closeDupReview(); openDupReview();
+  saveFile(); renderGrid(); updateStats(); updateDupReviewBtn(); updateUpdReviewBtn(); closeDupReview(); openDupReview();
   showToast('✅ تم تحويله لقيد المراجعة','#059669');
 }
 window.drConvertToPending=drConvertToPending;
@@ -5830,7 +5846,7 @@ function keepOnlyThis(keepIdx, gi) {
     deletedInfluencers.push(item);
     influencers.splice(idx, 1);
   });
-  saveFile(); renderGrid(); updateStats(); updateDupReviewBtn();
+  saveFile(); renderGrid(); updateStats(); updateDupReviewBtn(); updateUpdReviewBtn();
   closeDupReview(); openDupReview();
   showToast('✅ تم الاحتفاظ بشخص واحد وحذف الباقين', '#059669');
 }
@@ -5840,6 +5856,158 @@ function closeDupReview() {
 }
 window.openDupReview=openDupReview; window.closeDupReview=closeDupReview;
 window.deleteDupEntry=deleteDupEntry; window.keepOnlyThis=keepOnlyThis;
+
+// ─────────────────────────── UPDATE REVIEW ────────────────────────────
+const UPD_FIELDS = [
+  {key:'name',        label:'الاسم'},
+  {key:'phone',       label:'الموبايل'},
+  {key:'civil',       label:'الرقم المدني'},
+  {key:'nationality', label:'الجنسية'},
+  {key:'gender',      label:'الجنس', fmt: v=>v==='m'||v==='male'?'ذكر':v==='f'||v==='female'?'أنثى':v},
+  {key:'ig',          label:'انستاجرام'},
+  {key:'tt',          label:'تيك توك'},
+  {key:'snap',        label:'سناب'},
+];
+
+function getUpdatedInfluencers() {
+  return influencers
+    .map((item, idx) => ({item, idx}))
+    .filter(({item}) => item.source === 'updated' && item.updatedFields && item.updatedFields.length > 0);
+}
+
+function updateUpdReviewBtn() {
+  const btn   = document.getElementById('updReviewBtn');
+  const badge = document.getElementById('updReviewCount');
+  if(!btn) return;
+  const updated = getUpdatedInfluencers();
+  if(updated.length > 0) {
+    btn.style.display = 'inline-flex';
+    badge.textContent = updated.length + ' شخص';
+  } else {
+    btn.style.display = 'none';
+  }
+}
+
+function _updReviewGroupHTML(item, idx, gi) {
+  const fields = item.updatedFields || [];
+
+  const rowsHTML = UPD_FIELDS.map(f => {
+    const upd = fields.find(u => u.key === f.key);
+    if(!upd) return '';
+    const fmt    = f.fmt || (v => v);
+    const oldVal = fmt(upd.oldVal || '');
+    const newVal = fmt(upd.newVal || '');
+    return `<div class="dup-field-row" style="background:rgba(5,150,105,0.06);border-radius:8px;">
+      <div class="dup-field-label">${f.label}</div>
+      <div class="dup-field-old">${oldVal || '—'}</div>
+      <div class="dup-field-new" style="border-color:#059669;background:#0a1f16;">${newVal || '—'}</div>
+      <input type="checkbox" class="upd-check" id="updchk_${gi}_${f.key}" checked>
+    </div>`;
+  }).filter(Boolean).join('');
+
+  const selectBtns = `<div style="display:flex;gap:6px;margin-bottom:6px;">
+    <button onclick="updSelectAll(${gi},'check')" style="padding:4px 10px;border-radius:6px;border:1px solid #30363d;background:#21262d;color:#e6edf3;font-size:11px;cursor:pointer;font-family:Tajawal,sans-serif;">☑ تحديد الكل</button>
+    <button onclick="updSelectAll(${gi},'uncheck')" style="padding:4px 10px;border-radius:6px;border:1px solid #30363d;background:#21262d;color:#8b949e;font-size:11px;cursor:pointer;font-family:Tajawal,sans-serif;">☐ إلغاء الكل</button>
+  </div>`;
+
+  const updatedAt = item.updatedAt ? new Date(item.updatedAt).toLocaleString('ar-KW',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}) : '';
+
+  return `<div id="updGroup_${gi}" style="border:1px solid #059669;border-radius:12px;padding:.9rem;background:#0a1f16;margin-bottom:4px;">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;flex-wrap:wrap;gap:6px;">
+      <div style="font-size:13px;color:#4ade80;font-weight:700;">🔄 ${item.name || item.ig || '—'}</div>
+      ${updatedAt ? `<div style="font-size:10px;color:#6e7681;">${updatedAt}</div>` : ''}
+    </div>
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;font-size:11px;color:#6e7681;">
+      ${item.phone ? `📞 ${item.phone}` : ''}
+      ${item.civil ? `🪪 ${item.civil}` : ''}
+    </div>
+    <div class="dup-col-headers">
+      <div class="dup-col-h"></div>
+      <div class="dup-col-h" style="color:#8b949e;">📁 القديم</div>
+      <div class="dup-col-h" style="color:#4ade80;">✨ الجديد</div>
+      <div class="dup-col-h" style="color:#6e7681;font-size:9px;">تطبيق؟</div>
+    </div>
+    ${rowsHTML}
+    <div style="margin-top:10px;">
+      ${selectBtns}
+      <div style="display:flex;gap:6px;flex-wrap:wrap;">
+        <button onclick="updApplySelected(${gi},${idx})" style="flex:1;padding:8px 10px;border-radius:8px;border:1px solid #059669;background:#0d1f14;color:#4ade80;font-size:12px;cursor:pointer;font-family:Tajawal,sans-serif;font-weight:700;">✅ تطبيق المحدد وإغلاق التحديث</button>
+        <button onclick="updDismiss(${idx},${gi})" style="flex:1;padding:8px 10px;border-radius:8px;border:1px solid #30363d;background:#161b22;color:#8b949e;font-size:12px;cursor:pointer;font-family:Tajawal,sans-serif;font-weight:700;">🚫 تجاهل التحديث</button>
+      </div>
+    </div>
+  </div>`;
+}
+
+function openUpdReview(scrollToIdx) {
+  const updated = getUpdatedInfluencers();
+  const summary = document.getElementById('updReviewSummary');
+  const list    = document.getElementById('updReviewList');
+
+  if(updated.length === 0) {
+    summary.textContent = '✅ لا توجد تحديثات معلّقة';
+    list.innerHTML = '';
+    document.getElementById('updReviewOverlay').classList.remove('hidden');
+    return;
+  }
+
+  summary.innerHTML = `وُجد <b style="color:#4ade80;">${updated.length}</b> شخص قام بتحديث بياناته — راجع التغييرات وطبّق ما تريده`;
+  list.innerHTML = updated.map(({item, idx}, gi) => _updReviewGroupHTML(item, idx, gi)).join('');
+  document.getElementById('updReviewOverlay').classList.remove('hidden');
+
+  // scroll to specific card if called from badge
+  if(scrollToIdx !== undefined) {
+    const gi = updated.findIndex(u => u.idx === scrollToIdx);
+    if(gi !== -1) {
+      setTimeout(() => {
+        const el = document.getElementById('updGroup_' + gi);
+        if(el) el.scrollIntoView({behavior:'smooth', block:'center'});
+      }, 100);
+    }
+  }
+}
+
+function closeUpdReview() {
+  document.getElementById('updReviewOverlay').classList.add('hidden');
+}
+
+function updSelectAll(gi, mode) {
+  UPD_FIELDS.forEach(f => {
+    const cb = document.getElementById(`updchk_${gi}_${f.key}`);
+    if(cb) cb.checked = (mode === 'check');
+  });
+}
+
+function updApplySelected(gi, idx) {
+  const item = influencers[idx];
+  if(!item || !item.updatedFields) return;
+  let changed = 0;
+  item.updatedFields.forEach(upd => {
+    const cb = document.getElementById(`updchk_${gi}_${upd.key}`);
+    if(cb && cb.checked) {
+      item[upd.key] = upd.newVal;
+      changed++;
+    }
+  });
+  // مسح علامة التحديث
+  item.source = 'form';
+  delete item.updatedFields;
+  saveFile(); renderGrid(); updateStats(); updateUpdReviewBtn();
+  closeUpdReview(); openUpdReview();
+  showToast(changed > 0 ? `✅ تم تطبيق ${changed} تغيير` : '✅ تم إغلاق التحديث', '#059669');
+}
+
+function updDismiss(idx, gi) {
+  const item = influencers[idx];
+  if(!item) return;
+  item.source = 'form';
+  delete item.updatedFields;
+  saveFile(); renderGrid(); updateStats(); updateUpdReviewBtn();
+  closeUpdReview(); openUpdReview();
+  showToast('🚫 تم تجاهل التحديث', '#6e7681');
+}
+
+window.openUpdReview=openUpdReview; window.closeUpdReview=closeUpdReview;
+window.updSelectAll=updSelectAll; window.updApplySelected=updApplySelected; window.updDismiss=updDismiss;
 // ─────────────────────────────────────────────────────────────────────
 
 async function init() {
@@ -5903,7 +6071,7 @@ async function init() {
   if(phonesMigrated) saveToStorage();
   renderGrid();
   setTimeout(()=>{const ol=document.getElementById("loadingOverlay");if(ol)ol.style.display="none";},200);
-  updateDupReviewBtn();
+  updateDupReviewBtn(); updateUpdReviewBtn();
   setTimeout(saveDailyBackup, 3000);
   // Check missed visits after short delay
   setTimeout(checkMissedVisits, 800);
@@ -5944,7 +6112,7 @@ async function init() {
     // لو في حفظ حصل خلال آخر 15 ثانية، ما نجيبش من Firebase عشان منمسحش البيانات
     if(_isSaving || (Date.now() - _lastSaveTime) < 60000) return;
     tryLoadFirebase().then(function(loaded) {
-      if(loaded) { updateStats(); updateDupReviewBtn(); }
+      if(loaded) { updateStats(); updateDupReviewBtn(); updateUpdReviewBtn(); }
     }).catch(function(){});
   }, 10000);
   } catch(err) {
