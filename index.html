@@ -306,8 +306,8 @@ body{font-family:'Tajawal',sans-serif;direction:rtl;background:#0d1117;color:#e6
   /* Column widths for landscape A4 (~277mm printable) */
   .report-table th:nth-child(1), .report-table td:nth-child(1){ width:25px!important; }
   .report-table th:nth-child(2), .report-table td:nth-child(2){ width:80px!important; }
-  .report-table th:nth-child(3), .report-table td:nth-child(3){ width:20px!important; }
-  .report-table th:nth-child(4), .report-table td:nth-child(4){ width:30px!important; }
+  .report-table th:nth-child(3), .report-table td:nth-child(3){ width:28px!important; }
+  .report-table th:nth-child(4), .report-table td:nth-child(4){ width:38px!important; }
   .report-table th:nth-child(5), .report-table td:nth-child(5){ width:55px!important; }
   .report-table th:nth-child(6), .report-table td:nth-child(6){ width:50px!important; }
   .report-table th:nth-child(7), .report-table td:nth-child(7){ width:55px!important; }
@@ -315,7 +315,7 @@ body{font-family:'Tajawal',sans-serif;direction:rtl;background:#0d1117;color:#e6
   .report-table th:nth-child(9), .report-table td:nth-child(9){ width:55px!important; }
   .report-table th:nth-child(10),.report-table td:nth-child(10){ display:none!important; }
   .report-table th:nth-child(11),.report-table td:nth-child(11){ display:none!important; }
-  .report-table th:nth-child(12),.report-table td:nth-child(12){ width:145px!important;}
+  .report-table th:nth-child(12),.report-table td:nth-child(12){ width:165px!important;}
   /* Signature column print */
   .report-table td:nth-child(12) { overflow:visible!important; }
   .sig-print-img { width:110px!important; height:50px!important; object-fit:contain!important; display:block!important; -webkit-print-color-adjust:exact!important; print-color-adjust:exact!important; }
@@ -4494,13 +4494,21 @@ function openStatusReport(type) {
     }).join('');
 
     // legend + header + table
+    const now = Date.now();
+    const cntDone     = list.filter(i=>i.visitStatus==='done').length;
+    const cntCancelled= list.filter(i=>i.visitStatus==='cancelled').length;
+    const cntUpcoming = list.filter(i=>i.visitDate && i.visitStatus!=='done' && i.visitStatus!=='cancelled' && new Date(i.visitDate).getTime()>=now).length;
+    const cntNoDate   = list.filter(i=>!i.visitDate).length;
+    const cntPublished= list.filter(i=>i.contentStatus==='published').length;
+    const cntUnpub    = list.filter(i=>i.contentStatus==='unpublished').length;
+    const badgeStyle  = 'display:inline-block;background:#0a3d62;color:#fff;border-radius:10px;padding:1px 6px;font-size:10px;margin-right:2px;';
     const legendHtml=`<div class="no-print" style="display:flex;flex-wrap:wrap;gap:10px;justify-content:flex-end;align-items:center;margin-bottom:.6rem;font-size:11px;font-weight:700;">
-      <span style="display:flex;align-items:center;gap:4px;"><span style="width:11px;height:11px;border-radius:50%;background:#16a34a;display:inline-block;"></span> تمت الزيارة</span>
-      <span style="display:flex;align-items:center;gap:4px;"><span style="width:11px;height:11px;border-radius:50%;background:#dc2626;display:inline-block;"></span> ألغيت الزيارة</span>
-      <span style="display:flex;align-items:center;gap:4px;"><span style="width:11px;height:11px;border-radius:50%;background:#3b82f6;display:inline-block;"></span> موعد جاي</span>
-      <span style="display:flex;align-items:center;gap:4px;"><span style="width:11px;height:11px;border-radius:50%;background:#e2e8f0;display:inline-block;border:1px solid #cbd5e1;"></span> بدون موعد</span>
-      <span style="display:flex;align-items:center;gap:4px;"><span style="width:11px;height:11px;border-radius:50%;background:#ca8a04;display:inline-block;"></span> تم النشر</span>
-      <span style="display:flex;align-items:center;gap:4px;"><span style="width:11px;height:11px;border-radius:50%;background:#7c3aed;display:inline-block;"></span> لم يتم النشر</span>
+      <span style="display:flex;align-items:center;gap:4px;"><span style="width:11px;height:11px;border-radius:50%;background:#16a34a;display:inline-block;"></span> تمت الزيارة <span style="${badgeStyle}">${cntDone}</span></span>
+      <span style="display:flex;align-items:center;gap:4px;"><span style="width:11px;height:11px;border-radius:50%;background:#dc2626;display:inline-block;"></span> ألغيت الزيارة <span style="${badgeStyle}">${cntCancelled}</span></span>
+      <span style="display:flex;align-items:center;gap:4px;"><span style="width:11px;height:11px;border-radius:50%;background:#3b82f6;display:inline-block;"></span> موعد جاي <span style="${badgeStyle}">${cntUpcoming}</span></span>
+      <span style="display:flex;align-items:center;gap:4px;"><span style="width:11px;height:11px;border-radius:50%;background:#e2e8f0;display:inline-block;border:1px solid #cbd5e1;"></span> بدون موعد <span style="display:inline-block;background:#64748b;color:#fff;border-radius:10px;padding:1px 6px;font-size:10px;margin-right:2px;">${cntNoDate}</span></span>
+      <span style="display:flex;align-items:center;gap:4px;"><span style="width:11px;height:11px;border-radius:50%;background:#ca8a04;display:inline-block;"></span> تم النشر <span style="display:inline-block;background:#ca8a04;color:#fff;border-radius:10px;padding:1px 6px;font-size:10px;margin-right:2px;">${cntPublished}</span></span>
+      <span style="display:flex;align-items:center;gap:4px;"><span style="width:11px;height:11px;border-radius:50%;background:#7c3aed;display:inline-block;"></span> لم يتم النشر <span style="display:inline-block;background:#7c3aed;color:#fff;border-radius:10px;padding:1px 6px;font-size:10px;margin-right:2px;">${cntUnpub}</span></span>
     </div>`;
 
     const html=`<div class="report-overlay open" id="reportOverlay" onclick="if(event.target===this)closeReport()">
@@ -4530,8 +4538,8 @@ function openStatusReport(type) {
                 <tr>
                   <th style="width:28px;">#</th>
                   <th style="text-align:right;min-width:90px;">الاسم</th>
-                  <th style="min-width:35px;max-width:40px;">الجنس</th>
-                  <th style="min-width:45px;max-width:55px;">الجنسية</th>
+                  <th style="min-width:40px;">الجنس</th>
+                  <th style="min-width:52px;">الجنسية</th>
                   <th style="text-align:right;min-width:80px;">الموبايل</th>
                   <th style="text-align:right;min-width:75px;">الرقم المدني</th>
                   <th style="text-align:right;min-width:80px;">السوشيال</th>
@@ -4539,7 +4547,7 @@ function openStatusReport(type) {
                   <th style="min-width:80px;">الموعد</th>
                   <th style="min-width:100px;" class="no-print">حالة الزيارة</th>
                   <th style="min-width:100px;" class="no-print">حالة المحتوى</th>
-                  <th style="min-width:180px;">توقيع المؤثر</th>
+                  <th style="min-width:220px;">توقيع المؤثر</th>
                 </tr>
               </thead>
               <tbody>
@@ -4584,8 +4592,8 @@ function openStatusReport(type) {
         <div class="report-table-wrap" style="overflow-x:auto;"><table class="report-table" style="min-width:600px;"><thead><tr>
           <th style="background:${thBg};width:30px;text-align:center;">#</th>
           <th style="background:${thBg};min-width:100px;">الاسم</th>
-          <th style="background:${thBg};min-width:30px;">الجنس</th>
-          <th style="background:${thBg};min-width:38px;">الجنسية</th>
+          <th style="background:${thBg};min-width:40px;">الجنس</th>
+          <th style="background:${thBg};min-width:52px;">الجنسية</th>
           <th style="background:${thBg};min-width:90px;">الهاتف</th>
           <th style="background:${thBg};min-width:80px;">الرقم المدني</th>
           <th style="background:${thBg};min-width:90px;">الصفحات</th>
@@ -4797,7 +4805,7 @@ function openGenderReport(gender) {
       <div class="report-table-wrap"><table class="report-table"><thead><tr>
         <th style="background:${thBg};width:36px;text-align:center;">#</th>
         <th style="background:${thBg}">الاسم</th>
-        <th style="background:${thBg}">الجنسية</th>
+        <th style="background:${thBg};min-width:52px;">الجنسية</th>
         <th style="background:${thBg}">الهاتف</th>
         <th style="background:${thBg}">الرقم المدني</th><th style="background:${thBg}">الصفحات</th>
         <th style="background:${thBg}">الحالة</th>
@@ -4833,8 +4841,8 @@ async function shareStatusReport(type) {
       return `<tr style="background:${rb}"><td style="text-align:center;font-weight:900;width:36px;">${i+1}</td><td style="font-weight:700;">${item.name||'—'}</td><td>${gLabel}</td><td>${natCell}</td><td style="direction:ltr;">${phoneCell}</td><td style="font-size:11px;direction:ltr;">${item.civil||'—'}</td><td>${buildSocialsHtml(item)}</td></tr>`;
     }
   }).join('');
-  const extraH=isApproved?`<th style="background:${thBg};">موعد الزيارة</th><th style="background:${thBg};">الخدمة</th><th style="background:${thBg};">حالة الزيارة</th><th style="background:${thBg};">حالة النشر</th><th style="background:${thBg};">توقيع المؤثر</th>`:'';
-  const headersHTML=`<th style="background:${thBg};width:36px;text-align:center;">#</th><th style="background:${thBg};">الاسم</th><th style="background:${thBg};">الجنس</th><th style="background:${thBg};">الجنسية</th><th style="background:${thBg};">الهاتف</th><th style="background:${thBg};">الرقم المدني</th><th style="background:${thBg};">الصفحات</th>${extraH}`;
+  const extraH=isApproved?`<th style="background:${thBg};">موعد الزيارة</th><th style="background:${thBg};">الخدمة</th><th style="background:${thBg};">حالة الزيارة</th><th style="background:${thBg};">حالة النشر</th><th style="background:${thBg};min-width:220px;">توقيع المؤثر</th>`:'';
+  const headersHTML=`<th style="background:${thBg};width:36px;text-align:center;">#</th><th style="background:${thBg};">الاسم</th><th style="background:${thBg};min-width:40px;">الجنس</th><th style="background:${thBg};min-width:52px;">الجنسية</th><th style="background:${thBg};">الهاتف</th><th style="background:${thBg};">الرقم المدني</th><th style="background:${thBg};">الصفحات</th>${extraH}`;
   const html=buildReportHTMLShell(thBg,accentColor,title,emoji,today,list.length,headersHTML,rows,isApproved);
   const fileName=isApproved?'كشف المقبولين - مركز كيور الطبي.html':'كشف المرفوضين - مركز كيور الطبي.html';
   await downloadOrShare(html,fileName);
@@ -5190,13 +5198,13 @@ function openGuestReport() {
             <thead><tr>
               <th style="width:28px;">#</th>
               <th style="text-align:right;">الاسم</th>
-              <th>الجنس</th>
-              <th>الجنسية</th>
+              <th style="min-width:40px;">الجنس</th>
+              <th style="min-width:52px;">الجنسية</th>
               <th style="text-align:right;">الهاتف</th>
               <th style="text-align:right;">الرقم المدني</th>
               <th style="text-align:center;">موعد الزيارة</th>
               <th style="min-width:70px;">الخدمة</th>
-              <th style="min-width:180px;">توقيع المؤثر</th>
+              <th style="min-width:220px;">توقيع المؤثر</th>
             </tr></thead>
             <tbody>${rows}</tbody>
           </table>
@@ -5432,8 +5440,8 @@ function openGuestReadOnlyReport() {
               <tr>
                 <th style="width:28px;">#</th>
                 <th style="text-align:right;min-width:90px;">الاسم</th>
-                <th style="min-width:35px;max-width:40px;">الجنس</th>
-                <th style="min-width:45px;max-width:55px;">الجنسية</th>
+                <th style="min-width:40px;">الجنس</th>
+                <th style="min-width:52px;">الجنسية</th>
                 <th style="text-align:right;min-width:80px;">الموبايل</th>
                 <th style="text-align:right;min-width:75px;">الرقم المدني</th>
                 <th style="text-align:right;min-width:80px;">السوشيال</th>
@@ -5441,7 +5449,7 @@ function openGuestReadOnlyReport() {
                 <th style="min-width:80px;">الموعد</th>
                 <th style="min-width:100px;" class="no-print">حالة الزيارة</th>
                 <th style="min-width:100px;" class="no-print">حالة المحتوى</th>
-                <th style="min-width:180px;">توقيع المؤثر</th>
+                <th style="min-width:220px;">توقيع المؤثر</th>
               </tr>
             </thead>
             <tbody>${rows}</tbody>
