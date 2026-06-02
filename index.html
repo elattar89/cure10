@@ -295,12 +295,13 @@ body{font-family:'Tajawal',sans-serif;direction:rtl;background:#0d1117;color:#e6
   @page { size: A4 landscape; margin: 1cm; }
   body{background:#fff!important;}
   body > *{display:none!important;}
-  #reportContainer{display:block!important;position:fixed!important;inset:0!important;background:#fff!important;z-index:99999!important;}
-  .report-overlay{display:block!important;position:static!important;background:#fff!important;padding:0!important;}
-  .report-modal{border-radius:0!important;padding:.5cm!important;max-width:100%!important;box-shadow:none!important;width:100%!important;}
+  #reportContainer{display:block!important;position:static!important;background:#fff!important;}
+  .report-overlay{display:block!important;position:static!important;background:#fff!important;padding:0!important;overflow:visible!important;}
+  .report-modal{border-radius:0!important;padding:.5cm!important;max-width:100%!important;box-shadow:none!important;width:100%!important;height:auto!important;overflow:visible!important;}
   .report-actions{display:none!important;}
   .report-table-wrap{overflow:visible!important;width:100%!important;}
   .report-table{width:100%!important;table-layout:fixed!important;font-size:10px!important;}
+  .report-table tr{page-break-inside:avoid!important;}
   .report-table th{padding:5px 5px!important;font-size:10px!important;border-left:1px solid rgba(255,255,255,0.3)!important;-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important;}
   .report-table td{padding:4px 5px!important;font-size:10px!important;border:1px solid #ccc!important;-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important;}
   /* Column widths for landscape A4 (~277mm printable) */
@@ -315,6 +316,11 @@ body{font-family:'Tajawal',sans-serif;direction:rtl;background:#0d1117;color:#e6
   .report-table th:nth-child(9), .report-table td:nth-child(9){ width:55px!important; }
   .report-table th:nth-child(10),.report-table td:nth-child(10){ display:none!important; }
   .report-table th:nth-child(11),.report-table td:nth-child(11){ display:none!important; }
+  /* موبايل (عمود 5) وسوشيال (عمود 7) — إخفاء البيانات وإبقاء خط فارغ */
+  .report-table td:nth-child(5) > *{ display:none!important; }
+  .report-table td:nth-child(5)::after{ content:''; display:block; border-bottom:1.5px solid #374151; margin:18px 4px 0; }
+  .report-table td:nth-child(7) > *{ display:none!important; }
+  .report-table td:nth-child(7)::after{ content:''; display:block; border-bottom:1.5px solid #374151; margin:18px 4px 0; }
   .report-table th:nth-child(12),.report-table td:nth-child(12){ width:165px!important;}
   /* Signature column print */
   .report-table td:nth-child(12) { overflow:visible!important; }
