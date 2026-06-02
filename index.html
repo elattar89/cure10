@@ -4503,7 +4503,23 @@ function openStatusReport(type) {
     const now = Date.now();
     const cntDone     = list.filter(i=>i.visitStatus==='done').length;
     const cntCancelled= list.filter(i=>i.visitStatus==='cancelled').length;
-    const cntUpcoming = list.filter(i=>i.visitDate && i.visitStatus!=='done' && i.visitStatus!=='cancelled' && new Date(i.visitDate).getTime()>=now).length;
+    // visitDate format: "2026-06-03T17:00PM" — parse manually
+    function _parseDateTs(iso){
+      if(!iso) return 0;
+      const p=iso.split('T');
+      const [y,m,d]=p[0].split('-').map(Number);
+      let h=0,mn=0;
+      if(p[1]){
+        const t=p[1].replace('AM','').replace('PM','').trim();
+        const isPM=p[1].includes('PM');
+        const [hh,mm]=(t+':00').split(':');
+        h=parseInt(hh);mn=parseInt(mm)||0;
+        if(isPM && h!==12) h+=12;
+        if(!isPM && h===12) h=0;
+      }
+      return new Date(y,m-1,d,h,mn).getTime();
+    }
+    const cntUpcoming = list.filter(i=>i.visitDate && i.visitStatus!=='done' && i.visitStatus!=='cancelled' && _parseDateTs(i.visitDate)>=now).length;
     const cntNoDate   = list.filter(i=>!i.visitDate).length;
     const cntPublished= list.filter(i=>i.contentStatus==='published').length;
     const cntUnpub    = list.filter(i=>i.contentStatus==='unpublished').length;
@@ -4741,6 +4757,7 @@ function filterReportRows(filter) {
     if(filter==='all')         show = true;
     else if(filter==='done')   show = vs==='done';
     else if(filter==='cancelled') show = vs==='cancelled';
+    else if(filter==='upcoming') show = hasDate && vs!=='done' && vs!=='cancelled';
     else if(filter==='nodate') show = !hasDate && vs!=='done' && vs!=='cancelled';
     else if(filter==='published')   show = cs==='published';
     else if(filter==='unpublished') show = cs==='unpublished';
@@ -5396,8 +5413,17 @@ function openGuestReadOnlyReport() {
   }).join('');
 
   // حساب العدد لكل حالة
+  const _nowTs2 = Date.now();
+  function _parseDateTs2(iso){
+    if(!iso) return 0;
+    const p=iso.split('T'); const [y,m,d]=p[0].split('-').map(Number);
+    let h=0,mn=0;
+    if(p[1]){const t=p[1].replace('AM','').replace('PM','').trim();const isPM=p[1].includes('PM');const [hh,mm]=(t+':00').split(':');h=parseInt(hh);mn=parseInt(mm)||0;if(isPM&&h!==12)h+=12;if(!isPM&&h===12)h=0;}
+    return new Date(y,m-1,d,h,mn).getTime();
+  }
   const cntDone      = list.filter(i=>i.visitStatus==='done').length;
   const cntCancelled = list.filter(i=>i.visitStatus==='cancelled').length;
+  const cntUpcoming2 = list.filter(i=>i.visitDate && i.visitStatus!=='done' && i.visitStatus!=='cancelled' && _parseDateTs2(i.visitDate)>=_nowTs2).length;
   const cntNoDate    = list.filter(i=>!i.visitDate && i.visitStatus!=='done' && i.visitStatus!=='cancelled').length;
   const cntPublished = list.filter(i=>i.contentStatus==='published').length;
   const cntUnpub     = list.filter(i=>i.contentStatus==='unpublished').length;
@@ -5408,6 +5434,9 @@ function openGuestReadOnlyReport() {
     </span>
     <span data-filter="cancelled" onclick="filterReportRows('cancelled')" style="display:flex;align-items:center;gap:6px;cursor:pointer;padding:5px 12px;border-radius:20px;border:2px solid #dc2626;background:#fef2f2;font-size:12px;font-weight:700;color:#b91c1c;user-select:none;transition:all .15s;">
       <span style="width:12px;height:12px;border-radius:50%;background:#dc2626;display:inline-block;"></span> ألغيت الزيارة <span style="background:#dc2626;color:#fff;border-radius:10px;padding:1px 7px;font-size:11px;">${cntCancelled}</span>
+    </span>
+    <span data-filter="upcoming" onclick="filterReportRows('upcoming')" style="display:flex;align-items:center;gap:6px;cursor:pointer;padding:5px 12px;border-radius:20px;border:2px solid #3b82f6;background:#eff6ff;font-size:12px;font-weight:700;color:#1d4ed8;user-select:none;transition:all .15s;">
+      <span style="width:12px;height:12px;border-radius:50%;background:#3b82f6;display:inline-block;"></span> موعد جاي <span style="background:#3b82f6;color:#fff;border-radius:10px;padding:1px 7px;font-size:11px;">${cntUpcoming2}</span>
     </span>
     <span data-filter="nodate" onclick="filterReportRows('nodate')" style="display:flex;align-items:center;gap:6px;cursor:pointer;padding:5px 12px;border-radius:20px;border:2px solid #cbd5e1;background:#f8fafc;font-size:12px;font-weight:700;color:#475569;user-select:none;transition:all .15s;">
       <span style="width:12px;height:12px;border-radius:50%;background:#cbd5e1;display:inline-block;border:1px solid #94a3b8;"></span> بدون موعد <span style="background:#64748b;color:#fff;border-radius:10px;padding:1px 7px;font-size:11px;">${cntNoDate}</span>
