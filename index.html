@@ -160,9 +160,10 @@ body{font-family:'Tajawal',sans-serif;direction:rtl;background:#0d1117;color:#e6
 .dp-day.empty{cursor:default;}
 .dp-close-btn{width:100%;margin-top:.5rem;padding:7px;border-radius:8px;background:#1a6fa8;border:none;color:#fff;font-family:'Tajawal',sans-serif;cursor:pointer;font-size:13px;}
 .dp-clear-btn{width:100%;margin-top:4px;padding:6px;border-radius:8px;background:#21262d;border:1px solid #30363d;color:#8b949e;font-family:'Tajawal',sans-serif;cursor:pointer;font-size:12px;}
-.report-modal::-webkit-scrollbar{width:6px;}
-.report-modal::-webkit-scrollbar-track{background:#f1f5f9;}
-.report-modal::-webkit-scrollbar-thumb{background:#cbd5e1;border-radius:3px;}
+.report-modal::-webkit-scrollbar{width:10px;}
+.report-modal::-webkit-scrollbar-track{background:#e2e8f0;border-radius:5px;}
+.report-modal::-webkit-scrollbar-thumb{background:#64748b;border-radius:5px;border:2px solid #e2e8f0;}
+.report-modal::-webkit-scrollbar-thumb:hover{background:#334155;}
 .report-table tr td { background: inherit !important; }
 .report-table::-webkit-scrollbar{height:4px;}
 .report-table-wrap::-webkit-scrollbar-thumb{background:#cbd5e1;border-radius:3px;}
@@ -241,6 +242,8 @@ body{font-family:'Tajawal',sans-serif;direction:rtl;background:#0d1117;color:#e6
   .modal input,.modal select{font-size:14px;}
   .fab{width:42px;height:42px;font-size:20px;}
   .report-modal{padding:.6rem;border-radius:10px;}
+  .report-table th:last-child,.report-table td:last-child{min-width:170px !important;}
+  .report-table-wrap{-webkit-overflow-scrolling:touch;}
   .report-actions{flex-wrap:wrap;gap:6px;}
   .report-btn-print,.report-btn-share,.report-btn-close{font-size:12px;padding:7px 12px;}
   .page-footer{padding:.5rem;}
@@ -265,12 +268,12 @@ body{font-family:'Tajawal',sans-serif;direction:rtl;background:#0d1117;color:#e6
 }
 .report-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.8);z-index:2000;padding:0;overflow:hidden;}
 .report-overlay.open{display:flex;align-items:flex-start;justify-content:center;}
-.report-modal{background:#fff;color:#111;border-radius:0;padding:.8rem;width:100%;max-width:100%;margin:0;font-family:'Tajawal',sans-serif;height:100vh;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;}
+.report-modal{background:#fff;color:#111;border-radius:0;padding:.8rem;width:100%;max-width:100%;margin:0;font-family:'Tajawal',sans-serif;height:100vh;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;} .report-swipe-hint{display:none;} @media(max-width:768px){.report-swipe-hint{display:block;text-align:center;font-size:11px;color:#64748b;padding:4px 0 2px;font-family:Tajawal,sans-serif;}}
 .report-table-wrap{width:100%;overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;border-radius:8px;}
 .report-header{text-align:center;border-bottom:2px solid #0a3d62;padding-bottom:1rem;margin-bottom:1.5rem;}
 .report-header h2{font-size:22px;font-weight:900;color:#0a3d62;margin-bottom:4px;}
 .report-header p{font-size:13px;color:#555;}
-.report-table{width:100%;border-collapse:collapse;direction:rtl;table-layout:fixed;}@media(max-width:768px){.report-table{width:auto;min-width:700px;table-layout:auto;}}
+.report-table{width:100%;border-collapse:collapse;direction:rtl;table-layout:fixed;}@media(max-width:768px){.report-table{width:auto;min-width:1000px;table-layout:auto;}}
 .report-table th{background:#0a3d62;color:#fff;padding:5px 6px;font-size:11px;font-weight:700;text-align:center;vertical-align:middle;overflow:hidden;border-left:1px solid rgba(255,255,255,0.2);}
 .report-table th:last-child{border-left:none;}
 .report-table td{padding:4px 6px;font-size:11px;border-bottom:1px solid #e5e7eb;border-left:1px solid #e5e7eb;vertical-align:middle;text-align:center;overflow:hidden;word-break:break-word;}
@@ -303,8 +306,8 @@ body{font-family:'Tajawal',sans-serif;direction:rtl;background:#0d1117;color:#e6
   /* Column widths for landscape A4 (~277mm printable) */
   .report-table th:nth-child(1), .report-table td:nth-child(1){ width:25px!important; }
   .report-table th:nth-child(2), .report-table td:nth-child(2){ width:80px!important; }
-  .report-table th:nth-child(3), .report-table td:nth-child(3){ width:28px!important; }
-  .report-table th:nth-child(4), .report-table td:nth-child(4){ width:45px!important; }
+  .report-table th:nth-child(3), .report-table td:nth-child(3){ width:20px!important; }
+  .report-table th:nth-child(4), .report-table td:nth-child(4){ width:30px!important; }
   .report-table th:nth-child(5), .report-table td:nth-child(5){ width:55px!important; }
   .report-table th:nth-child(6), .report-table td:nth-child(6){ width:50px!important; }
   .report-table th:nth-child(7), .report-table td:nth-child(7){ width:55px!important; }
@@ -312,7 +315,7 @@ body{font-family:'Tajawal',sans-serif;direction:rtl;background:#0d1117;color:#e6
   .report-table th:nth-child(9), .report-table td:nth-child(9){ width:55px!important; }
   .report-table th:nth-child(10),.report-table td:nth-child(10){ display:none!important; }
   .report-table th:nth-child(11),.report-table td:nth-child(11){ display:none!important; }
-  .report-table th:nth-child(12),.report-table td:nth-child(12){ width:110px!important;}
+  .report-table th:nth-child(12),.report-table td:nth-child(12){ width:145px!important;}
   /* Signature column print */
   .report-table td:nth-child(12) { overflow:visible!important; }
   .sig-print-img { width:110px!important; height:50px!important; object-fit:contain!important; display:block!important; -webkit-print-color-adjust:exact!important; print-color-adjust:exact!important; }
@@ -4193,8 +4196,9 @@ function closeReport(){
     const c=document.getElementById('reportContainer');
     if(c){c.style.display='none';setTimeout(()=>{try{if(c.parentNode)c.remove();}catch(e){}finally{_closingReport=false;}},300);}
     else{_closingReport=false;}
+    document.body.style.overflow='';
     const b=document.getElementById('dupWarningBanner');if(b)b.style.display='';
-  } catch(e){_closingReport=false;}
+  } catch(e){_closingReport=false;document.body.style.overflow='';}
 }
 function _hideBannerForReport(){const b=document.getElementById('dupWarningBanner');if(b)b.style.display='none';}
 function closeReportIfBg(e){if(e.target.id==='reportOverlay')closeReport();}
@@ -4434,8 +4438,8 @@ function openStatusReport(type) {
             </div>
           </div>`
         :`<div class="no-print">
-            <canvas id="sigCanvas_${realIdx}" width="120" height="44"
-              style="border:1.5px dashed #6b7280;border-radius:6px;cursor:crosshair;touch-action:none;display:block;background:#fafafa;"
+            <canvas id="sigCanvas_${realIdx}" width="160" height="60"
+              style="border:1.5px dashed #6b7280;border-radius:6px;cursor:crosshair;touch-action:none;display:block;background:#fafafa;width:100%;max-width:160px;"
               onmousedown="startSig(event,${realIdx})" ontouchstart="startSig(event,${realIdx})"></canvas>
             <div style="display:flex;gap:3px;margin-top:3px;">
               <button onclick="saveSig(${realIdx})" style="flex:1;padding:3px;border:1.5px solid #059669;background:#f0fdf4;color:#059669;border-radius:5px;font-size:10px;font-weight:700;cursor:pointer;font-family:Tajawal,sans-serif;">✓ حفظ</button>
@@ -4518,14 +4522,16 @@ function openStatusReport(type) {
         <!-- table area -->
         <div style="padding:.6rem .5rem;">
           ${legendHtml}
-          <div class="report-table-wrap">
+          <div class="report-swipe-hint">👈 اسحب يميناً أو يساراً لرؤية الجدول كاملاً 👉</div>
+          <div class="report-swipe-hint">👈 اسحب يميناً أو يساراً لرؤية الجدول كاملاً 👉</div>
+        <div class="report-table-wrap">
             <table class="report-table" style="direction:rtl;">
               <thead>
                 <tr>
                   <th style="width:28px;">#</th>
                   <th style="text-align:right;min-width:90px;">الاسم</th>
-                  <th style="min-width:45px;">الجنس</th>
-                  <th style="min-width:55px;">الجنسية</th>
+                  <th style="min-width:35px;max-width:40px;">الجنس</th>
+                  <th style="min-width:45px;max-width:55px;">الجنسية</th>
                   <th style="text-align:right;min-width:80px;">الموبايل</th>
                   <th style="text-align:right;min-width:75px;">الرقم المدني</th>
                   <th style="text-align:right;min-width:80px;">السوشيال</th>
@@ -4533,7 +4539,7 @@ function openStatusReport(type) {
                   <th style="min-width:80px;">الموعد</th>
                   <th style="min-width:100px;" class="no-print">حالة الزيارة</th>
                   <th style="min-width:100px;" class="no-print">حالة المحتوى</th>
-                  <th style="min-width:140px;">توقيع المؤثر</th>
+                  <th style="min-width:180px;">توقيع المؤثر</th>
                 </tr>
               </thead>
               <tbody>
@@ -4544,7 +4550,7 @@ function openStatusReport(type) {
         </div>
         <div class="report-footer-note" style="margin:0;border-radius:0;">هذا الكشف سري ومخصص للاستخدام الداخلي — مركز كيور الطبي © 2026</div>
       </div></div>`;
-    const div=document.createElement('div');div.id='reportContainer';div.innerHTML=html;document.body.appendChild(div);_hideBannerForReport();
+    const div=document.createElement('div');div.id='reportContainer';div.innerHTML=html;document.body.appendChild(div);document.body.style.overflow='hidden';_hideBannerForReport();
 
   } else {
     // --- Table layout for rejected (unchanged) ---
@@ -4574,18 +4580,19 @@ function openStatusReport(type) {
           <p>مركز كيور الطبي — الحملة الإعلانية | ${today}</p>
           <p style="font-weight:700;color:${countColor};margin-top:4px;">الإجمالي: ${list.length} مؤثر</p>
         </div>
+        <div class="report-swipe-hint">👈 اسحب يميناً أو يساراً لرؤية الجدول كاملاً 👉</div>
         <div class="report-table-wrap" style="overflow-x:auto;"><table class="report-table" style="min-width:600px;"><thead><tr>
           <th style="background:${thBg};width:30px;text-align:center;">#</th>
           <th style="background:${thBg};min-width:100px;">الاسم</th>
-          <th style="background:${thBg};min-width:50px;">الجنس</th>
-          <th style="background:${thBg};min-width:70px;">الجنسية</th>
+          <th style="background:${thBg};min-width:30px;">الجنس</th>
+          <th style="background:${thBg};min-width:38px;">الجنسية</th>
           <th style="background:${thBg};min-width:90px;">الهاتف</th>
           <th style="background:${thBg};min-width:80px;">الرقم المدني</th>
           <th style="background:${thBg};min-width:90px;">الصفحات</th>
         </tr></thead><tbody>${rows}</tbody></table></div>
         <div class="report-footer-note">هذا الكشف سري ومخصص للاستخدام الداخلي — مركز كيور الطبي © 2026</div>
       </div></div>`;
-    const div=document.createElement('div');div.id='reportContainer';div.innerHTML=html;document.body.appendChild(div);_hideBannerForReport();
+    const div=document.createElement('div');div.id='reportContainer';div.innerHTML=html;document.body.appendChild(div);document.body.style.overflow='hidden';_hideBannerForReport();
   }
 }
 
@@ -4786,6 +4793,7 @@ function openGenderReport(gender) {
         <p>مركز كيور الطبي — الحملة الإعلانية | ${today}</p>
         <p style="font-weight:700;color:${thBg};margin-top:4px;">الإجمالي: ${list.length} مؤثر</p>
       </div>
+      <div class="report-swipe-hint">👈 اسحب يميناً أو يساراً لرؤية الجدول كاملاً 👉</div>
       <div class="report-table-wrap"><table class="report-table"><thead><tr>
         <th style="background:${thBg};width:36px;text-align:center;">#</th>
         <th style="background:${thBg}">الاسم</th>
@@ -4796,7 +4804,7 @@ function openGenderReport(gender) {
       </tr></thead><tbody>${rows}</tbody></table></div>
       <div class="report-footer-note">هذا الكشف سري ومخصص للاستخدام الداخلي — مركز كيور الطبي © 2026</div>
     </div></div>`;
-  const div=document.createElement('div');div.id='reportContainer';div.innerHTML=html;document.body.appendChild(div);_hideBannerForReport();
+  const div=document.createElement('div');div.id='reportContainer';div.innerHTML=html;document.body.appendChild(div);document.body.style.overflow='hidden';_hideBannerForReport();
 }
 
 // --- Share functions ----------------------------------------------
@@ -5176,6 +5184,7 @@ function openGuestReport() {
         <div style="background:rgba(255,255,255,.15);border-radius:10px;padding:6px 16px;font-size:15px;font-weight:900;">${list.length} مؤثر</div>
       </div>
       <div style="padding:.6rem .5rem;">
+        <div class="report-swipe-hint">👈 اسحب يميناً أو يساراً لرؤية الجدول كاملاً 👉</div>
         <div class="report-table-wrap">
           <table class="report-table" style="direction:rtl;">
             <thead><tr>
@@ -5187,7 +5196,7 @@ function openGuestReport() {
               <th style="text-align:right;">الرقم المدني</th>
               <th style="text-align:center;">موعد الزيارة</th>
               <th style="min-width:70px;">الخدمة</th>
-              <th style="min-width:100px;">توقيع المؤثر</th>
+              <th style="min-width:180px;">توقيع المؤثر</th>
             </tr></thead>
             <tbody>${rows}</tbody>
           </table>
@@ -5197,7 +5206,7 @@ function openGuestReport() {
     </div>
   </div>`;
   const div = document.createElement('div'); div.id = 'reportContainer'; div.innerHTML = html;
-  document.body.appendChild(div); _hideBannerForReport();
+  document.body.appendChild(div); document.body.style.overflow='hidden'; _hideBannerForReport();
 }
 // Attach guest button listeners after DOM ready
 document.addEventListener('DOMContentLoaded', function() {
@@ -5315,8 +5324,8 @@ function openGuestReadOnlyReport() {
              <button onclick="clearSignatureAndDraw(${realIdx})" style="flex:1;padding:3px;border:1px solid #dc2626;background:#fef2f2;color:#dc2626;border-radius:5px;font-size:10px;font-weight:700;cursor:pointer;font-family:Tajawal,sans-serif;">🗑 مسح</button>
            </div>
          </div>`
-      : `<canvas id="sigCanvas_${realIdx}" width="120" height="44"
-           style="border:1.5px dashed #6b7280;border-radius:6px;cursor:crosshair;touch-action:none;display:block;background:#fafafa;"
+      : `<canvas id="sigCanvas_${realIdx}" width="160" height="60"
+           style="border:1.5px dashed #6b7280;border-radius:6px;cursor:crosshair;touch-action:none;display:block;background:#fafafa;width:100%;max-width:160px;"
            onmousedown="startSig(event,${realIdx})" ontouchstart="startSig(event,${realIdx})"></canvas>
          <div style="display:flex;gap:3px;margin-top:3px;">
            <button onclick="saveSig(${realIdx})" style="flex:1;padding:3px;border:1.5px solid #059669;background:#f0fdf4;color:#059669;border-radius:5px;font-size:10px;font-weight:700;cursor:pointer;font-family:Tajawal,sans-serif;">✓ حفظ</button>
@@ -5416,14 +5425,15 @@ function openGuestReadOnlyReport() {
       </div>
       <div style="padding:.6rem .5rem;">
         ${legendHtml}
+        <div class="report-swipe-hint">👈 اسحب يميناً أو يساراً لرؤية الجدول كاملاً 👉</div>
         <div class="report-table-wrap">
           <table class="report-table" style="direction:rtl;">
             <thead>
               <tr>
                 <th style="width:28px;">#</th>
                 <th style="text-align:right;min-width:90px;">الاسم</th>
-                <th style="min-width:45px;">الجنس</th>
-                <th style="min-width:55px;">الجنسية</th>
+                <th style="min-width:35px;max-width:40px;">الجنس</th>
+                <th style="min-width:45px;max-width:55px;">الجنسية</th>
                 <th style="text-align:right;min-width:80px;">الموبايل</th>
                 <th style="text-align:right;min-width:75px;">الرقم المدني</th>
                 <th style="text-align:right;min-width:80px;">السوشيال</th>
@@ -5431,7 +5441,7 @@ function openGuestReadOnlyReport() {
                 <th style="min-width:80px;">الموعد</th>
                 <th style="min-width:100px;" class="no-print">حالة الزيارة</th>
                 <th style="min-width:100px;" class="no-print">حالة المحتوى</th>
-                <th style="min-width:140px;">توقيع المؤثر</th>
+                <th style="min-width:180px;">توقيع المؤثر</th>
               </tr>
             </thead>
             <tbody>${rows}</tbody>
@@ -5440,7 +5450,7 @@ function openGuestReadOnlyReport() {
       </div>
       <div class="report-footer-note" style="margin:0;border-radius:0;">هذا الكشف سري ومخصص للاستخدام الداخلي — مركز كيور الطبي © 2026</div>
     </div></div>`;
-  const div = document.createElement('div'); div.id = 'reportContainer'; div.innerHTML = html; document.body.appendChild(div); _hideBannerForReport();
+  const div = document.createElement('div'); div.id = 'reportContainer'; div.innerHTML = html; document.body.appendChild(div); document.body.style.overflow='hidden'; _hideBannerForReport();
 }
 function guestOpenAppts() {
   if(influencers.length === 0) {
