@@ -2002,7 +2002,7 @@ function renderGrid() {
           ${item.visitStatus==='cancelled'?`<div style="background:#ca8a04;color:#000;font-size:11px;font-weight:700;padding:3px 10px;border-radius:6px;display:inline-block;">⚠️ تم إلغاء الموعد</div>`:''}
           ${isPublished?`<div style="background:rgba(202,138,4,0.15);border:1px solid #ca8a04;color:#fbbf24;font-size:11px;font-weight:700;padding:3px 10px;border-radius:6px;display:inline-block;">🌟 تم نشر المحتوى</div>`:''}
           ${isUnpublished?`<div style="background:rgba(124,58,237,0.15);border:1px solid #7c3aed;color:#c084fc;font-size:11px;font-weight:700;padding:3px 10px;border-radius:6px;display:inline-block;">🟣 لم يتم نشر المحتوى</div>`:''}
-          ${isNew?`<div style="background:rgba(37,99,235,0.2);border:1px solid #3b82f6;color:#93c5fd;font-size:11px;font-weight:700;padding:3px 10px;border-radius:6px;display:inline-block;">🆕 جديد</div>`:''}
+          
           ${item.source==='updated'?`<div onclick="openUpdReview(${idx})" style="background:rgba(5,150,105,0.15);border:1px solid #059669;color:#4ade80;font-size:11px;font-weight:700;padding:3px 10px;border-radius:6px;display:inline-block;cursor:pointer;">🔄 تم تحديث البيانات</div>`:''}
         </div>
         ${item.addedAt?`<div style="font-size:10px;color:#6e7681;text-align:left;white-space:nowrap;line-height:1.4;background:rgba(255,255,255,0.05);padding:2px 6px;border-radius:5px;">${new Date(item.addedAt).toLocaleDateString('ar-KW',{day:'numeric',month:'short',year:'numeric'})} ${new Date(item.addedAt).toLocaleTimeString('ar-KW',{hour:'2-digit',minute:'2-digit'})}</div>`:''}
