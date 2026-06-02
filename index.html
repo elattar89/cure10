@@ -636,7 +636,43 @@ body{font-family:'Tajawal',sans-serif;direction:rtl;background:#0d1117;color:#e6
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="8" y1="9" x2="16" y2="9"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="12" y2="17"/></svg>
     </div>
   </div>
+  <div style="display:flex;align-items:center;gap:8px;cursor:pointer;" onclick="closeFabMenu();openSendRegLink();">
+    <span style="background:#161b22;color:#e6edf3;font-size:12px;font-weight:700;padding:6px 12px;border-radius:20px;border:1px solid #30363d;font-family:Tajawal,sans-serif;white-space:nowrap;box-shadow:0 2px 8px rgba(0,0,0,0.4);">📲 إرسال لينك التسجيل</span>
+    <div style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#16a34a,#15803d);display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,0.4);">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.63 3.32 2 2 0 0 1 3.6 1h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.77a16 16 0 0 0 6 6l.92-.92a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+    </div>
+  </div>
 </div>
+<!-- Send Registration Link Modal -->
+<div id="sendRegLinkOverlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:10001;align-items:center;justify-content:center;font-family:Tajawal,sans-serif;" onclick="if(event.target===this)closeSendRegLink()">
+  <div style="background:#1c2128;border:1px solid #30363d;border-radius:16px;padding:24px;width:90%;max-width:360px;direction:rtl;box-shadow:0 8px 32px rgba(0,0,0,0.5);">
+    <div style="font-size:17px;font-weight:700;color:#e6edf3;margin-bottom:20px;text-align:center;">📲 إرسال لينك التسجيل</div>
+    <div style="margin-bottom:14px;">
+      <label style="font-size:13px;color:#8b949e;display:block;margin-bottom:6px;">كود الدولة</label>
+      <select id="regLinkCountryCode" style="width:100%;padding:10px 12px;background:#0d1117;border:1px solid #30363d;border-radius:8px;color:#e6edf3;font-size:14px;font-family:Tajawal,sans-serif;">
+        <option value="965">+965 الكويت</option>
+        <option value="966">+966 السعودية</option>
+        <option value="971">+971 الإمارات</option>
+        <option value="973">+973 البحرين</option>
+        <option value="968">+968 عُمان</option>
+        <option value="974">+974 قطر</option>
+        <option value="962">+962 الأردن</option>
+        <option value="20">+20 مصر</option>
+        <option value="961">+961 لبنان</option>
+        <option value="249">+249 السودان</option>
+      </select>
+    </div>
+    <div style="margin-bottom:20px;">
+      <label style="font-size:13px;color:#8b949e;display:block;margin-bottom:6px;">رقم الهاتف</label>
+      <input id="regLinkPhone" type="tel" placeholder="مثال: 50000000" style="width:100%;padding:10px 12px;background:#0d1117;border:1px solid #30363d;border-radius:8px;color:#e6edf3;font-size:14px;font-family:Tajawal,sans-serif;box-sizing:border-box;direction:ltr;text-align:right;" oninput="this.value=this.value.replace(/[^0-9]/g,'')"/>
+    </div>
+    <div style="display:flex;gap:10px;">
+      <button onclick="sendRegLinkWhatsApp()" style="flex:1;padding:11px;background:linear-gradient(135deg,#16a34a,#15803d);color:white;border:none;border-radius:10px;font-size:14px;font-weight:700;font-family:Tajawal,sans-serif;cursor:pointer;">إرسال ✓</button>
+      <button onclick="closeSendRegLink()" style="flex:1;padding:11px;background:#21262d;color:#e6edf3;border:1px solid #30363d;border-radius:10px;font-size:14px;font-weight:700;font-family:Tajawal,sans-serif;cursor:pointer;">إغلاق ✕</button>
+    </div>
+  </div>
+</div>
+
 <!-- Backdrop to close fab menu -->
 <div id="fabBackdrop" onclick="closeFabMenu()" style="display:none;position:fixed;inset:0;z-index:9997;"></div>
 
@@ -3611,6 +3647,40 @@ window.exportCurrentToExcel=exportCurrentToExcel; window.exportFullJSON=exportFu
 
 window.openRecovery=openRecovery; window.recoverFromFirebase=recoverFromFirebase;
 window.openFormImport=openFormImport; window.closeFormImport=closeFormImport;
+
+function openSendRegLink() {
+  const overlay = document.getElementById('sendRegLinkOverlay');
+  overlay.style.display = 'flex';
+  document.getElementById('regLinkPhone').value = '';
+}
+
+function closeSendRegLink() {
+  document.getElementById('sendRegLinkOverlay').style.display = 'none';
+}
+
+function sendRegLinkWhatsApp() {
+  const code = document.getElementById('regLinkCountryCode').value;
+  let phone = document.getElementById('regLinkPhone').value.trim();
+  if (!phone) { showToast('\u26a0\ufe0f أدخل رقم الهاتف', '#d97706'); return; }
+  if (phone.startsWith('0')) phone = phone.substring(1);
+  const fullNumber = code + phone;
+  const lines = [
+    'مرحبا بك ,',
+    'يرجي تسجيل بياناتك من خلال هذا اللينك',
+    'https://cure-submit-form-gsheets.vercel.app/',
+    'و سيتم اعادة التواصل معكم بعد الاطلاع علي منصات التواصل الاجتماعي',
+    'هذا التسجيل لا يعني القبول',
+    'شكرا.'
+  ];
+  const message = encodeURIComponent(lines.join('\n'));
+  const url = 'https://wa.me/' + fullNumber + '?text=' + message;
+  window.open(url, '_blank');
+  closeSendRegLink();
+}
+
+window.openSendRegLink = openSendRegLink;
+window.closeSendRegLink = closeSendRegLink;
+window.sendRegLinkWhatsApp = sendRegLinkWhatsApp;
 
 function toggleFabMenu() {
   const menu = document.getElementById('fabMenu');
