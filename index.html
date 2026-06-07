@@ -1318,9 +1318,8 @@ async function tryLoadFirebase() {
               const brandNew = parsed.filter(incoming => {
                 // لو عنده _uid وموجود محلياً → مش جديد
                 if(incoming._uid && localUIDs.has(incoming._uid)) return false;
-                // لو بياناته موجودة (phone/ig/civil) → مش جديد
-                const key = [normalizePhone(incoming.phone), normalizeIg(incoming.ig), (incoming.tt||'').replace('@','').toLowerCase().split('?')[0], normalizeSnap(incoming.snap), _cc(incoming.civil)].join('|');
-                if(localKeys.has(key)) return false;
+                // لو أي حقل منفرد متطابق → مش جديد (نفس منطق findDuplicate)
+                if(findDuplicate(incoming)) return false;
                 return true;
               });
 
@@ -5796,13 +5795,27 @@ function updateDupReviewBtn() {
   const btn = document.getElementById('dupReviewBtn');
   const badge = document.getElementById('dupReviewCount');
   if(!btn) return;
-  // الزر دايماً ظاهر
   btn.style.display = 'inline-flex';
   if(groups.length > 0) {
     badge.textContent = groups.length + ' مجموعة';
     badge.style.display = 'inline';
   } else {
     badge.style.display = 'none';
+  }
+  // تحديث البانر لو موجود
+  const banner = document.getElementById('dupWarningBanner');
+  if(banner) {
+    const dupCard = banner.querySelector('[data-type="dup"]');
+    if(dupCard) {
+      if(groups.length === 0) {
+        dupCard.remove();
+        // لو البانر فضي (مفيش نيو ومفيش dup) امسحه
+        const remaining = banner.querySelectorAll('[data-type]');
+        if(remaining.length === 0) banner.remove();
+      } else {
+        dupCard.querySelector('[data-count]').textContent = groups.length;
+      }
+    }
   }
 }
 
@@ -6258,7 +6271,7 @@ async function init() {
   setTimeout(function() {
     const dupGroups = findAllDuplicates();
     const newCount = influencers.filter(i => isNewItem(i)).length;
-    const dupCount = dupGroups.reduce((s,g) => s+g.length, 0);
+    const dupCount = dupGroups.length; // عدد مجموعات التكرار مش عدد الأشخاص
     if((dupGroups.length > 0 || newCount > 0) && !document.getElementById('dupWarningBanner')) {
       const banner = document.createElement('div');
       banner.id = 'dupWarningBanner';
@@ -6273,10 +6286,10 @@ async function init() {
           </div>`
         : '';
       const dupCard = dupGroups.length > 0
-        ? `<div style="flex:1;display:flex;align-items:center;gap:12px;padding:12px 16px;border-radius:10px;background:rgba(234,88,12,0.15);border:1px solid rgba(234,88,12,0.4);cursor:pointer;" onclick="openDupReview();">
+        ? `<div data-type="dup" style="flex:1;display:flex;align-items:center;gap:12px;padding:12px 16px;border-radius:10px;background:rgba(234,88,12,0.15);border:1px solid rgba(234,88,12,0.4);cursor:pointer;" onclick="openDupReview();">
             <span style="font-size:20px;">🔁</span>
             <div style="flex:1;">
-              <div style="font-size:22px;font-weight:900;color:#fb923c;line-height:1;">${dupCount}</div>
+              <div data-count style="font-size:22px;font-weight:900;color:#fb923c;line-height:1;">${dupCount}</div>
               <div style="font-size:11px;color:rgba(255,255,255,0.6);margin-top:2px;">مكررين — اضغط للمراجعة</div>
             </div>
           </div>`
