@@ -1404,13 +1404,13 @@ async function tryLoadFirebase() {
   return false;
 }
 function showSaveIndicator() {
-  // Auto-refresh report if open — بدون فتح كشف جديد
+  // Auto-refresh report rows in place — بدون إعادة بناء الكشف كله
   const rc = document.getElementById('reportContainer');
   if(rc) {
-    const type = rc.dataset.reportType;
-    if(type === 'approved') openStatusReport('approved');
-    else if(type === 'status') openStatusReport(rc.dataset.statusType);
-    else if(type === 'gender') openGenderReport(rc.dataset.genderType);
+    influencers.forEach((item, idx) => {
+      const row = rc.querySelector('#rrow_' + idx);
+      if(row) _refreshReportRow(idx);
+    });
   }
 }
 function saveFile(idx) {
