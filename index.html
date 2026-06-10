@@ -1786,8 +1786,20 @@ document.addEventListener('click', function(){
 });
 
 function renderGrid() {
-  const q=document.getElementById('searchInput').value.toLowerCase().trim();
+  // ── حماية: لو في modal مفتوح أو المستخدم بيعدل، ما نعيدش البناء ──
+  const isModalOpen = (
+    !document.getElementById('editModalOverlay')?.classList.contains('hidden') ||
+    !document.getElementById('dupBulkOverlay')?.classList.contains('hidden') ||
+    !document.getElementById('dupSingleOverlay')?.classList.contains('hidden') ||
+    document.getElementById('datePickerPopup')?.classList.contains('open') === true
+  );
+  if(isModalOpen) return;
+
+  // ── حفظ الـ scroll position ──
   const grid=document.getElementById('grid');
+  const scrollY = window.scrollY;
+
+  const q=document.getElementById('searchInput').value.toLowerCase().trim();
   let html='', visible=0;
 
   // -- Deleted view ----------------------------------------------
@@ -2050,6 +2062,8 @@ function renderGrid() {
     </div>`;
   });
   grid.innerHTML=html||'<div style="text-align:center;padding:3rem;color:#484f58;font-size:14px;">لا توجد نتائج</div>';
+  // ── استعادة الـ scroll position بعد إعادة البناء ──
+  if(scrollY > 0) requestAnimationFrame(() => window.scrollTo(0, scrollY));
   updateStats();
 }
 
@@ -6243,9 +6257,9 @@ async function init() {
     // Poll Firebase every 10s for live updates
     setInterval(function() {
       // لو في حفظ حصل خلال آخر 15 ثانية، ما نجيبش من Firebase عشان منمسحش البيانات
-      if(_isSaving || (Date.now() - _lastSaveTime) < 60000) return;
+      if(_isSaving || (Date.now() - _lastSaveTime) < 15000) return;
       tryLoadFirebase().then(function(loaded) {
-        if(loaded) { updateStats(); }
+        if(loaded) { renderGrid(); updateStats(); }
       }).catch(function(){});
     }, 10000);
     return;
@@ -6300,9 +6314,9 @@ async function init() {
   // Poll Firebase كل 10 ثواني للـ sync مع الأجهزة التانية
   setInterval(function() {
     // لو في حفظ حصل خلال آخر 15 ثانية، ما نجيبش من Firebase عشان منمسحش البيانات
-    if(_isSaving || (Date.now() - _lastSaveTime) < 60000) return;
+    if(_isSaving || (Date.now() - _lastSaveTime) < 15000) return;
     tryLoadFirebase().then(function(loaded) {
-      if(loaded) { updateStats(); updateDupReviewBtn(); updateUpdReviewBtn(); }
+      if(loaded) { renderGrid(); updateStats(); updateDupReviewBtn(); updateUpdReviewBtn(); }
     }).catch(function(){});
   }, 10000);
   } catch(err) {
