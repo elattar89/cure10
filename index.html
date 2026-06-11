@@ -198,8 +198,8 @@ body{font-family:'Tajawal',sans-serif;direction:rtl;background:#0d1117;color:#e6
 .appt-name{font-size:13px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;unicode-bidi:plaintext;}
 .appt-sub{font-size:11px;color:#6e7681;}
 .appt-status-tag{font-size:10px;padding:2px 7px;border-radius:10px;white-space:nowrap;flex-shrink:0;}
-.appt-status-tag
-.appt-status-tag
+.appt-status-tag.approved{background:#14532d;color:#4ade80;border:1px solid #16a34a;}
+.appt-status-tag.rejected{background:#450a0a;color:#f87171;border:1px solid #dc2626;}
 .appt-status-tag.pending{background:#21262d;color:#8b949e;border:1px solid #30363d;}
 .appt-item.approved{background:#0d1f14;}
 .appt-item.rejected{background:#1f0d0d;opacity:.85;}
@@ -1249,13 +1249,22 @@ async function saveOneToFirebase(idx) {
       if(val && val.data) { try { remote = JSON.parse(val.data); } catch(e) {} }
       if(!Array.isArray(remote)) remote = [];
       const local = influencers[idx];
-      const key = [local.phone||'', local.ig||'', local.tt||'', local.snap||'', local.civil||'', local.name||''].join('|');
+      // ── البحث بـ _uid أولاً (الأكثر أماناً) ──
       let found = false;
       remote = remote.map(r => {
-        const rKey = [r.phone||'', r.ig||'', r.tt||'', r.snap||'', r.civil||'', r.name||''].join('|');
-        if(rKey === key) { found = true; return {...r, ...local}; }
+        if(local._uid && r._uid && r._uid === local._uid) { found = true; return {...r, ...local}; }
         return r;
       });
+      // لو مش موجود بالـ _uid → ابحث بالـ key (للسجلات القديمة اللي مالهاش _uid)
+      if(!found) {
+        const key = [local.phone||'', local.ig||'', local.tt||'', local.snap||'', local.civil||'', local.name||''].join('|');
+        remote = remote.map(r => {
+          if(found) return r;
+          const rKey = [r.phone||'', r.ig||'', r.tt||'', r.snap||'', r.civil||'', r.name||''].join('|');
+          if(rKey === key && rKey !== '|||||') { found = true; return {...r, ...local}; }
+          return r;
+        });
+      }
       if(!found) remote.push(local);
       await fetch(`${DB_URL}/${DB_PATH}.json`, {
         method:'PUT', headers:{'Content-Type':'application/json'},
@@ -1295,14 +1304,17 @@ async function tryLoadFirebase() {
               const _cc = c => (c||'').replace(/[٠-٩]/g,d=>'٠١٢٣٤٥٦٧٨٩'.indexOf(d).toString()).replace(/\D/g,'');
 
               // ── Step 1: Sync تعديلات الأجهزة التانية باستخدام _uid ──
-              // Firebase هو المصدر الرسمي — بياناته دايماً تفوز على الـ local
+              // Firebase هو المصدر الرسمي — بس لو البيانات المحلية أحدث نحافظ عليها
               if(!_isSaving) {
                 parsed.forEach(remote => {
                   if(!remote._uid) return;
                   const local = influencers.find(i => i._uid === remote._uid);
                   if(local) {
                     if(local._pickingDate || local._editing) return;
-                    // Firebase دايماً يفوز — مفيش مقارنة timestamps
+                    // لو البيانات المحلية أحدث من Firebase → نحافظ عليها
+                    const localTime = local._updatedAt || 0;
+                    const remoteTime = remote._updatedAt || 0;
+                    if(localTime > remoteTime) return; // البيانات المحلية أحدث — لا تطغى
                     const keepUID = local._uid;
                     Object.assign(local, remote);
                     local._uid = keepUID;
