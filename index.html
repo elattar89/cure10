@@ -4601,7 +4601,7 @@ function openStatusReport(type) {
             <div style="font-size:17px;font-weight:900;">${isVisited?'🏁 كشف الزيارات المكتملة':isCancelled?'⚠️ كشف ألغيت الزيارة':isApproved?'كشف المؤثرين المقبولين':'كشف المؤثرين المرفوضين'}</div>
             <div style="font-size:12px;opacity:.85;margin-top:2px;">مركز كيور الطبي —— ${today}</div>
           </div>
-          <div style="background:rgba(255,255,255,.15);border-radius:10px;padding:6px 16px;font-size:15px;font-weight:900;">${list.length} زيارة مكتملة</div>
+          <div style="background:rgba(255,255,255,.15);border-radius:10px;padding:6px 16px;font-size:15px;font-weight:900;">${list.length} ${isVisited?'زيارة مكتملة':isCancelled?'زيارة ملغية':isApproved?'مؤثر مقبول':'مؤثر مرفوض'}</div>
         </div>
         <!-- table area -->
         <div style="padding:.6rem .5rem;">
