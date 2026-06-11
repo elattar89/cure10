@@ -4054,7 +4054,7 @@ function selectDay(d){
 function openApptPanel(){
   const list=document.getElementById('apptList');
   list.innerHTML = ''; // clear first to prevent duplicates
-  const withDates=influencers.filter(i=>i.visitDate && (!isGuest() || i.status==='approved')).sort((a,b)=>a.visitDate.localeCompare(b.visitDate));
+  const withDates=influencers.filter(i=>i.visitDate && (!isGuest() || i.status==='approved')).sort((a,b)=>visitDateToSortKey(a.visitDate).localeCompare(visitDateToSortKey(b.visitDate)));
   // Hide duplicate: same person + same day
   const seenNameDate = new Set();
   const uniqueDates = withDates.filter(item => {
@@ -4408,7 +4408,7 @@ function openStatusReport(type) {
     const hasDateB = !!(b.visitDate);
     if(hasDateA && !hasDateB) return -1;
     if(!hasDateA && hasDateB) return 1;
-    if(hasDateA && hasDateB) return a.visitDate.localeCompare(b.visitDate);
+    if(hasDateA && hasDateB) return visitDateToSortKey(a.visitDate).localeCompare(visitDateToSortKey(b.visitDate));
     const nameA = (a.name || a.ig || '').trim();
     const nameB = (b.name || b.ig || '').trim();
     const isArA = /[\u0600-\u06FF]/.test(nameA.charAt(0));
@@ -5214,7 +5214,7 @@ function openGuestReport() {
     const hasDateB = !!(b.visitDate);
     if(hasDateA && !hasDateB) return -1;
     if(!hasDateA && hasDateB) return 1;
-    if(hasDateA && hasDateB) return a.visitDate.localeCompare(b.visitDate);
+    if(hasDateA && hasDateB) return visitDateToSortKey(a.visitDate).localeCompare(visitDateToSortKey(b.visitDate));
     // بدون موعد: أبجدي عربي ثم إنجليزي
     const nameA = (a.name || a.ig || '').trim();
     const nameB = (b.name || b.ig || '').trim();
@@ -5325,7 +5325,7 @@ function openGuestReadOnlyReport() {
     const hasDateA = !!(a.visitDate), hasDateB = !!(b.visitDate);
     if(hasDateA && !hasDateB) return -1;
     if(!hasDateA && hasDateB) return 1;
-    if(hasDateA && hasDateB) return a.visitDate.localeCompare(b.visitDate);
+    if(hasDateA && hasDateB) return visitDateToSortKey(a.visitDate).localeCompare(visitDateToSortKey(b.visitDate));
     const nameA = (a.name || a.ig || '').trim(), nameB = (b.name || b.ig || '').trim();
     const isArA = /[\u0600-\u06FF]/.test(nameA.charAt(0)), isArB = /[\u0600-\u06FF]/.test(nameB.charAt(0));
     if(isArA && !isArB) return -1; if(!isArA && isArB) return 1;
