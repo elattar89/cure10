@@ -1925,6 +1925,15 @@ function renderGrid() {
     const ob = getEffectiveOrder(b.item);
     if(oa !== ob) return oa - ob;
 
+    // مقبولين ولهم موعد (order=2): رتّب بتاريخ ووقت الموعد تصاعدياً
+    if(oa === 2) {
+      const da = a.item.visitDate || '';
+      const db = b.item.visitDate || '';
+      if(da && db) return da.localeCompare(db);
+      if(da) return -1;
+      if(db) return 1;
+    }
+
     // نفس الحالة: الأحدث فوق، بدون تاريخ في الأخير
     const aAt = normalizeAddedAt(a.item.addedAt);
     const bAt = normalizeAddedAt(b.item.addedAt);
