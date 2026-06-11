@@ -1797,6 +1797,25 @@ document.addEventListener('click', function(){
   if(m) m.style.display='none';
 });
 
+
+// تحويل visitDate (مثل "2026-06-10T4:00PM") إلى مفتاح ترتيب صحيح "2026-06-10T16:00"
+function visitDateToSortKey(d) {
+  if(!d) return '';
+  const parts = d.split('T');
+  if(parts.length < 2) return d;
+  const dateOnly = parts[0];
+  const timeStr = parts[1];
+  const isPM = timeStr.includes('PM');
+  const isAM = timeStr.includes('AM');
+  const clean = timeStr.replace('AM','').replace('PM','').trim();
+  const colonIdx = clean.indexOf(':');
+  if(colonIdx < 0) return d;
+  let hh = parseInt(clean.substring(0, colonIdx)) || 0;
+  const mm = clean.substring(colonIdx+1) || '00';
+  if(isPM && hh !== 12) hh += 12;
+  if(isAM && hh === 12) hh = 0;
+  return dateOnly + 'T' + String(hh).padStart(2,'0') + ':' + mm;
+}
 function renderGrid() {
   // ── حماية: لو في modal مفتوح أو المستخدم بيعدل، ما نعيدش البناء ──
   const isModalOpen = (
@@ -1927,8 +1946,8 @@ function renderGrid() {
 
     // مقبولين ولهم موعد (order=2): رتّب بتاريخ ووقت الموعد تصاعدياً
     if(oa === 2) {
-      const da = a.item.visitDate || '';
-      const db = b.item.visitDate || '';
+      const da = visitDateToSortKey(a.item.visitDate || '');
+      const db = visitDateToSortKey(b.item.visitDate || '');
       if(da && db) return da.localeCompare(db);
       if(da) return -1;
       if(db) return 1;
