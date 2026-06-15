@@ -631,14 +631,18 @@ body{font-family:'Tajawal',sans-serif;direction:rtl;background:#0d1117;color:#e6
   <div class="modal" style="max-width:500px;">
     <h3>💉 ملاحظات الجرعات</h3>
     <div id="treatmentNotesName" style="font-size:13px;color:#8b949e;margin-bottom:.8rem;"></div>
+    <div style="margin-bottom:.8rem;">
+      <label style="font-size:12px;color:#8b949e;display:block;margin-bottom:4px;">👩‍⚕️ اسم الدكتورة</label>
+      <input id="tnDoctorInput" type="text" placeholder="اكتب اسم الدكتورة" style="width:100%;padding:7px 10px;border-radius:7px;border:1px solid #7c3aed;background:#0d1117;color:#e6edf3;font-size:13px;font-family:Tajawal,sans-serif;direction:rtl;" />
+    </div>
     <div id="treatmentNotesList" style="margin-bottom:1rem;display:flex;flex-direction:column;gap:6px;min-height:30px;"></div>
     <div style="background:#161b22;border:1px solid #30363d;border-radius:10px;padding:.8rem;margin-bottom:.8rem;">
       <div style="font-size:12px;color:#8b949e;margin-bottom:6px;">إضافة ملاحظة جديدة</div>
       <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:6px;">
         <select id="tnServiceSel" style="flex:1;min-width:100px;padding:5px 8px;border-radius:7px;border:1px solid #30363d;background:#0d1117;color:#e6edf3;font-size:12px;font-family:Tajawal,sans-serif;direction:rtl;">
           <option value="">نوع الخدمة</option>
-          <option>بوتكس</option><option>فيلر</option><option>ليزر</option><option>تقشير</option>
-          <option>خيوط</option><option>حقن دهون</option><option>بلازما</option><option>أخرى</option>
+          <option>فيلر</option><option>بوتكس</option><option>تنظيف بشرة</option>
+          <option>ليزر</option><option>أبر نضارة</option>
         </select>
         <input id="tnQtyInput" type="text" placeholder="الكمية (مثال: 20 وحدة / 1ml)" style="flex:1;min-width:110px;padding:5px 8px;border-radius:7px;border:1px solid #30363d;background:#0d1117;color:#e6edf3;font-size:12px;font-family:Tajawal,sans-serif;direction:rtl;" />
       </div>
@@ -2383,8 +2387,10 @@ let _tnIdx = null, _tnDraft = [];
 
 function buildTreatmentNotesHtml(item) {
   const notes = item.treatmentNotes || [];
-  if (!notes.length) return '<span style="color:#9ca3af;font-size:11px;">—</span>';
-  return notes.map(n => {
+  const doctor = item.treatmentDoctor || '';
+  const doctorHtml = doctor ? `<div style="background:#e0f2fe;color:#0369a1;border-radius:5px;padding:3px 7px;font-size:11px;font-weight:700;margin-bottom:4px;">👩‍⚕️ ${doctor}</div>` : '';
+  if (!notes.length) return doctorHtml || '<span style="color:#9ca3af;font-size:11px;">—</span>';
+  return doctorHtml + notes.map(n => {
     const svcTag = n.service ? `<span style="background:#f3e8ff;color:#7c3aed;border:0.5px solid #c084fc;border-radius:10px;padding:1px 6px;font-size:10px;margin-left:3px;">${n.service}</span>` : '';
     const qty = n.qty ? `<span style="font-weight:700;color:#0a3d62;font-size:11px;">${n.qty}</span>` : '';
     const txt = n.text ? `<div style="color:#555;font-size:10px;margin-top:1px;">${n.text}</div>` : '';
@@ -2399,15 +2405,16 @@ function openTreatmentNotes(idx) {
   document.getElementById('treatmentNotesName').textContent = item.name || item.ig || '—';
   document.getElementById('tnQtyInput').value = '';
   document.getElementById('tnTextInput').value = '';
-  // اختيار الخدمة تلقائياً من بيانات المؤثر
+  document.getElementById('tnDoctorInput').value = item.treatmentDoctor || '';
+  // إعادة بناء الـ dropdown بالخدمات الـ 5 فقط
   const sel = document.getElementById('tnServiceSel');
+  const fixedOptions = ['','فيلر','بوتكس','تنظيف بشرة','ليزر','أبر نضارة'];
+  sel.innerHTML = fixedOptions.map((o,i) => `<option value="${o}">${i===0?'نوع الخدمة':o}</option>`).join('');
   const firstSvc = item.services && item.services.length ? item.services[0] : '';
-  sel.value = firstSvc;
-  if (sel.value !== firstSvc && firstSvc) {
-    const opt = document.createElement('option');
-    opt.value = firstSvc; opt.textContent = firstSvc;
-    sel.appendChild(opt); sel.value = firstSvc;
+  if (firstSvc && !fixedOptions.includes(firstSvc)) {
+    sel.innerHTML += `<option value="${firstSvc}">${firstSvc}</option>`;
   }
+  sel.value = firstSvc;
   renderTnDraft();
   document.getElementById('treatmentNotesOverlay').classList.remove('hidden');
 }
@@ -2444,15 +2451,18 @@ function closeTreatmentNotes() {
 
 function saveTreatmentNotes() {
   if (_tnIdx === null) return;
-  influencers[_tnIdx].treatmentNotes = _tnDraft;
-  saveFile(_tnIdx);
-  const cell = document.getElementById('tnDisplay_' + _tnIdx);
-  if (cell) {
-    cell.innerHTML = buildTreatmentNotesHtml(influencers[_tnIdx]);
-    const btn = cell.nextElementSibling;
-    if (btn) btn.textContent = _tnDraft.length ? '✏️ تعديل' : '+ إضافة';
-  }
+  influencers[_tnIdx].treatmentNotes = JSON.parse(JSON.stringify(_tnDraft));
+  influencers[_tnIdx].treatmentDoctor = document.getElementById('tnDoctorInput').value.trim();
+  const savedIdx = _tnIdx;
   closeTreatmentNotes();
+  saveFile(savedIdx);
+  // تحديث الخلية مباشرة بدون إعادة رسم الجدول كله
+  const cell = document.getElementById('tnDisplay_' + savedIdx);
+  if (cell) {
+    cell.innerHTML = buildTreatmentNotesHtml(influencers[savedIdx]);
+    const btn = cell.nextElementSibling;
+    if (btn && btn.tagName === 'BUTTON') btn.textContent = influencers[savedIdx].treatmentNotes.length ? '✏️ تعديل' : '+ إضافة';
+  }
   showToast('✅ تم حفظ الملاحظات', '#7c3aed');
 }
 
@@ -5028,8 +5038,11 @@ function _refreshReportRow(realIdx){
       :'<span style="color:#9ca3af;">—</span>';
     if(svcDiv) svcDiv.innerHTML=svcHtml;
   }
-  // موعد الزيارة — td:nth-child(9)
-  const dateTd=row.querySelector('td:nth-child(9)');
+  // جرعات — tnDisplay_
+  const tnCell=document.getElementById('tnDisplay_'+realIdx);
+  if(tnCell) tnCell.innerHTML=buildTreatmentNotesHtml(item);
+  // موعد الزيارة — td:nth-child(10) بعد إضافة عمود الجرعات
+  const dateTd=row.querySelector('td:nth-child(10)');
   if(dateTd){
     const dateDiv=dateTd.querySelector('div:first-child');
     if(dateDiv) dateDiv.innerHTML=item.visitDate?formatDateAr(item.visitDate):'<span style="color:#9ca3af;font-size:11px;">لا يوجد موعد</span>';
