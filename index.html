@@ -3070,7 +3070,34 @@ function dupSingleApplySelected() {
 
 function dupSingleSkip() {
   document.getElementById('dupSingleOverlay').classList.add('hidden');
+  // لو الشخص الجديد اتحفظ في Firebase (عنده _uid) → امسحه عشان ما يرجعش في الـ sync
+  if(_pendingSingleItem && _pendingSingleItem._uid) {
+    const uidToRemove = _pendingSingleItem._uid;
+    // امسحه من الـ array المحلي لو موجود
+    const localIdx = influencers.findIndex(i => i._uid === uidToRemove);
+    if(localIdx !== -1) {
+      influencers.splice(localIdx, 1);
+      saveToStorage();
+    } else {
+      // مش موجود محلياً بس ممكن يكون في Firebase → امسحه من هناك
+      fetch(`${DB_URL}/${DB_PATH}.json`, { method:'GET', headers:{'Accept':'application/json'} })
+        .then(r => r.json()).then(val => {
+          if(!val || !val.data) return;
+          let remote = JSON.parse(val.data);
+          if(!Array.isArray(remote)) return;
+          const before = remote.length;
+          remote = remote.filter(r => r._uid !== uidToRemove);
+          if(remote.length < before) {
+            fetch(`${DB_URL}/${DB_PATH}.json`, {
+              method:'PUT', headers:{'Content-Type':'application/json'},
+              body: JSON.stringify({ data: JSON.stringify(remote) })
+            });
+          }
+        }).catch(()=>{});
+    }
+  }
   _pendingSingleItem = null;
+  _pendingSingleDupIdx = null;
   showToast('⏭ تم التخطي', '#6e7681');
 }
 function dupSingleAddAnyway() { /* محذوف - المكرر لا يُضاف كجديد */ }
