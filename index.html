@@ -2446,22 +2446,39 @@ function removeTnNote(i) { _tnDraft.splice(i,1); renderTnDraft(); }
 
 function closeTreatmentNotes() {
   document.getElementById('treatmentNotesOverlay').classList.add('hidden');
-  _tnIdx = null; _tnDraft = [];
+  _tnIdx = null; _tnDraft = []; _tnVi = null;
 }
 
 function saveTreatmentNotes() {
   if (_tnIdx === null) return;
-  influencers[_tnIdx].treatmentNotes = JSON.parse(JSON.stringify(_tnDraft));
-  influencers[_tnIdx].treatmentDoctor = document.getElementById('tnDoctorInput').value.trim();
   const savedIdx = _tnIdx;
-  closeTreatmentNotes();
-  saveFile(savedIdx);
-  // تحديث الخلية مباشرة بدون إعادة رسم الجدول كله
-  const cell = document.getElementById('tnDisplay_' + savedIdx);
-  if (cell) {
-    cell.innerHTML = buildTreatmentNotesHtml(influencers[savedIdx]);
-    const btn = cell.nextElementSibling;
-    if (btn && btn.tagName === 'BUTTON') btn.textContent = influencers[savedIdx].treatmentNotes.length ? '✏️ تعديل' : '+ إضافة';
+  const savedVi = _tnVi;
+  const doctor = document.getElementById('tnDoctorInput').value.trim();
+  if (savedVi !== null) {
+    // extra visit
+    const ev = influencers[savedIdx].extraVisits[savedVi];
+    ev.treatmentNotes = JSON.parse(JSON.stringify(_tnDraft));
+    ev.treatmentDoctor = doctor;
+    closeTreatmentNotes();
+    _tnVi = null;
+    saveFile(savedIdx);
+    const cell = document.getElementById('evTnDisplay_' + savedIdx + '_' + savedVi);
+    if (cell) {
+      cell.innerHTML = buildTreatmentNotesHtml(ev);
+      const btn = cell.nextElementSibling;
+      if (btn && btn.tagName === 'BUTTON') btn.textContent = ev.treatmentNotes.length ? '✏️ تعديل' : '+ إضافة';
+    }
+  } else {
+    influencers[savedIdx].treatmentNotes = JSON.parse(JSON.stringify(_tnDraft));
+    influencers[savedIdx].treatmentDoctor = doctor;
+    closeTreatmentNotes();
+    saveFile(savedIdx);
+    const cell = document.getElementById('tnDisplay_' + savedIdx);
+    if (cell) {
+      cell.innerHTML = buildTreatmentNotesHtml(influencers[savedIdx]);
+      const btn = cell.nextElementSibling;
+      if (btn && btn.tagName === 'BUTTON') btn.textContent = influencers[savedIdx].treatmentNotes.length ? '✏️ تعديل' : '+ إضافة';
+    }
   }
   showToast('✅ تم حفظ الملاحظات', '#7c3aed');
 }
@@ -4920,22 +4937,26 @@ function openStatusReport(type) {
       return 'background:#f8fafc;color:#64748b;border-color:#cbd5e1;';
     }
 
-    const rows=list.map((item,i)=>{
+    // ── Flatten main rows + extra visits, sort by visitDate ──
+    const allEntries=[];
+    list.forEach(item=>{
       const realIdx=influencers.indexOf(item);
+      allEntries.push({isExtra:false,item,realIdx});
+      (item.extraVisits||[]).forEach((ev,vi)=>{
+        allEntries.push({isExtra:true,item,realIdx,ev,vi});
+      });
+    });
+    allEntries.sort((a,b)=>{
+      const da=a.isExtra?a.ev.visitDate:a.item.visitDate;
+      const db=b.isExtra?b.ev.visitDate:b.item.visitDate;
+      if(!da&&!db)return 0; if(!da)return 1; if(!db)return -1;
+      return visitDateToSortKey(da).localeCompare(visitDateToSortKey(db));
+    });
+    const rows=allEntries.map((entry,rowIdx)=>{
+      const num=rowIdx+1;
+      const {item,realIdx}=entry;
+      // Common vars (shared between main & extra rows)
       const name=item.name||'—';
-      const vs=item.visitStatus||'';
-      const cs=item.contentStatus||'';
-      const bg=_rowBg(vs,cs,!!item.visitDate);
-      const bc=_rowBorderColor(vs,cs);
-      const dateStr=item.visitDate?formatDateAr(item.visitDate):'<span style="color:#9ca3af;font-size:11px;">لا يوجد موعد</span>';
-      const gLabel=item.gender==='m'
-        ?`<span style="background:#1d4ed8;color:#fff;padding:2px 7px;border-radius:20px;font-size:10px;font-weight:700;">👨 ذكر</span>`
-        :item.gender==='f'
-        ?`<span style="background:#a21caf;color:#fff;padding:2px 7px;border-radius:20px;font-size:10px;font-weight:700;">👩 أنثى</span>`
-        :'—';
-      const natLabel=item.nationality
-        ?`<span style="background:#065f46;color:#fff;padding:2px 7px;border-radius:20px;font-size:10px;font-weight:700;">${displayNationality(item.nationality)}</span>`
-        :'—';
       const phoneHtml=item.phone
         ?`<div onclick="showPhonePopup('${item.phone.replace(/'/g,"\\'")}','${(item.name||item.ig||'').replace(/'/g,"\\'")}',event)" style="color:#0369a1;direction:ltr;font-size:11px;cursor:pointer;font-weight:700;">📞 ${displayPhone(item.phone)}</div>`
         :'<span style="color:#9ca3af;">—</span>';
@@ -4943,75 +4964,162 @@ function openStatusReport(type) {
         ?`<div style="color:#0f766e;direction:ltr;font-size:11px;font-weight:700;">🪪 ${item.civil}</div>`
         :'<span style="color:#9ca3af;">—</span>';
       const socialsHtml=buildSocialsHtml(item);
-      const svcLabel=(item.services&&item.services.length)
-        ?item.services.map(s=>`<span style="display:inline-block;background:#f3e8ff;color:#7c3aed;border:1px solid #c084fc;border-radius:20px;padding:2px 7px;font-size:10px;font-weight:700;margin:1px;">${s}</span>`).join('<br>')
-        :'<span style="color:#9ca3af;">—</span>';
-      const stLbl=_statusLabel(vs,cs);
-      const sigHtml=item.signature
-        ?`<div style="position:relative;">
-            <img src="${item.signature}" class="sig-print-img" style="width:120px;height:44px;object-fit:contain;display:block;border:1.5px solid #059669;border-radius:6px;" />
-            <div class="no-print" style="display:flex;gap:3px;margin-top:3px;">
-              <button onclick="clearSignatureAndDraw(${realIdx})" style="flex:1;padding:3px;border:1px solid #dc2626;background:#fef2f2;color:#dc2626;border-radius:5px;font-size:10px;font-weight:700;cursor:pointer;font-family:Tajawal,sans-serif;">🗑 مسح</button>
-            </div>
-          </div>`
-        :`<div class="no-print">
-            <canvas id="sigCanvas_${realIdx}" width="160" height="60"
-              style="border:1.5px dashed #6b7280;border-radius:6px;cursor:crosshair;touch-action:none;display:block;background:#fafafa;width:100%;max-width:160px;"
-              onmousedown="startSig(event,${realIdx})" ontouchstart="startSig(event,${realIdx})"></canvas>
-            <div style="display:flex;gap:3px;margin-top:3px;">
-              <button onclick="saveSig(${realIdx})" style="flex:1;padding:3px;border:1.5px solid #059669;background:#f0fdf4;color:#059669;border-radius:5px;font-size:10px;font-weight:700;cursor:pointer;font-family:Tajawal,sans-serif;">✓ حفظ</button>
-              <button onclick="clearCanvas(${realIdx})" style="flex:1;padding:3px;border:1.5px solid #9ca3af;background:#f9fafb;color:#555;border-radius:5px;font-size:10px;font-weight:700;cursor:pointer;font-family:Tajawal,sans-serif;">مسح</button>
-            </div>
-          </div>
-          <div class="sig-print-line no-print-hide" style="display:none;height:44px;border-bottom:1.5px solid #374151;margin:3px 0;"></div>`;
+      const _g=(v=>((['أنثى','انثى','female','f'].includes((v||'').toLowerCase()))?'f':(['ذكر','male','m'].includes((v||'').toLowerCase()))?'m':''))(item.gender);
+      const gLabel=_g==='m'
+        ?`<span style="background:#1d4ed8;color:#fff;padding:2px 7px;border-radius:20px;font-size:10px;font-weight:700;">👨 ذكر</span>`
+        :_g==='f'
+        ?`<span style="background:#a21caf;color:#fff;padding:2px 7px;border-radius:20px;font-size:10px;font-weight:700;">👩 أنثى</span>`
+        :'—';
+      const natLabel=item.nationality
+        ?`<span style="background:#065f46;color:#fff;padding:2px 7px;border-radius:20px;font-size:10px;font-weight:700;">${displayNationality(item.nationality)}</span>`
+        :'—';
 
-      const tdS='';
-      return `<tr id="rrow_${realIdx}" style="background:${bg};border-right:4px solid ${bc};">
-        <td style="text-align:center;font-weight:900;color:${thBg};">${i+1}</td>
-        <td style="text-align:right;">
-          <div onclick="showApptCard(${realIdx})" style="font-weight:700;font-size:11px;color:#0a3d62;cursor:pointer;">${name}</div>
-          ${stLbl?`<div style="margin-top:2px;">${stLbl}</div>`:''}
-        </td>
-        <td style="text-align:center;">${gLabel}</td>
-        <td style="text-align:center;">${natLabel}</td>
-        <td>${phoneHtml}</td>
-        <td>${civilHtml}</td>
-        <td><div style="display:flex;flex-direction:column;gap:2px;">${socialsHtml}</div></td>
-        <td style="text-align:center;">
-          <div id="rptSvcBtn_${realIdx}" style="display:flex;flex-direction:column;align-items:center;gap:3px;">
-            <div>${svcLabel}</div>
-            <button onclick="openServicePopupFromReport(${realIdx},event)" class="no-print" title="تعديل الخدمة" style="padding:2px 8px;border-radius:6px;border:1px solid #7c3aed;background:#f3e8ff;color:#7c3aed;font-size:10px;font-weight:700;cursor:pointer;font-family:Tajawal,sans-serif;margin-top:2px;">تعديل</button>
-          </div>
-        </td>
-        <td style="text-align:right;vertical-align:top;padding:6px;">
-          <div id="tnDisplay_${realIdx}">${buildTreatmentNotesHtml(item)}</div>
-          <button onclick="openTreatmentNotes(${realIdx})" class="no-print" style="padding:2px 8px;border-radius:6px;border:1px solid #7c3aed;background:#f3e8ff;color:#7c3aed;font-size:10px;font-weight:700;cursor:pointer;font-family:Tajawal,sans-serif;margin-top:3px;">${item.treatmentNotes&&item.treatmentNotes.length?'✏️ تعديل':'+ إضافة'}</button>
-        </td>
-        <td style="text-align:center;font-weight:700;color:${thBg};font-size:11px;"><div style="margin-bottom:3px;">${dateStr}</div><button onclick="openInlineDate(${realIdx},this,event)" style="padding:2px 8px;border-radius:6px;border:1px solid #dc2626;background:#fff;color:#dc2626;font-size:10px;font-weight:700;cursor:pointer;font-family:Tajawal,sans-serif;">تعديل</button></td>
-        <td class="no-print">
-          <div style="position:relative;">
-            <select id="vsSelect_${realIdx}" onchange="setVisitStatusFromSelect(${realIdx},this.value)"
-              style="width:100%;padding:4px 22px 4px 4px;border-radius:7px;border:1.5px solid;font-size:11px;font-weight:700;font-family:Tajawal,sans-serif;cursor:pointer;direction:rtl;appearance:none;-webkit-appearance:none;${_vsSel(vs)}">
-              <option value="" ${vs===''?'selected':''}>— اختر —</option>
-              <option value="done" ${vs==='done'?'selected':''}>✅ تمت</option>
-              <option value="cancelled" ${vs==='cancelled'?'selected':''}>⚠️ ألغيت</option>
-            </select>
-            <span style="position:absolute;left:4px;top:50%;transform:translateY(-50%);pointer-events:none;font-size:11px;color:#374151;">▼</span>
-          </div>
-        </td>
-        <td class="no-print">
-          <div style="position:relative;">
-            <select id="csSelect_${realIdx}" onchange="setContentStatusFromSelect(${realIdx},this.value)"
-              style="width:100%;padding:4px 22px 4px 4px;border-radius:7px;border:1.5px solid;font-size:11px;font-weight:700;font-family:Tajawal,sans-serif;cursor:pointer;direction:rtl;appearance:none;-webkit-appearance:none;${_csSel(cs)}">
-              <option value="" ${cs===''?'selected':''}>— اختر —</option>
-              <option value="published" ${cs==='published'?'selected':''}>🌟 تم النشر</option>
-              <option value="unpublished" ${cs==='unpublished'?'selected':''}>🟣 لم يتم</option>
-            </select>
-            <span style="position:absolute;left:4px;top:50%;transform:translateY(-50%);pointer-events:none;font-size:11px;color:#374151;">▼</span>
-          </div>
-        </td>
-        <td>${sigHtml}</td>
-      </tr>`;
+      if(!entry.isExtra){
+        // ── Main row ──
+        const vs=item.visitStatus||''; const cs=item.contentStatus||'';
+        const bg=_rowBg(vs,cs,!!item.visitDate);
+        const bc=_rowBorderColor(vs,cs);
+        const dateStr=item.visitDate?formatDateAr(item.visitDate):'<span style="color:#9ca3af;font-size:11px;">لا يوجد موعد</span>';
+        const svcLabel=(item.services&&item.services.length)?'الخدمة : '+item.services.join(' · '):'اختر الخدمة';
+        const hasSvc=item.services&&item.services.length>0;
+        const stLbl=_statusLabel(vs,cs);
+        const sigHtml=item.signature
+          ?`<div style="position:relative;">
+              <img src="${item.signature}" class="sig-print-img" style="width:120px;height:44px;object-fit:contain;display:block;border:1.5px solid #059669;border-radius:6px;" />
+              <div class="no-print" style="display:flex;gap:3px;margin-top:3px;">
+                <button onclick="clearSignatureAndDraw(${realIdx})" style="flex:1;padding:3px;border:1px solid #dc2626;background:#fef2f2;color:#dc2626;border-radius:5px;font-size:10px;font-weight:700;cursor:pointer;font-family:Tajawal,sans-serif;">🗑 مسح</button>
+              </div>
+            </div>`
+          :`<div class="no-print">
+              <canvas id="sigCanvas_${realIdx}" width="160" height="60"
+                style="border:1.5px dashed #6b7280;border-radius:6px;cursor:crosshair;touch-action:none;display:block;background:#fafafa;width:100%;max-width:160px;"
+                onmousedown="startSig(event,${realIdx})" ontouchstart="startSig(event,${realIdx})"></canvas>
+              <div style="display:flex;gap:3px;margin-top:3px;">
+                <button onclick="saveSig(${realIdx})" style="flex:1;padding:3px;border:1.5px solid #059669;background:#f0fdf4;color:#059669;border-radius:5px;font-size:10px;font-weight:700;cursor:pointer;font-family:Tajawal,sans-serif;">✓ حفظ</button>
+                <button onclick="clearCanvas(${realIdx})" style="flex:1;padding:3px;border:1.5px solid #9ca3af;background:#f9fafb;color:#555;border-radius:5px;font-size:10px;font-weight:700;cursor:pointer;font-family:Tajawal,sans-serif;">مسح</button>
+              </div>
+            </div>
+            <div class="sig-print-line no-print-hide" style="display:none;height:44px;border-bottom:1.5px solid #374151;margin:3px 0;"></div>`;
+        const tdS='';
+        return `<tr id="rrow_${realIdx}" style="background:${bg};border-right:4px solid ${bc};">
+          <td style="text-align:center;font-weight:900;color:${thBg};">${num}</td>
+          <td style="text-align:right;">
+            <div onclick="showApptCard(${realIdx})" style="font-weight:700;font-size:11px;color:#0a3d62;cursor:pointer;">${name}</div>
+            ${stLbl?`<div style="margin-top:2px;">${stLbl}</div>`:''}
+          </td>
+          <td style="text-align:center;">${gLabel}</td>
+          <td style="text-align:center;">${natLabel}</td>
+          <td>${phoneHtml}</td>
+          <td>${civilHtml}</td>
+          <td><div style="display:flex;flex-direction:column;gap:2px;">${socialsHtml}</div></td>
+          <td style="text-align:center;">
+            <div id="rptSvcBtn_${realIdx}" style="display:flex;flex-direction:column;align-items:center;gap:3px;">
+              <div>${svcLabel}</div>
+              <button onclick="openServicePopupFromReport(${realIdx},event)" class="no-print" title="تعديل الخدمة" style="padding:2px 8px;border-radius:6px;border:1px solid #7c3aed;background:#f3e8ff;color:#7c3aed;font-size:10px;font-weight:700;cursor:pointer;font-family:Tajawal,sans-serif;margin-top:2px;">تعديل</button>
+            </div>
+          </td>
+          <td style="text-align:right;vertical-align:top;padding:6px;">
+            <div id="tnDisplay_${realIdx}">${buildTreatmentNotesHtml(item)}</div>
+            <button onclick="openTreatmentNotes(${realIdx})" class="no-print" style="padding:2px 8px;border-radius:6px;border:1px solid #7c3aed;background:#f3e8ff;color:#7c3aed;font-size:10px;font-weight:700;cursor:pointer;font-family:Tajawal,sans-serif;margin-top:3px;">${item.treatmentNotes&&item.treatmentNotes.length?'✏️ تعديل':'+ إضافة'}</button>
+          </td>
+          <td style="text-align:center;font-weight:700;color:${thBg};font-size:11px;"><div style="margin-bottom:3px;">${dateStr}</div><button onclick="openInlineDate(${realIdx},this,event)" style="padding:2px 8px;border-radius:6px;border:1px solid #dc2626;background:#fff;color:#dc2626;font-size:10px;font-weight:700;cursor:pointer;font-family:Tajawal,sans-serif;">تعديل</button></td>
+          <td class="no-print">
+            <div style="position:relative;">
+              <select id="vsSelect_${realIdx}" onchange="setVisitStatusFromSelect(${realIdx},this.value)"
+                style="width:100%;padding:4px 22px 4px 4px;border-radius:7px;border:1.5px solid;font-size:11px;font-weight:700;font-family:Tajawal,sans-serif;cursor:pointer;direction:rtl;appearance:none;-webkit-appearance:none;${_vsSel(vs)}">
+                <option value="" ${vs===''?'selected':''}>— اختر —</option>
+                <option value="done" ${vs==='done'?'selected':''}>✅ تمت</option>
+                <option value="cancelled" ${vs==='cancelled'?'selected':''}>⚠️ ألغيت</option>
+              </select>
+              <span style="position:absolute;left:4px;top:50%;transform:translateY(-50%);pointer-events:none;font-size:11px;color:#374151;">▼</span>
+            </div>
+          </td>
+          <td class="no-print">
+            <div style="position:relative;">
+              <select id="csSelect_${realIdx}" onchange="setContentStatusFromSelect(${realIdx},this.value)"
+                style="width:100%;padding:4px 22px 4px 4px;border-radius:7px;border:1.5px solid;font-size:11px;font-weight:700;font-family:Tajawal,sans-serif;cursor:pointer;direction:rtl;appearance:none;-webkit-appearance:none;${_csSel(cs)}">
+                <option value="" ${cs===''?'selected':''}>— اختر —</option>
+                <option value="published" ${cs==='published'?'selected':''}>🌟 تم النشر</option>
+                <option value="unpublished" ${cs==='unpublished'?'selected':''}>🟣 لم يتم</option>
+              </select>
+              <span style="position:absolute;left:4px;top:50%;transform:translateY(-50%);pointer-events:none;font-size:11px;color:#374151;">▼</span>
+            </div>
+          </td>
+          <td>${sigHtml}</td>
+        </tr>`;
+      } else {
+        // ── Extra visit row ──
+        const {ev,vi}=entry;
+        const evVs=ev.visitStatus||''; const evCs=ev.contentStatus||'';
+        const evBg=_rowBg(evVs,evCs,!!ev.visitDate);
+        const evBc=_rowBorderColor(evVs,evCs);
+        const evDateStr=ev.visitDate?formatDateAr(ev.visitDate):'<span style="color:#9ca3af;font-size:11px;">لا يوجد موعد</span>';
+        const evSvcLabel=(ev.services&&ev.services.length)
+          ?ev.services.map(s=>`<span style="display:inline-block;background:#f3e8ff;color:#7c3aed;border:1px solid #c084fc;border-radius:20px;padding:2px 7px;font-size:10px;font-weight:700;margin:1px;">${s}</span>`).join('<br>')
+          :'<span style="color:#9ca3af;">—</span>';
+        const evStLbl=_statusLabel(evVs,evCs);
+        const evSigHtml=ev.signature
+          ?`<div><img src="${ev.signature}" class="sig-print-img" style="width:120px;height:44px;object-fit:contain;display:block;border:1.5px solid #059669;border-radius:6px;"/>
+              <div class="no-print" style="margin-top:3px;"><button onclick="clearExtraVisitSig(${realIdx},${vi})" style="width:100%;padding:3px;border:1px solid #dc2626;background:#fef2f2;color:#dc2626;border-radius:5px;font-size:10px;font-weight:700;cursor:pointer;font-family:Tajawal,sans-serif;">🗑 مسح</button></div></div>`
+          :`<div class="no-print"><canvas id="evSigCanvas_${realIdx}_${vi}" width="160" height="60" style="border:1.5px dashed #6b7280;border-radius:6px;cursor:crosshair;touch-action:none;display:block;background:#fafafa;width:100%;max-width:160px;" onmousedown="startEvSig(event,${realIdx},${vi})" ontouchstart="startEvSig(event,${realIdx},${vi})"></canvas>
+            <div style="display:flex;gap:3px;margin-top:3px;">
+              <button onclick="saveEvSig(${realIdx},${vi})" style="flex:1;padding:3px;border:1.5px solid #059669;background:#f0fdf4;color:#059669;border-radius:5px;font-size:10px;font-weight:700;cursor:pointer;font-family:Tajawal,sans-serif;">✓ حفظ</button>
+              <button onclick="clearEvCanvas(${realIdx},${vi})" style="flex:1;padding:3px;border:1.5px solid #9ca3af;background:#f9fafb;color:#555;border-radius:5px;font-size:10px;font-weight:700;cursor:pointer;font-family:Tajawal,sans-serif;">مسح</button>
+            </div></div>
+          <div class="sig-print-line no-print-hide" style="display:none;height:44px;border-bottom:1.5px solid #374151;margin:3px 0;"></div>`;
+        return `<tr id="rrow_ev_${realIdx}_${vi}" style="background:${evBg};border-right:4px solid ${evBc};border-top:2px dashed #93c5fd;">
+          <td style="text-align:center;">
+            <div style="font-weight:900;color:#2563eb;font-size:11px;">${num}</div>
+            <div style="font-size:9px;background:#dbeafe;color:#1d4ed8;border-radius:8px;padding:1px 3px;font-weight:700;white-space:nowrap;">🔄</div>
+          </td>
+          <td style="text-align:right;">
+            <div style="font-weight:700;font-size:11px;color:#0a3d62;">${name}</div>
+            <div style="margin-top:2px;"><span style="font-size:10px;background:#dbeafe;color:#1d4ed8;border-radius:10px;padding:1px 6px;font-weight:700;">🔄 زيارة ${vi+2}</span></div>
+            ${evStLbl?`<div style="margin-top:2px;">${evStLbl}</div>`:''}
+          </td>
+          <td style="text-align:center;">${gLabel}</td>
+          <td style="text-align:center;">${natLabel}</td>
+          <td>${phoneHtml}</td>
+          <td>${civilHtml}</td>
+          <td><div style="display:flex;flex-direction:column;gap:2px;">${socialsHtml}</div></td>
+          <td id="evSvcCell_${realIdx}_${vi}" style="text-align:center;">
+            <div>${evSvcLabel}</div>
+            <button onclick="openEvSvcEdit(${realIdx},${vi})" class="no-print" style="padding:2px 8px;border-radius:6px;border:1px solid #7c3aed;background:#f3e8ff;color:#7c3aed;font-size:10px;font-weight:700;cursor:pointer;font-family:Tajawal,sans-serif;margin-top:2px;">تعديل</button>
+          </td>
+          <td style="text-align:right;vertical-align:top;padding:6px;">
+            <div id="evTnDisplay_${realIdx}_${vi}">${buildTreatmentNotesHtml(ev)}</div>
+            <button onclick="openExtraTreatmentNotes(${realIdx},${vi})" class="no-print" style="padding:2px 8px;border-radius:6px;border:1px solid #7c3aed;background:#f3e8ff;color:#7c3aed;font-size:10px;font-weight:700;cursor:pointer;font-family:Tajawal,sans-serif;margin-top:3px;">${ev.treatmentNotes&&ev.treatmentNotes.length?'✏️ تعديل':'+ إضافة'}</button>
+          </td>
+          <td id="evDateCell_${realIdx}_${vi}" style="text-align:center;font-weight:700;color:${thBg};font-size:11px;">
+            <div style="margin-bottom:3px;">${evDateStr}</div>
+            <button onclick="openEvDateEdit(${realIdx},${vi})" class="no-print" style="padding:2px 8px;border-radius:6px;border:1px solid #dc2626;background:#fff;color:#dc2626;font-size:10px;font-weight:700;cursor:pointer;font-family:Tajawal,sans-serif;">تعديل</button>
+          </td>
+          <td class="no-print">
+            <div style="position:relative;">
+              <select id="evVsSel_${realIdx}_${vi}" onchange="setExtraVisitStatus(${realIdx},${vi},this.value)"
+                style="width:100%;padding:4px 22px 4px 4px;border-radius:7px;border:1.5px solid;font-size:11px;font-weight:700;font-family:Tajawal,sans-serif;cursor:pointer;direction:rtl;appearance:none;-webkit-appearance:none;${_vsSel(evVs)}">
+                <option value="" ${evVs===''?'selected':''}>— اختر —</option>
+                <option value="done" ${evVs==='done'?'selected':''}>✅ تمت</option>
+                <option value="cancelled" ${evVs==='cancelled'?'selected':''}>⚠️ ألغيت</option>
+              </select>
+              <span style="position:absolute;left:4px;top:50%;transform:translateY(-50%);pointer-events:none;font-size:11px;color:#374151;">▼</span>
+            </div>
+          </td>
+          <td class="no-print">
+            <div style="position:relative;">
+              <select id="evCsSel_${realIdx}_${vi}" onchange="setExtraContentStatus(${realIdx},${vi},this.value)"
+                style="width:100%;padding:4px 22px 4px 4px;border-radius:7px;border:1.5px solid;font-size:11px;font-weight:700;font-family:Tajawal,sans-serif;cursor:pointer;direction:rtl;appearance:none;-webkit-appearance:none;${_csSel(evCs)}">
+                <option value="" ${evCs===''?'selected':''}>— اختر —</option>
+                <option value="published" ${evCs==='published'?'selected':''}>🌟 تم النشر</option>
+                <option value="unpublished" ${evCs==='unpublished'?'selected':''}>🟣 لم يتم</option>
+              </select>
+              <span style="position:absolute;left:4px;top:50%;transform:translateY(-50%);pointer-events:none;font-size:11px;color:#374151;">▼</span>
+            </div>
+            <button onclick="deleteExtraVisit(${realIdx},${vi})" class="no-print" style="margin-top:4px;width:100%;padding:3px;border-radius:6px;border:1.5px solid #dc2626;background:#fff5f5;color:#dc2626;font-size:10px;font-weight:700;cursor:pointer;font-family:Tajawal,sans-serif;">🗑 حذف الزيارة</button>
+          </td>
+          <td>${evSigHtml}</td>
+        </tr>`;
+      }
     }).join('');
 
     // legend + header + table
@@ -5055,6 +5163,7 @@ function openStatusReport(type) {
           <button class="report-btn-close" onclick="closeReport()">✕ إغلاق</button>
           <button class="report-btn-print" style="background:${thBg}" onclick="window.print()">🖨️ طباعة / PDF</button>
           <button class="report-btn-share" onclick="shareStatusReport('${type}')">📤 مشاركة</button>
+          <button onclick="openNewVisitPicker()" class="no-print" style="padding:6px 12px;border:none;background:#2563eb;color:#fff;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;font-family:Tajawal,sans-serif;white-space:nowrap;">➕ موعد جديد لشخص تمت زيارته</button>
         </div>
         <!-- header card -->
         <div style="background:linear-gradient(135deg,#0a3d62 0%,#1a6fa8 100%);color:#fff;padding:.8rem 1.2rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;">
@@ -5284,6 +5393,270 @@ function filterReportRows(filter) {
   });
 }
 window.filterReportRows = filterReportRows;
+
+// ══════════════════════════════════════════════════════
+// Extra Visit (زيارات إضافية) Functions
+// ══════════════════════════════════════════════════════
+let _nvpSelectedIdx = null;
+
+function openNewVisitPicker() {
+  const old = document.getElementById('newVisitPickerModal');
+  if(old) old.remove();
+  const doneList = influencers.filter(i => i.status==='approved' && i.visitStatus==='done');
+  if(!doneList.length) { showToast('⚠️ لا يوجد مؤثرين تمت زيارتهم بعد!', '#d97706'); return; }
+  const SVCS = ['فيلر','بوتكس','تنظيف بشرة','ليزر','أبر نضارة'];
+  const itemsHtml = doneList.map(item => {
+    const idx = influencers.indexOf(item);
+    const igLabel = item.ig ? `<span style="color:#e1306c;font-size:10px;direction:ltr;">@${item.ig}</span>` : '';
+    return `<div onclick="selectPersonForNewVisit(${idx})" id="nvp_card_${idx}"
+      style="padding:8px 12px;border:2px solid #e5e7eb;border-radius:8px;cursor:pointer;margin-bottom:6px;background:#fff;display:flex;align-items:center;gap:8px;">
+      <div>
+        <div style="font-weight:700;font-size:13px;color:#0a3d62;">${item.name||item.ig||'—'}</div>
+        <div style="margin-top:2px;">${igLabel}</div>
+      </div>
+      <div style="margin-right:auto;"><span style="font-size:10px;background:#bbf7d0;color:#15803d;border-radius:10px;padding:2px 8px;font-weight:700;">✅ تمت زيارته</span></div>
+    </div>`;
+  }).join('');
+  const svcHtml = SVCS.map(s => `<label style="display:flex;align-items:center;gap:6px;padding:5px 0;cursor:pointer;font-size:13px;font-weight:700;border-bottom:1px solid #ede9fe;">
+    <input type="checkbox" value="${s}" name="nvp_svc" style="width:16px;height:16px;accent-color:#7c3aed;"> ${s}
+  </label>`).join('');
+  const hourOpts = Array.from({length:12},(_,i)=>String(i+1).padStart(2,'0')).map(h=>`<option value="${h}" ${h==='09'?'selected':''}>${h}</option>`).join('');
+  const today = new Date().toISOString().split('T')[0];
+  const modal = document.createElement('div');
+  modal.id = 'newVisitPickerModal';
+  modal.style.cssText = 'position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.65);display:flex;align-items:center;justify-content:center;padding:1rem;';
+  modal.innerHTML = `<div style="background:#fff;border-radius:16px;padding:1.4rem;width:100%;max-width:480px;max-height:88vh;overflow-y:auto;font-family:Tajawal,sans-serif;direction:rtl;box-shadow:0 20px 60px rgba(0,0,0,.4);">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;">
+      <div style="font-size:16px;font-weight:900;color:#0a3d62;">🔄 إضافة موعد جديد</div>
+      <button onclick="document.getElementById('newVisitPickerModal').remove()" style="border:none;background:#f1f5f9;border-radius:50%;width:30px;height:30px;font-size:16px;cursor:pointer;color:#6b7280;">✕</button>
+    </div>
+    <div id="nvpStep1">
+      <div style="font-size:12px;color:#6b7280;margin-bottom:.6rem;font-weight:700;background:#f0f9ff;padding:6px 10px;border-radius:8px;">اختر المؤثر الذي سيجي مرة ثانية:</div>
+      ${itemsHtml}
+    </div>
+    <div id="nvpStep2" style="display:none;">
+      <div id="nvpSelectedName" style="background:#f0f9ff;border:1.5px solid #0369a1;border-radius:8px;padding:8px 12px;margin-bottom:1rem;font-weight:700;color:#0369a1;font-size:14px;"></div>
+      <div style="font-size:12px;color:#374151;font-weight:700;margin-bottom:4px;">📅 تاريخ الموعد الجديد:</div>
+      <input type="date" id="nvpDate" value="${today}" style="width:100%;padding:8px 10px;border:1.5px solid #0a3d62;border-radius:8px;font-size:13px;font-family:Tajawal,sans-serif;margin-bottom:.6rem;box-sizing:border-box;">
+      <div style="display:flex;gap:6px;margin-bottom:1rem;">
+        <select id="nvpHour" style="flex:1;padding:7px;border:1.5px solid #cbd5e1;border-radius:7px;font-size:12px;font-family:Tajawal,sans-serif;">${hourOpts}</select>
+        <select id="nvpMin" style="flex:1;padding:7px;border:1.5px solid #cbd5e1;border-radius:7px;font-size:12px;font-family:Tajawal,sans-serif;"><option value="00" selected>00</option><option value="30">30</option></select>
+        <select id="nvpAmPm" style="flex:1;padding:7px;border:1.5px solid #cbd5e1;border-radius:7px;font-size:12px;font-family:Tajawal,sans-serif;"><option value="AM" selected>AM</option><option value="PM">PM</option></select>
+      </div>
+      <div style="font-size:12px;color:#374151;font-weight:700;margin-bottom:6px;">💉 الخدمات الجديدة:</div>
+      <div style="background:#f8f4ff;border:1.5px solid #c084fc;border-radius:8px;padding:8px 12px;margin-bottom:1.2rem;">${svcHtml}</div>
+      <div style="display:flex;gap:8px;">
+        <button onclick="confirmNewVisit()" style="flex:2;padding:11px;border:none;background:#0a3d62;color:#fff;border-radius:9px;font-size:14px;font-weight:900;cursor:pointer;font-family:Tajawal,sans-serif;">✅ تأكيد الإضافة</button>
+        <button onclick="document.getElementById('nvpStep2').style.display='none';document.getElementById('nvpStep1').style.display='block';" style="flex:1;padding:11px;border:1.5px solid #9ca3af;background:#fff;color:#374151;border-radius:9px;font-size:13px;font-weight:700;cursor:pointer;font-family:Tajawal,sans-serif;">← رجوع</button>
+      </div>
+    </div>
+  </div>`;
+  document.body.appendChild(modal);
+}
+
+function selectPersonForNewVisit(idx) {
+  _nvpSelectedIdx = idx;
+  const item = influencers[idx];
+  document.querySelectorAll('[id^="nvp_card_"]').forEach(c => { c.style.border='2px solid #e5e7eb'; c.style.background='#fff'; });
+  const card = document.getElementById('nvp_card_' + idx);
+  if(card) { card.style.border='2px solid #0a3d62'; card.style.background='#f0f9ff'; }
+  setTimeout(() => {
+    document.getElementById('nvpStep1').style.display='none';
+    document.getElementById('nvpStep2').style.display='block';
+    document.getElementById('nvpSelectedName').textContent = '✅ ' + (item.name || item.ig || '—');
+    document.querySelectorAll('input[name="nvp_svc"]').forEach(cb => cb.checked = false);
+  }, 150);
+}
+
+function confirmNewVisit() {
+  if(_nvpSelectedIdx === null) return;
+  const item = influencers[_nvpSelectedIdx];
+  if(!item) return;
+  const dateVal = document.getElementById('nvpDate').value;
+  if(!dateVal) { alert('يرجى تحديد تاريخ الموعد'); return; }
+  const hh = document.getElementById('nvpHour').value;
+  const mm = document.getElementById('nvpMin').value;
+  const ap = document.getElementById('nvpAmPm').value;
+  const visitDate = dateVal + 'T' + hh + ':' + mm + ap;
+  const services = Array.from(document.querySelectorAll('input[name="nvp_svc"]:checked')).map(cb => cb.value);
+  if(!item.extraVisits) item.extraVisits = [];
+  item.extraVisits.push({ visitDate, services, visitStatus:'', contentStatus:'', visitRating:'', signature:'', treatmentNotes:[], treatmentDoctor:'' });
+  saveFile(_nvpSelectedIdx);
+  document.getElementById('newVisitPickerModal').remove();
+  _nvpSelectedIdx = null;
+  openStatusReport('approved');
+  showToast('✅ تم إضافة موعد جديد بنجاح!', '#16a34a');
+}
+
+let _tnVi = null; // for extra visit treatment notes
+
+function openExtraTreatmentNotes(idx, vi) {
+  _tnVi = vi;
+  const item = influencers[idx];
+  const ev = (item.extraVisits||[])[vi];
+  if(!ev) return;
+  _tnIdx = idx;
+  if(!ev.treatmentNotes) ev.treatmentNotes = [];
+  _tnDraft = JSON.parse(JSON.stringify(ev.treatmentNotes));
+  const nameLabel = (item.name||item.ig||'---') + ' - زيارة ' + (vi+2);
+  document.getElementById('treatmentNotesName').textContent = nameLabel;
+  document.getElementById('tnQtyInput').value = '';
+  document.getElementById('tnTextInput').value = '';
+  document.getElementById('tnDoctorInput').value = ev.treatmentDoctor || '';
+  const sel = document.getElementById('tnServiceSel');
+  const fixedOptions = ['','فيلر','بوتكس','تنظيف بشرة','ليزر','أبر نضارة'];
+  sel.innerHTML = fixedOptions.map((o,i)=>'<option value="'+o+'">'+(i===0?'نوع الخدمة':o)+'</option>').join('');
+  const firstSvc = ev.services && ev.services.length ? ev.services[0] : '';
+  sel.value = firstSvc && fixedOptions.includes(firstSvc) ? firstSvc : '';
+  renderTnDraft();
+  document.getElementById('treatmentNotesOverlay').classList.remove('hidden');
+}
+
+function deleteExtraVisit(idx, vi) {
+  if(!confirm('حذف هذه الزيارة الإضافية؟')) return;
+  const item = influencers[idx];
+  if(!item || !item.extraVisits) return;
+  item.extraVisits.splice(vi, 1);
+  if(!item.extraVisits.length) delete item.extraVisits;
+  saveFile(idx);
+  openStatusReport('approved');
+}
+
+function setExtraVisitStatus(idx, vi, val) {
+  const item = influencers[idx];
+  if(!item || !item.extraVisits || !item.extraVisits[vi]) return;
+  item.extraVisits[vi].visitStatus = val;
+  saveFile(idx);
+  openStatusReport('approved');
+  showToast(val==='done'?'✅ تمت الزيارة':val==='cancelled'?'⚠️ ألغيت الزيارة':'↺ تم إعادة ضبط', val==='done'?'#16a34a':val==='cancelled'?'#ca8a04':'#64748b');
+}
+
+function setExtraContentStatus(idx, vi, val) {
+  const item = influencers[idx];
+  if(!item || !item.extraVisits || !item.extraVisits[vi]) return;
+  item.extraVisits[vi].contentStatus = val;
+  saveFile(idx);
+  openStatusReport('approved');
+  showToast(val==='published'?'🌟 تم تسجيل النشر':val==='unpublished'?'🟣 لم يتم النشر':'↺ تم إعادة ضبط', val==='published'?'#ca8a04':val==='unpublished'?'#7c3aed':'#64748b');
+}
+
+function openEvDateEdit(idx, vi) {
+  const item = influencers[idx];
+  const ev = (item.extraVisits||[])[vi];
+  if(!ev) return;
+  const cell = document.getElementById('evDateCell_' + idx + '_' + vi);
+  if(!cell) return;
+  const curDate = ev.visitDate ? ev.visitDate.split('T')[0] : new Date().toISOString().split('T')[0];
+  let curHour='09', curMin='00', curAmPm='AM';
+  if(ev.visitDate && ev.visitDate.includes('T')) {
+    const tp = ev.visitDate.split('T')[1];
+    const tm = tp.replace('AM','').replace('PM','').trim();
+    curHour = (tm.split(':')[0]||'9').padStart(2,'0');
+    curMin  = (tm.split(':')[1]||'00').padStart(2,'0');
+    curAmPm = tp.includes('PM') ? 'PM' : 'AM';
+  }
+  const hourOpts = Array.from({length:12},(_,i)=>String(i+1).padStart(2,'0')).map(h=>`<option value="${h}" ${h===curHour?'selected':''}>${h}</option>`).join('');
+  cell.innerHTML = `<div style="display:flex;flex-direction:column;gap:4px;min-width:130px;">
+    <input type="date" id="evDI_${idx}_${vi}" value="${curDate}" style="border:1.5px solid #0a3d62;border-radius:6px;padding:3px 5px;font-size:11px;font-family:Tajawal,sans-serif;width:100%;box-sizing:border-box;">
+    <div style="display:flex;gap:3px;">
+      <select id="evDH_${idx}_${vi}" style="flex:1;border:1px solid #cbd5e1;border-radius:5px;font-size:10px;padding:2px;">${hourOpts}</select>
+      <select id="evDM_${idx}_${vi}" style="flex:1;border:1px solid #cbd5e1;border-radius:5px;font-size:10px;padding:2px;"><option ${curMin==='00'?'selected':''}>00</option><option ${curMin==='30'?'selected':''}>30</option></select>
+      <select id="evDA_${idx}_${vi}" style="flex:1;border:1px solid #cbd5e1;border-radius:5px;font-size:10px;padding:2px;"><option ${curAmPm==='AM'?'selected':''}>AM</option><option ${curAmPm==='PM'?'selected':''}>PM</option></select>
+    </div>
+    <div style="display:flex;gap:4px;">
+      <button onclick="saveEvDate(${idx},${vi})" style="flex:1;padding:3px;border:1.5px solid #16a34a;background:#f0fdf4;color:#16a34a;border-radius:5px;font-size:10px;font-weight:700;cursor:pointer;font-family:Tajawal,sans-serif;">✓ حفظ</button>
+      <button onclick="openStatusReport('approved')" style="flex:1;padding:3px;border:1px solid #9ca3af;background:#f9fafb;color:#555;border-radius:5px;font-size:10px;font-weight:700;cursor:pointer;font-family:Tajawal,sans-serif;">إلغاء</button>
+    </div>
+  </div>`;
+}
+
+function saveEvDate(idx, vi) {
+  const item = influencers[idx];
+  if(!item.extraVisits || !item.extraVisits[vi]) return;
+  const dv = document.getElementById('evDI_'+idx+'_'+vi).value;
+  item.extraVisits[vi].visitDate = dv
+    ? dv + 'T' + document.getElementById('evDH_'+idx+'_'+vi).value + ':' + document.getElementById('evDM_'+idx+'_'+vi).value + document.getElementById('evDA_'+idx+'_'+vi).value
+    : '';
+  saveFile(idx);
+  openStatusReport('approved');
+}
+
+function openEvSvcEdit(idx, vi) {
+  const item = influencers[idx];
+  const ev = (item.extraVisits||[])[vi];
+  if(!ev) return;
+  const cell = document.getElementById('evSvcCell_' + idx + '_' + vi);
+  if(!cell) return;
+  const svcs = ev.services || [];
+  const SVCS = ['فيلر','بوتكس','تنظيف بشرة','ليزر','أبر نضارة'];
+  cell.innerHTML = `<div style="background:#f8f4ff;border:1.5px solid #7c3aed;border-radius:8px;padding:6px;text-align:right;min-width:100px;">
+    ${SVCS.map(s=>`<label style="display:flex;align-items:center;gap:5px;padding:2px 0;cursor:pointer;font-size:11px;font-weight:700;">
+      <input type="checkbox" value="${s}" ${svcs.includes(s)?'checked':''} style="width:14px;height:14px;accent-color:#7c3aed;">${s}</label>`).join('')}
+    <div style="display:flex;gap:4px;margin-top:5px;">
+      <button onclick="saveEvSvc(${idx},${vi})" style="flex:1;padding:3px;border:1.5px solid #7c3aed;background:#f3e8ff;color:#7c3aed;border-radius:5px;font-size:10px;font-weight:700;cursor:pointer;font-family:Tajawal,sans-serif;">✓ حفظ</button>
+      <button onclick="openStatusReport('approved')" style="flex:1;padding:3px;border:1px solid #9ca3af;background:#f9fafb;color:#555;border-radius:5px;font-size:10px;font-weight:700;cursor:pointer;font-family:Tajawal,sans-serif;">إلغاء</button>
+    </div>
+  </div>`;
+}
+
+function saveEvSvc(idx, vi) {
+  const item = influencers[idx];
+  if(!item.extraVisits || !item.extraVisits[vi]) return;
+  const cell = document.getElementById('evSvcCell_' + idx + '_' + vi);
+  item.extraVisits[vi].services = cell ? Array.from(cell.querySelectorAll('input[type=checkbox]:checked')).map(cb=>cb.value) : [];
+  saveFile(idx);
+  openStatusReport('approved');
+}
+
+// ── Extra Visit Signature ──
+let _evSigDrawing = false, _evSigCtx = null, _evSigCanvas = null;
+function startEvSig(e, idx, vi) {
+  e.preventDefault();
+  const canvas = document.getElementById('evSigCanvas_' + idx + '_' + vi);
+  if(!canvas) return;
+  _evSigCanvas = canvas;
+  _evSigCtx = canvas.getContext('2d');
+  _evSigCtx.strokeStyle = '#000'; _evSigCtx.lineWidth = 2; _evSigCtx.lineCap = 'round';
+  const rect = canvas.getBoundingClientRect();
+  const scX = canvas.width / rect.width, scY = canvas.height / rect.height;
+  const ex = ((e.touches?e.touches[0].clientX:e.clientX) - rect.left) * scX;
+  const ey = ((e.touches?e.touches[0].clientY:e.clientY) - rect.top) * scY;
+  _evSigCtx.beginPath(); _evSigCtx.moveTo(ex, ey);
+  _evSigDrawing = true;
+  const move = (me) => {
+    if(!_evSigDrawing) return; me.preventDefault();
+    const r = canvas.getBoundingClientRect();
+    _evSigCtx.lineTo(((me.touches?me.touches[0].clientX:me.clientX)-r.left)*scX, ((me.touches?me.touches[0].clientY:me.clientY)-r.top)*scY);
+    _evSigCtx.stroke();
+  };
+  const up = () => { _evSigDrawing = false; document.removeEventListener('mousemove',move); document.removeEventListener('touchmove',move); document.removeEventListener('mouseup',up); document.removeEventListener('touchend',up); };
+  document.addEventListener('mousemove', move);
+  document.addEventListener('touchmove', move, {passive:false});
+  document.addEventListener('mouseup', up);
+  document.addEventListener('touchend', up);
+}
+function saveEvSig(idx, vi) {
+  const canvas = document.getElementById('evSigCanvas_' + idx + '_' + vi);
+  if(!canvas) return;
+  const item = influencers[idx];
+  if(!item.extraVisits || !item.extraVisits[vi]) return;
+  item.extraVisits[vi].signature = canvas.toDataURL('image/png');
+  saveFile(idx);
+  openStatusReport('approved');
+}
+function clearEvCanvas(idx, vi) {
+  const canvas = document.getElementById('evSigCanvas_' + idx + '_' + vi);
+  if(canvas) canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height);
+}
+function clearExtraVisitSig(idx, vi) {
+  const item = influencers[idx];
+  if(!item.extraVisits || !item.extraVisits[vi]) return;
+  if(!confirm('مسح التوقيع؟')) return;
+  item.extraVisits[vi].signature = '';
+  saveFile(idx);
+  openStatusReport('approved');
+}
+// ══════════════════════════════════════════════════════
 
 function setVisitStatusFromSelect(realIdx, newVal) {
   const item=influencers[realIdx]; if(!item) return;
