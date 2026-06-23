@@ -316,26 +316,30 @@ body{font-family:'Tajawal',sans-serif;direction:rtl;background:#0d1117;color:#e6
   .report-table tr{page-break-inside:avoid!important;}
   .report-table th{padding:5px 5px!important;font-size:10px!important;border-left:1px solid rgba(255,255,255,0.3)!important;-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important;}
   .report-table td{padding:4px 5px!important;font-size:10px!important;border:1px solid #ccc!important;-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important;}
-  /* Column widths for landscape A4 (~277mm printable) */
-  .report-table th:nth-child(1), .report-table td:nth-child(1){ width:25px!important; }
-  .report-table th:nth-child(2), .report-table td:nth-child(2){ width:80px!important; }
-  .report-table th:nth-child(3), .report-table td:nth-child(3){ width:28px!important; }
-  .report-table th:nth-child(4), .report-table td:nth-child(4){ width:38px!important; }
-  .report-table th:nth-child(5), .report-table td:nth-child(5){ width:55px!important; }
-  .report-table th:nth-child(6), .report-table td:nth-child(6){ width:50px!important; }
-  .report-table th:nth-child(7), .report-table td:nth-child(7){ width:55px!important; }
-  .report-table th:nth-child(8), .report-table td:nth-child(8){ width:65px!important; }
-  .report-table th:nth-child(9), .report-table td:nth-child(9){ width:55px!important; }
-  .report-table th:nth-child(10),.report-table td:nth-child(10){ display:none!important; }
+  /* Column widths for landscape A4 — 13 columns */
+  .report-table th:nth-child(1), .report-table td:nth-child(1){ width:22px!important; }
+  .report-table th:nth-child(2), .report-table td:nth-child(2){ width:78px!important; }
+  .report-table th:nth-child(3), .report-table td:nth-child(3){ width:26px!important; }
+  .report-table th:nth-child(4), .report-table td:nth-child(4){ width:36px!important; }
+  .report-table th:nth-child(5), .report-table td:nth-child(5){ width:50px!important; }
+  .report-table th:nth-child(6), .report-table td:nth-child(6){ width:48px!important; }
+  .report-table th:nth-child(7), .report-table td:nth-child(7){ width:52px!important; }
+  .report-table th:nth-child(8), .report-table td:nth-child(8){ width:62px!important; }
+  .report-table th:nth-child(9), .report-table td:nth-child(9){ width:68px!important; max-height:70px!important; overflow:hidden!important; }
+  .report-table th:nth-child(10),.report-table td:nth-child(10){ width:55px!important; }
   .report-table th:nth-child(11),.report-table td:nth-child(11){ display:none!important; }
+  .report-table th:nth-child(12),.report-table td:nth-child(12){ display:none!important; }
+  .report-table th:nth-child(13),.report-table td:nth-child(13){ width:162px!important; }
   /* موبايل (عمود 5) وسوشيال (عمود 7) — إخفاء البيانات وإبقاء خط فارغ */
   .report-table td:nth-child(5) > *{ display:none!important; }
   .report-table td:nth-child(5)::after{ content:''; display:block; border-bottom:1.5px solid #374151; margin:18px 4px 0; }
   .report-table td:nth-child(7) > *{ display:none!important; }
   .report-table td:nth-child(7)::after{ content:''; display:block; border-bottom:1.5px solid #374151; margin:18px 4px 0; }
-  .report-table th:nth-child(12),.report-table td:nth-child(12){ width:165px!important;}
   /* Signature column print */
-  .report-table td:nth-child(12) { overflow:visible!important; }
+  .report-table td:nth-child(13) { overflow:visible!important; }
+  /* Compact treatment notes in print */
+  .report-table td:nth-child(9) > div { max-height:68px; overflow:hidden; }
+  .report-table td:nth-child(9) .no-print { display:none!important; }
   .sig-print-img { width:110px!important; height:50px!important; object-fit:contain!important; display:block!important; -webkit-print-color-adjust:exact!important; print-color-adjust:exact!important; }
   .sig-print-line { height:40px!important; border-bottom:1.5px solid #374151!important; margin:10px 4px 0!important; display:block!important; }
   /* Card grid print styles */
@@ -345,6 +349,10 @@ body{font-family:'Tajawal',sans-serif;direction:rtl;background:#0d1117;color:#e6
   .report-social a{ font-size:9px!important; }
   .report-header h2{ font-size:16px!important; }
   .report-header p{ font-size:10px!important; }
+  /* Guest report table (10 cols) — override col 10 back to signature width */
+  .gtbl th:nth-child(10),.gtbl td:nth-child(10){ width:162px!important; display:table-cell!important; }
+  .gtbl td:nth-child(10){ overflow:visible!important; }
+  .gtbl th:nth-child(13),.gtbl td:nth-child(13){ width:auto!important; display:none!important; }
 }
 </style>
 <style id="guestStyle"></style>
@@ -5764,28 +5772,53 @@ async function shareStatusReport(type) {
   const accentColor=isVisited?'#1a6fa8':isCancelled?'#ca8a04':isApproved?'#1a6fa8':'#dc2626';
   const emoji=isVisited?'🏁':isCancelled?'⚠️':isApproved?'✅':'❌';
   const title=isVisited?'كشف الزيارات المكتملة':isCancelled?'كشف ألغيت الزيارة':isApproved?'كشف المؤثرين المقبولين':'كشف المؤثرين المرفوضين';
-  const rows=list.map((item,i)=>{
-    const gLabel=item.gender==='m'?'👨 ذكر':item.gender==='f'?'👩 أنثى':'—';
+  // Flatten + sort by date (same logic as openStatusReport)
+  let shareEntries=[];
+  if(isApproved){
+    const shareBase=(isVisited||isCancelled)?influencers.filter(i=>i.status==='approved'):list;
+    shareBase.forEach(item=>{
+      const inclMain=isVisited?(item.visitStatus==='done'):isCancelled?(item.visitStatus==='cancelled'):true;
+      if(inclMain) shareEntries.push({isExtra:false,item});
+      (item.extraVisits||[]).forEach((ev,vi)=>{
+        const inclEv=isVisited?(ev.visitStatus==='done'):isCancelled?(ev.visitStatus==='cancelled'):true;
+        if(inclEv) shareEntries.push({isExtra:true,item,ev,vi});
+      });
+    });
+    shareEntries.sort((a,b)=>{
+      const da=a.isExtra?a.ev.visitDate:a.item.visitDate;
+      const db=b.isExtra?b.ev.visitDate:b.item.visitDate;
+      if(!da&&!db)return 0; if(!da)return 1; if(!db)return -1;
+      return visitDateToSortKey(da).localeCompare(visitDateToSortKey(db));
+    });
+  } else {
+    shareEntries=list.map(item=>({isExtra:false,item}));
+  }
+  const rows=shareEntries.map((entry,i)=>{
+    const item=entry.item;
+    const _g=(v=>(['\u0623\u0646\u062b\u0649','\u0627\u0646\u062b\u0649','female','f'].includes((v||'').toLowerCase()))?'f':(['\u0630\u0643\u0631','male','m'].includes((v||'').toLowerCase()))?'m':'')(item.gender);
+    const gLabel=_g==='m'?'\u{1F468} \u0630\u0643\u0631':_g==='f'?'\u{1F469} \u0623\u0646\u062b\u0649':'\u2014';
     const natCell=item.nationality?`🌍 ${displayNationality(item.nationality)}`:'—';
     const phoneCell=item.phone?`<a href="tel:${item.phone}" style="color:#0369a1;text-decoration:none;direction:ltr;font-size:12px;">📞 ${displayPhone(item.phone)}</a>`:'—';
     const civilCell=item.civil||'—';
     const socialsCell=buildSocialsHtml(item);
     const rb=i%2===1?'#f8fafc':'#fff';
     if(isApproved){
-      const dateStr=item.visitDate?formatDateAr(item.visitDate):'—';
-      const svcLabel=(item.services&&item.services.length)?item.services.join(' · '):'—';
-      const vsLabel=item.visitStatus==='done'?'✅ تمت':item.visitStatus==='cancelled'?'❌ ألغيت':'—';
-      const pubLabel=item.contentStatus==='published'?'🌟 تم النشر':item.contentStatus==='unpublished'?'🟣 لم يتم':'—';
-      const tnHtml=buildTreatmentNotesHtml(item);
-      const sigHtml=item.signature?`<img src="${item.signature}" style="width:120px;height:44px;object-fit:contain;display:block;border:1.5px solid #059669;border-radius:6px;" />`:'<span style="color:#9ca3af;">—</span>';
-      return `<tr style="background:${rb}"><td style="text-align:center;font-weight:900;width:36px;">${i+1}</td><td style="font-weight:700;">${item.name||'—'}</td><td>${gLabel}</td><td>${natCell}</td><td style="direction:ltr;">${phoneCell}</td><td style="font-size:11px;direction:ltr;">${civilCell}</td><td>${socialsCell}</td><td style="white-space:nowrap;">${dateStr}</td><td>${svcLabel}</td><td style="min-width:140px;">${tnHtml}</td><td>${vsLabel}</td><td>${pubLabel}</td><td style="min-width:140px;">${sigHtml}</td></tr>`;
+      const src=entry.isExtra?entry.ev:item;
+      const dateStr=src.visitDate?formatDateAr(src.visitDate):'—';
+      const svcLabel=(src.services&&src.services.length)?src.services.join(' · '):'—';
+      const vsLabel=src.visitStatus==='done'?'✅ تمت':src.visitStatus==='cancelled'?'❌ ألغيت':'—';
+      const pubLabel=src.contentStatus==='published'?'🌟 تم النشر':src.contentStatus==='unpublished'?'🟣 لم يتم':'—';
+      const tnHtml=buildTreatmentNotesHtml(src);
+      const sigHtml=src.signature?`<img src="${src.signature}" style="width:120px;height:44px;object-fit:contain;display:block;border:1.5px solid #059669;border-radius:6px;" />`:'<span style="color:#9ca3af;">—</span>';
+      const nameCell=entry.isExtra?`${item.name||'—'} <span style="font-size:10px;background:#dbeafe;color:#1d4ed8;border-radius:10px;padding:1px 6px;font-weight:700;">🔄 زيارة ${entry.vi+2}</span>`:item.name||'—';
+      return `<tr style="background:${rb};${entry.isExtra?'border-top:2px dashed #93c5fd;':''}"><td style="text-align:center;font-weight:900;width:36px;">${i+1}</td><td style="font-weight:700;">${nameCell}</td><td>${gLabel}</td><td>${natCell}</td><td style="direction:ltr;">${phoneCell}</td><td style="font-size:11px;direction:ltr;">${civilCell}</td><td>${socialsCell}</td><td style="white-space:nowrap;">${dateStr}</td><td>${svcLabel}</td><td style="min-width:140px;">${tnHtml}</td><td>${vsLabel}</td><td>${pubLabel}</td><td style="min-width:140px;">${sigHtml}</td></tr>`;
     } else {
       return `<tr style="background:${rb}"><td style="text-align:center;font-weight:900;width:36px;">${i+1}</td><td style="font-weight:700;">${item.name||'—'}</td><td>${gLabel}</td><td>${natCell}</td><td style="direction:ltr;">${phoneCell}</td><td style="font-size:11px;direction:ltr;">${civilCell}</td><td>${socialsCell}</td></tr>`;
     }
   }).join('');
   const extraH=isApproved?`<th style="background:${thBg};">الموبايل</th><th style="background:${thBg};">الرقم المدني</th><th style="background:${thBg};">السوشيال</th><th style="background:${thBg};">موعد الزيارة</th><th style="background:${thBg};">الخدمة</th><th style="background:${thBg};min-width:140px;">💉 الجرعات</th><th style="background:${thBg};">حالة الزيارة</th><th style="background:${thBg};">حالة النشر</th><th style="background:${thBg};min-width:140px;">توقيع المؤثر</th>`:`<th style="background:${thBg};">الموبايل</th><th style="background:${thBg};">الرقم المدني</th><th style="background:${thBg};">السوشيال</th>`;
   const headersHTML=`<th style="background:${thBg};width:36px;text-align:center;">#</th><th style="background:${thBg};">الاسم</th><th style="background:${thBg};min-width:40px;">الجنس</th><th style="background:${thBg};min-width:52px;">الجنسية</th>${extraH}`;
-  const html=buildReportHTMLShell(thBg,accentColor,title,emoji,today,list.length,headersHTML,rows,isApproved);
+  const html=buildReportHTMLShell(thBg,accentColor,title,emoji,today,shareEntries.length,headersHTML,rows,isApproved);
   const d2=new Date();const ds2=`${d2.getFullYear()}-${String(d2.getMonth()+1).padStart(2,'0')}-${String(d2.getDate()).padStart(2,'0')}`;
   const fileName=isApproved?`Cure-Approved-${ds2}.html`:`Cure-Rejected-${ds2}.html`;
   await downloadOrShare(html,fileName);
@@ -6143,7 +6176,7 @@ function openGuestReport() {
       <div style="padding:.6rem .5rem;">
         <div class="report-swipe-hint">👈 اسحب يميناً أو يساراً لرؤية الجدول كاملاً 👉</div>
         <div class="report-table-wrap">
-          <table class="report-table" style="direction:rtl;">
+          <table class="report-table gtbl" style="direction:rtl;">
             <thead><tr>
               <th style="width:28px;">#</th>
               <th style="text-align:right;">الاسم</th>
