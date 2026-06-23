@@ -1724,7 +1724,7 @@ function showToast(msg, color='#059669') {
 }
 
 function updateStats() {
-  const visited=influencers.filter(i=>i.status==='approved'&&i.visitStatus==='done').length;
+  const visited=influencers.filter(i=>i.status==='approved'&&i.visitStatus==='done').length + influencers.filter(i=>i.status==='approved').reduce((sum,i)=>sum+((i.extraVisits||[]).filter(ev=>ev.visitStatus==='done').length),0);
   const cancelled=influencers.filter(i=>i.status==='approved'&&i.visitStatus==='cancelled').length;
   const approved=influencers.filter(i=>i.status==='approved'&&i.visitStatus!=='done'&&i.visitStatus!=='cancelled').length;
   const rejected=influencers.filter(i=>i.status==='rejected').length;
@@ -4938,12 +4938,16 @@ function openStatusReport(type) {
     }
 
     // ── Flatten main rows + extra visits, sort by visitDate ──
+    // For visited/cancelled: scan ALL approved to catch extra visits too
     const allEntries=[];
-    list.forEach(item=>{
+    const _baseList=(isVisited||isCancelled)?influencers.filter(i=>i.status==='approved'):list;
+    _baseList.forEach(item=>{
       const realIdx=influencers.indexOf(item);
-      allEntries.push({isExtra:false,item,realIdx});
+      const inclMain=isVisited?(item.visitStatus==='done'):isCancelled?(item.visitStatus==='cancelled'):true;
+      if(inclMain) allEntries.push({isExtra:false,item,realIdx});
       (item.extraVisits||[]).forEach((ev,vi)=>{
-        allEntries.push({isExtra:true,item,realIdx,ev,vi});
+        const inclEv=isVisited?(ev.visitStatus==='done'):isCancelled?(ev.visitStatus==='cancelled'):true;
+        if(inclEv) allEntries.push({isExtra:true,item,realIdx,ev,vi});
       });
     });
     allEntries.sort((a,b)=>{
@@ -5171,7 +5175,7 @@ function openStatusReport(type) {
             <div style="font-size:17px;font-weight:900;">${isVisited?'🏁 كشف الزيارات المكتملة':isCancelled?'⚠️ كشف ألغيت الزيارة':isApproved?'كشف المؤثرين المقبولين':'كشف المؤثرين المرفوضين'}</div>
             <div style="font-size:12px;opacity:.85;margin-top:2px;">مركز كيور الطبي —— ${today}</div>
           </div>
-          <div style="background:rgba(255,255,255,.15);border-radius:10px;padding:6px 16px;font-size:15px;font-weight:900;">${list.length} ${isVisited?'زيارة مكتملة':isCancelled?'زيارة ملغية':isApproved?'مؤثر مقبول':'مؤثر مرفوض'}</div>
+          <div style="background:rgba(255,255,255,.15);border-radius:10px;padding:6px 16px;font-size:15px;font-weight:900;">${(isVisited||isCancelled)?allEntries.length:list.length} ${isVisited?'زيارة مكتملة':isCancelled?'زيارة ملغية':isApproved?'مؤثر مقبول':'مؤثر مرفوض'}</div>
         </div>
         <!-- table area -->
         <div style="padding:.6rem .5rem;">
