@@ -1733,7 +1733,7 @@ function showToast(msg, color='#059669') {
 
 function updateStats() {
   const visited=influencers.filter(i=>i.status==='approved'&&i.visitStatus==='done').length + influencers.filter(i=>i.status==='approved').reduce((sum,i)=>sum+((i.extraVisits||[]).filter(ev=>ev.visitStatus==='done').length),0);
-  const cancelled=influencers.filter(i=>i.status==='approved'&&i.visitStatus==='cancelled').length;
+  const cancelled=influencers.filter(i=>i.status==='approved'&&i.visitStatus==='cancelled').length + influencers.filter(i=>i.status==='approved').reduce((sum,i)=>sum+((i.extraVisits||[]).filter(ev=>ev.visitStatus==='cancelled').length),0);
   const approved=influencers.filter(i=>i.status==='approved'&&i.visitStatus!=='done'&&i.visitStatus!=='cancelled').length;
   const rejected=influencers.filter(i=>i.status==='rejected').length;
   const total=influencers.length;
@@ -4573,6 +4573,23 @@ function openReportFromBtn(){
 // ═══════════════════════════════════════════════════════════════
 // كشف ألغيت زيارتهم — مخفي التليفون والسوشيال ميديا
 // ═══════════════════════════════════════════════════════════════
+
+// ── Helper: build flat entries list including extraVisits ──
+function _buildEntries(filterType) {
+  const entries = [];
+  influencers.filter(i=>i.status==='approved').forEach(item=>{
+    const inclMain = filterType==='cancelled'?(item.visitStatus==='cancelled')
+      :filterType==='visited'?(item.visitStatus==='done'):true;
+    if(inclMain) entries.push({isExtra:false,item});
+    (item.extraVisits||[]).forEach((ev,vi)=>{
+      const inclEv = filterType==='cancelled'?(ev.visitStatus==='cancelled')
+        :filterType==='visited'?(ev.visitStatus==='done'):true;
+      if(inclEv) entries.push({isExtra:true,item,ev,vi});
+    });
+  });
+  return entries;
+}
+
 function openCancelledHiddenReport() {
   const entries = _buildEntries('cancelled').sort((a,b)=>{
     const nameA=(a.item.name||a.item.ig||'').trim(), nameB=(b.item.name||b.item.ig||'').trim();
@@ -5377,12 +5394,19 @@ function filterReportRows(filter) {
   // فلترة الصفوف
   const rows = document.querySelectorAll('#reportContainer tr[id^="rrow_"]');
   rows.forEach(row => {
-    const idx = parseInt(row.id.replace('rrow_',''));
-    const item = influencers[idx];
-    if(!item) return;
-    const vs = item.visitStatus || '';
-    const cs = item.contentStatus || '';
-    const hasDate = !!item.visitDate;
+    let vs='', cs='', hasDate=false;
+    const evMatch = row.id.match(/^rrow_ev_(\d+)_(\d+)$/);
+    if(evMatch) {
+      const item = influencers[parseInt(evMatch[1])];
+      const ev = item && item.extraVisits && item.extraVisits[parseInt(evMatch[2])];
+      if(!ev) return;
+      vs = ev.visitStatus||''; cs = ev.contentStatus||''; hasDate = !!ev.visitDate;
+    } else {
+      const idx = parseInt(row.id.replace('rrow_',''));
+      const item = influencers[idx];
+      if(!item) return;
+      vs = item.visitStatus||''; cs = item.contentStatus||''; hasDate = !!item.visitDate;
+    }
     let show = false;
     if(filter==='all')         show = true;
     else if(filter==='done')   show = vs==='done';
@@ -6228,22 +6252,14 @@ function guestOpenCancelledReport() {
 }
 
 function _openGuestCancelledReport() {
-  const list = influencers
-    .filter(i => i.status === 'approved' && i.visitStatus === 'cancelled')
-    .sort((a,b) => {
-      const nameA=(a.name||a.ig||'').trim(), nameB=(b.name||b.ig||'').trim();
-      const isArA=/[\u0600-\u06FF]/.test(nameA.charAt(0)), isArB=/[\u0600-\u06FF]/.test(nameB.charAt(0));
-      if(isArA&&!isArB) return -1; if(!isArA&&isArB) return 1;
-      return nameA.localeCompare(nameB, isArA?'ar':'en', {sensitivity:'base'});
-    });
-  if(!list.length){showToast('⚠️ لا يوجد زيارات ملغية!','#d97706');return;}
-  const today=new Date().toLocaleDateString('ar-KW',{year:'numeric',month:'long',day:'numeric'});
+    const today=new Date().toLocaleDateString('ar-KW',{year:'numeric',month:'long',day:'numeric'});
   const gcEntries = _buildEntries('cancelled').sort((a,b)=>{
     const nameA=(a.item.name||a.item.ig||'').trim(), nameB=(b.item.name||b.item.ig||'').trim();
     const isArA=/[\u0600-\u06FF]/.test(nameA.charAt(0)), isArB=/[\u0600-\u06FF]/.test(nameB.charAt(0));
     if(isArA&&!isArB)return -1; if(!isArA&&isArB)return 1;
     return nameA.localeCompare(nameB,isArA?'ar':'en',{sensitivity:'base'});
   });
+  if(!gcEntries.length){showToast('⚠️ لا يوجد زيارات ملغية!','#d97706');return;}
   const rows=gcEntries.map((entry,i)=>{
     const {item}=entry; const src=entry.isExtra?entry.ev:item;
     const _g=(['أنثى','انثى','female','f'].includes((item.gender||'').toLowerCase()))?'f':(['ذكر','male','m'].includes((item.gender||'').toLowerCase()))?'m':'';
