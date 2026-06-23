@@ -133,7 +133,7 @@ body{font-family:'Tajawal',sans-serif;direction:rtl;background:#0d1117;color:#e6
 .fab{position:fixed;top:12px;right:12px;width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,#0a3d62,#1a6fa8);border:none;color:#fff;font-size:22px;cursor:pointer;box-shadow:0 4px 20px rgba(26,111,168,0.5);display:flex;align-items:center;justify-content:center;z-index:9999;transition:transform .2s;}
 #newUserNotifBar.visible ~ * .fab, .fab.notif-visible{z-index:99!important;}
 .fab:hover{transform:scale(1.1);}
-.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:4500;display:flex;align-items:center;justify-content:center;padding:1rem;}
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:99999;display:flex;align-items:center;justify-content:center;padding:1rem;}
 .modal-overlay.hidden{display:none;}
 .modal{background:#161b22;border:1px solid #30363d;border-radius:16px;padding:1.5rem;width:100%;max-width:440px;max-height:90vh;overflow-y:auto;}
 .modal h3{font-size:16px;font-weight:700;margin-bottom:1.2rem;display:flex;align-items:center;gap:8px;}
@@ -656,15 +656,15 @@ body{font-family:'Tajawal',sans-serif;direction:rtl;background:#0d1117;color:#e6
   </div>
 </div>
 
-<div class="modal-overlay hidden" id="formImportOverlay" onclick="if(event.target===this)closeFormImport()">
-  <div class="modal" style="max-width:480px;">
+<div class="modal-overlay hidden" id="formImportOverlay">
+  <div class="modal" style="max-width:480px;" onclick="event.stopPropagation()">
     <h3>📋 إضافة من فورم</h3>
     <p style="font-size:12px;color:#6e7681;margin-bottom:.8rem;">الصق محتوى الإيميل اللي وصلك من الفورم كاملاً</p>
     <textarea id="formImportText" style="width:100%;height:220px;background:#0d1117;border:1px solid #30363d;border-radius:10px;color:#e6edf3;font-size:12px;padding:.8rem;font-family:Tajawal,sans-serif;resize:vertical;direction:rtl;" placeholder="الصق النص هنا..."></textarea>
     <div id="formImportPreview" style="display:none;margin-top:.8rem;background:#0d1f14;border:1px solid #16a34a;border-radius:10px;padding:.8rem;font-size:12px;"></div>
     <div class="modal-actions">
       <button class="modal-cancel" onclick="closeFormImport()">إلغاء</button>
-      <button class="modal-save" style="background:#0891b2;" onclick="parseFormImport()">🔍 استخراج البيانات</button>
+      <button class="modal-save" id="extractDataBtn" style="background:#0891b2;" onclick="parseFormImport()">🔍 استخراج البيانات</button>
       <button class="modal-save" id="formImportAddBtn" style="display:none;background:#059669;" onclick="confirmFormImport()">✅ إضافة</button>
     </div>
   </div>
@@ -3170,6 +3170,7 @@ window.sendWhatsApp = sendWhatsApp;
 let _formImportItem = null;
 
 function openFormImport() {
+  closeFabMenu();
   document.getElementById('formImportText').value = '';
   document.getElementById('formImportPreview').style.display = 'none';
   document.getElementById('formImportAddBtn').style.display = 'none';
@@ -3177,6 +3178,15 @@ function openFormImport() {
   _formImportItems = [];
   document.getElementById('formImportOverlay').classList.remove('hidden');
 }
+// إغلاق modal الفورم بالضغط خارجه (listener منفصل بدل onclick على الـ overlay)
+document.getElementById('formImportOverlay').addEventListener('click', function(e) {
+  if (e.target === this) closeFormImport();
+});
+// backup listener على زر استخراج البيانات
+document.getElementById('extractDataBtn')?.addEventListener('click', function(e) {
+  e.stopPropagation();
+  parseFormImport();
+});
 function closeFormImport() {
   document.getElementById('formImportOverlay').classList.add('hidden');
   _formImportItem = null;
@@ -3186,79 +3196,128 @@ let _formImportItems = []; // supports multiple people
 
 function parseFormImport() {
   const rawText = document.getElementById('formImportText').value;
-  if(!rawText.trim()) return;
+  if(!rawText.trim()) { showToast('⚠️ الصق النص أولاً', '#d97706'); return; }
   const text = rawText.replace(/\r\n/g,'\n').replace(/\r/g,'\n');
   const lines = text.split('\n');
 
-  // ── Multi-row Sheet mode: lines that have TABS (Google Sheets copy-paste)
-  // Do NOT use 12-digit detection alone — a civil number on its own line in an email would falsely match
+  const nonEmptyLines = lines.map(l=>l.trim()).filter(Boolean);
+
+  // ══════════════════════════════════════════════════════════════════
+  // ── Parser بسيط بـ Regex يستخرج البيانات من أي صيغة ──
+  // ══════════════════════════════════════════════════════════════════
+  function parseByRegex(fullText) {
+    // الاسم: أول تسلسل كلمات عربية في السطر الأول قبل أي رقم أو كلمة جنس
+    let name = '';
+    const firstArabicLine = (fullText.match(/^[^\n]*[\u0600-\u06FF][^\n]*/m)||[''])[0];
+    const nameM = firstArabicLine.match(/^((?:[\u0600-\u06FF]+\s+){1,5}[\u0600-\u06FF]+)(?:\s|$)/);
+    if(nameM) {
+      // شيل كلمات الجنس من آخر الاسم
+      name = nameM[1].replace(/\s*(?:أنثى|انثى|أنث|ذكر)\s*$/, '').trim();
+    }
+
+    // الجنس
+    const gender = /أنثى|انثى|أنث/i.test(fullText) ? 'f' : /\bذكر\b/i.test(fullText) ? 'm' : '';
+
+    // الرقم المدني: 12 رقم بالضبط
+    const civilM = fullText.match(/(?<![:\d])(\d{12})(?!\d)/);
+    const civil = civilM ? civilM[1] : '';
+
+    // الهاتف: 8-11 رقم (مش الـ civil)
+    const phoneM = fullText.replace(civil, '').match(/(?<![:\d])(\d{8,11})(?!\d)/);
+    const phone = phoneM ? phoneM[1] : '';
+
+    // الجنسية: بنشوف دول معروفة في النص
+    const NATS = ['مصر','الكويت','السعودية','الإمارات','البحرين','قطر','عمان','العراق','سوريا','لبنان','الأردن','فلسطين','السودان','ليبيا','تونس','المغرب','الجزائر','باكستان','الهند','تركيا','إيران','أفغانستان','إثيوبيا','كينيا','الفلبين','بنغلاديش','الصومال'];
+    const nationality = NATS.find(c => fullText.includes(c)) || '';
+
+    // انستاجرام
+    const igM = fullText.match(/https?:\/\/(?:www\.)?instagram\.com\/([^?\s&\t\n]+)/i);
+    const ig_url = igM ? 'https://www.instagram.com/' + igM[1].replace(/\/+$/,'') : '';
+    const ig = ig_url ? '@' + normalizeIg(ig_url) : '';
+
+    // تيك توك
+    const ttM = fullText.match(/https?:\/\/(?:www\.)?tiktok\.com\/@([^?\s&\t\n]+)/i);
+    const tt = ttM ? '@' + ttM[1] : '';
+    const tt_url = ttM ? 'https://www.tiktok.com/@' + ttM[1] : '';
+
+    // سناب
+    const snM = fullText.match(/https?:\/\/(?:www\.)?snapchat\.com\/[^\s\t\n]+/i);
+    const snap = snM ? snM[0] : '';
+
+    if(!name && !phone && !ig) return null;
+    return { name, civil, phone: normalizePhone(phone), nationality, gender,
+             ig, ig_url, tt, tt_url, snap, status:'pending', addedAt: serverNow() };
+  }
+
+  // ── جرب الـ regex parser أولاً لو النص مش فيه labels عربية ──
+  const hasArabicLabels = /(?:الاسم|الهاتف|الجنس|الرقم المدني|الجنسية)\s*[\n:]/i.test(text);
+  const hasArabicData   = /[\u0600-\u06FF]/.test(text) && /\d{7,}/.test(text);
+
+  if(hasArabicData && !hasArabicLabels) {
+    const item = parseByRegex(text);
+    if(item) {
+      _formImportItems = [item];
+      _formImportItem = item;
+      const preview = document.getElementById('formImportPreview');
+      preview.style.display = 'block';
+      const dup = findDuplicate(item); item._dup = dup || null;
+      preview.innerHTML = `
+        <div style="font-weight:700;color:${dup?'#fbbf24':'#4ade80'};margin-bottom:6px;font-size:13px;">${dup?'⚠️ هذا الشخص موجود مسبقاً':'✅ تم استخراج البيانات بنجاح'}</div>
+        ${item.name?`<div style="margin:3px 0;">👤 <b>الاسم:</b> ${item.name}</div>`:'<div style="color:#f87171;">⚠️ لم يتم العثور على الاسم</div>'}
+        ${item.gender?`<div style="margin:3px 0;">${item.gender==='f'?'👩 أنثى':'👨 ذكر'}</div>`:''}
+        ${item.civil?`<div style="margin:3px 0;">🪪 <b>الرقم المدني:</b> ${item.civil}</div>`:''}
+        ${item.phone?`<div style="margin:3px 0;">📞 <b>الموبايل:</b> ${displayPhone(item.phone)}</div>`:'<div style="color:#f87171;margin:3px 0;">⚠️ لم يتم العثور على رقم الموبايل</div>'}
+        ${item.nationality?`<div style="margin:3px 0;">🌍 <b>الجنسية:</b> ${displayNationality(item.nationality)}</div>`:''}
+        ${item.ig?`<div style="margin:3px 0;">📸 <b>انستاجرام:</b> ${item.ig}</div>`:''}
+        ${item.tt?`<div style="margin:3px 0;">🎵 <b>تيك توك:</b> ${item.tt}</div>`:''}
+        ${item.snap?`<div style="margin:3px 0;">👻 <b>سناب:</b> ✓</div>`:''}
+        ${dup?`<div style="margin-top:6px;color:#fbbf24;font-size:11px;">تطابق مع: ${dup.reasons.join(' · ')}</div>`:''}`;
+      const addBtn = document.getElementById('formImportAddBtn');
+      addBtn.style.display = 'block';
+      addBtn.textContent = dup ? '🔄 تحديث الموجود' : '✅ إضافة';
+      addBtn.style.background = dup ? '#1a6fa8' : '#059669';
+      // اسكرول للنتيجة
+      const modal = document.getElementById('formImportOverlay').querySelector('.modal');
+      if(modal) setTimeout(()=>{ modal.scrollTop = modal.scrollHeight; }, 80);
+      return;
+    }
+  }
+
+  // ── fallback: Google Sheets rows (with tabs) ──
   const sheetLines = lines.filter(l => l.trim() && l.includes('\t'));
+  const dataLines = sheetLines.length > 0 ? sheetLines :
+    nonEmptyLines.filter(l => /[\u0600-\u06FF]/.test(l) && /\d{7,}/.test(l) && !/https?:/i.test(l));
 
-  // ── Compact multi-line email notification format ──
-  // صيغة إيميل الفورم المضغوطة: سطر 1 = اسم + جنس + مدني + هاتف + جنسية (مفصولة بمسافات)
-  // الأسطر التالية = روابط انستاجرام / تيك توك / سناب
-  if(sheetLines.length === 0) {
-    const nonEmptyLines = lines.map(l=>l.trim()).filter(Boolean);
-    const firstLine = nonEmptyLines[0] || '';
-    const hasArabicAndNumbers = /[\u0600-\u06FF]/.test(firstLine) && /\d{8,}/.test(firstLine);
-    const hasNoLabels = !/(?:الاسم|الهاتف|الجنس|الرقم المدني|الجنسية)\s*[\n:]/.test(text);
-    const hasUrlLines = nonEmptyLines.some(l => /https?:\/\//i.test(l));
-
-    if(hasArabicAndNumbers && hasNoLabels && hasUrlLines) {
-      // Parse line 1 for Name/Gender/Civil/Phone/Nationality
-      const words = firstLine.split(/\s+/).filter(Boolean);
-      let wi = 0;
-      const nameParts = [];
-      while(wi < words.length && !/^(ذكر|أنثى|انثى|أنث|male|female)$/i.test(words[wi])) { nameParts.push(words[wi]); wi++; }
-      const nameVal   = nameParts.join(' ');
-      const genderRaw = words[wi] || ''; wi++;
-      let civilVal = '', phoneVal = '';
-      // Civil = 12 digits, Phone = 7-11 digits
-      while(wi < words.length) { if(/^\d{12}$/.test(words[wi])) { civilVal = words[wi]; wi++; break; } wi++; }
-      while(wi < words.length) { if(/^\d{7,11}$/.test(words[wi])) { phoneVal = words[wi]; wi++; break; } wi++; }
-      const natParts = [];
-      while(wi < words.length && !/https?/i.test(words[wi]) && !/^موافق/i.test(words[wi])) { natParts.push(words[wi]); wi++; }
-      const natVal = natParts.join(' ');
-
-      // Extract URLs from all lines
-      let igRaw='', ttRaw='', snapRaw='';
-      for(const ln of nonEmptyLines) {
-        if(!igRaw)   { const m = ln.match(/https?:\/\/(?:www\.)?instagram\.com\S*/i);   if(m) igRaw   = m[0].split(/\s/)[0]; }
-        if(!ttRaw)   { const m = ln.match(/https?:\/\/(?:www\.)?tiktok\.com\S*/i);       if(m) ttRaw   = m[0].split(/\s/)[0]; }
-        if(!snapRaw) { const m = ln.match(/https?:\/\/(?:www\.)?snapchat\.com\S*/i);    if(m) snapRaw = m[0].split(/\s/)[0]; }
+  if(dataLines.length > 0 && !hasArabicLabels) {
+    _formImportItems = [];
+    for(const dl of dataLines) {
+      const item = parseSheetRow(dl);
+      if(!item) continue;
+      // supplement social from full text
+      if(!item.ig) { const m=text.match(/https?:\/\/(?:www\.)?instagram\.com\/([^?\s&\t\n]+)/i); if(m){item.ig_url='https://www.instagram.com/'+m[1];item.ig='@'+normalizeIg(item.ig_url);} }
+      if(!item.tt) { const m=text.match(/https?:\/\/(?:www\.)?tiktok\.com\/@([^?\s&\t\n]+)/i); if(m){item.tt='@'+m[1];item.tt_url='https://www.tiktok.com/@'+m[1];} }
+      if(!item.snap){ const m=text.match(/https?:\/\/(?:www\.)?snapchat\.com\/[^\s\t\n]+/i); if(m)item.snap=m[0]; }
+      if(item.name || item.phone || item.ig) _formImportItems.push(item);
+    }
+    if(_formImportItems.length > 0) {
+      // عرض النتيجة
+      const preview = document.getElementById('formImportPreview');
+      preview.style.display = 'block';
+      if(_formImportItems.length === 1) {
+        const item=_formImportItems[0]; _formImportItem=item;
+        const dup=findDuplicate(item); item._dup=dup||null;
+        preview.innerHTML=`<div style="font-weight:700;color:${dup?'#fbbf24':'#4ade80'};margin-bottom:6px;">${dup?'⚠️ موجود مسبقاً':'✅ تم الاستخراج'}</div>${item.name?`<div>👤 ${item.name}</div>`:''}${item.phone?`<div>📞 ${displayPhone(item.phone)}</div>`:''}${item.ig?`<div>📸 ${item.ig}</div>`:''}${item.tt?`<div>🎵 ${item.tt}</div>`:''}`;
+        const addBtn=document.getElementById('formImportAddBtn');
+        addBtn.style.display='block'; addBtn.textContent=dup?'🔄 تحديث':'✅ إضافة'; addBtn.style.background=dup?'#1a6fa8':'#059669';
+      } else {
+        _formImportItem=null;
+        preview.innerHTML=`<div style="font-weight:700;color:#4ade80;margin-bottom:6px;">✅ تم استخراج ${_formImportItems.length} أشخاص</div>`+_formImportItems.map((it,i)=>`<div>${i+1}. ${it.name||'—'} ${it.phone?'📞':''}${it.ig||''}</div>`).join('');
+        const addBtn=document.getElementById('formImportAddBtn');
+        addBtn.style.display='block'; addBtn.textContent=`✅ إضافة الكل (${_formImportItems.length})`; addBtn.style.background='#059669';
       }
-
-      if(nameVal || phoneVal || igRaw) {
-        const genderVal = /أنثى|انثى|أنث|female/i.test(genderRaw)?'f':/ذكر|male/i.test(genderRaw)?'m':'';
-        const ig_url = igRaw.startsWith('http') ? igRaw.split('?')[0].split('&')[0] : '';
-        const ig     = ig_url ? ('@' + normalizeIg(ig_url)) : '';
-        const tt_url = ttRaw.startsWith('http') ? ttRaw.split('?')[0] : '';
-        const tt     = tt_url.includes('tiktok.com/@') ? '@'+tt_url.split('tiktok.com/@').pop().split('?')[0] : '';
-        const item   = { name:nameVal, civil:civilVal, phone:normalizePhone(phoneVal), nationality:natVal,
-                         gender:genderVal, ig, ig_url, tt, tt_url, snap:snapRaw, status:'pending', addedAt:serverNow() };
-        _formImportItems = [item];
-
-        const preview = document.getElementById('formImportPreview');
-        preview.style.display = 'block';
-        const dup = findDuplicate(item); item._dup = dup || null;
-        _formImportItem = item;
-        preview.innerHTML = `
-          <div style="font-weight:700;color:${dup?'#fbbf24':'#4ade80'};margin-bottom:6px;">${dup?'⚠️ هذا الشخص موجود مسبقاً':'✅ تم استخراج البيانات:'}</div>
-          ${item.name?`<div>👤 <b>الاسم:</b> ${item.name}</div>`:'<div style="color:#f87171;">⚠️ لم يتم العثور على الاسم</div>'}
-          ${item.gender?`<div>${item.gender==='f'?'👩 أنثى':'👨 ذكر'}</div>`:''}
-          ${item.civil?`<div>🪪 <b>الرقم المدني:</b> ${item.civil}</div>`:''}
-          ${item.phone?`<div>📞 <b>الموبايل:</b> ${displayPhone(item.phone)}</div>`:'<div style="color:#f87171;">⚠️ لم يتم العثور على رقم الموبايل</div>'}
-          ${item.nationality?`<div>🌍 <b>الجنسية:</b> ${displayNationality(item.nationality)}</div>`:''}
-          ${item.ig?`<div>📸 <b>انستاجرام:</b> ${item.ig}</div>`:''}
-          ${item.tt?`<div>🎵 <b>تيك توك:</b> ${item.tt}</div>`:''}
-          ${item.snap?`<div>👻 <b>سناب:</b> ✓</div>`:''}
-          ${dup?`<div style="margin-top:6px;color:#fbbf24;font-size:11px;">تطابق مع: ${dup.reasons.join(' · ')}</div>`:''}`;
-        const addBtn = document.getElementById('formImportAddBtn');
-        addBtn.style.display = 'block';
-        addBtn.textContent = dup ? '🔄 تحديث الموجود' : '✅ إضافة';
-        addBtn.style.background = dup ? '#1a6fa8' : '#059669';
-        return;
-      }
+      const modal=document.getElementById('formImportOverlay').querySelector('.modal');
+      if(modal) setTimeout(()=>{ modal.scrollTop=modal.scrollHeight; },80);
+      return;
     }
   }
 
