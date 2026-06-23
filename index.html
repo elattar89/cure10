@@ -4574,44 +4574,35 @@ function openReportFromBtn(){
 // كشف ألغيت زيارتهم — مخفي التليفون والسوشيال ميديا
 // ═══════════════════════════════════════════════════════════════
 function openCancelledHiddenReport() {
-  const list = influencers
-    .filter(i => i.status === 'approved' && i.visitStatus === 'cancelled')
-    .sort((a, b) => {
-      const nameA = (a.name || a.ig || '').trim();
-      const nameB = (b.name || b.ig || '').trim();
-      const isArA = /[\u0600-\u06FF]/.test(nameA.charAt(0));
-      const isArB = /[\u0600-\u06FF]/.test(nameB.charAt(0));
-      if(isArA && !isArB) return -1;
-      if(!isArA && isArB) return 1;
-      return nameA.localeCompare(nameB, isArA ? 'ar' : 'en', {sensitivity:'base'});
-    });
-  if(!list.length) { showToast('⚠️ لا يوجد زيارات ملغية!', '#d97706'); return; }
+  const entries = _buildEntries('cancelled').sort((a,b)=>{
+    const nameA=(a.item.name||a.item.ig||'').trim(), nameB=(b.item.name||b.item.ig||'').trim();
+    const isArA=/[\u0600-\u06FF]/.test(nameA.charAt(0)), isArB=/[\u0600-\u06FF]/.test(nameB.charAt(0));
+    if(isArA&&!isArB)return -1; if(!isArA&&isArB)return 1;
+    return nameA.localeCompare(nameB,isArA?'ar':'en',{sensitivity:'base'});
+  });
+  if(!entries.length) { showToast('⚠️ لا يوجد زيارات ملغية!', '#d97706'); return; }
   logActivity('report', 'فتح كشف: ألغيت الزيارة (مخفي)');
   const today = new Date().toLocaleDateString('ar-KW', {year:'numeric', month:'long', day:'numeric'});
   const thBg = '#92400e';
-  const rows = list.map((item, i) => {
+  const rows = entries.map((entry, i) => {
+    const {item} = entry;
+    const src = entry.isExtra ? entry.ev : item;
     const name = item.name || '—';
-    const gLabel = item.gender === 'm'
-      ? `<span style="background:#1d4ed8;color:#fff;padding:2px 7px;border-radius:20px;font-size:10px;font-weight:700;">👨 ذكر</span>`
-      : item.gender === 'f'
-      ? `<span style="background:#a21caf;color:#fff;padding:2px 7px;border-radius:20px;font-size:10px;font-weight:700;">👩 أنثى</span>`
-      : '—';
-    const natLabel = item.nationality
-      ? `<span style="background:#065f46;color:#fff;padding:2px 7px;border-radius:20px;font-size:10px;font-weight:700;">${displayNationality(item.nationality)}</span>`
-      : '—';
-    const dateStr = item.visitDate ? formatDateAr(item.visitDate) : '<span style="color:#9ca3af;font-size:11px;">لا يوجد موعد</span>';
-    const svcLabel = (item.services && item.services.length)
-      ? item.services.map(s => `<span style="display:inline-block;background:#f3e8ff;color:#7c3aed;border:1px solid #c084fc;border-radius:20px;padding:2px 7px;font-size:10px;font-weight:700;margin:1px;">${s}</span>`).join('<br>')
-      : '<span style="color:#9ca3af;">—</span>';
+    const nameCell = entry.isExtra ? `${name} <span style="font-size:10px;background:#dbeafe;color:#1d4ed8;border-radius:10px;padding:1px 5px;font-weight:700;">🔄 زيارة ${entry.vi+2}</span>` : name;
+    const _g = (['أنثى','انثى','female','f'].includes((item.gender||'').toLowerCase()))?'f':(['ذكر','male','m'].includes((item.gender||'').toLowerCase()))?'m':'';
+    const gLabel = _g==='m'?`<span style="background:#1d4ed8;color:#fff;padding:2px 7px;border-radius:20px;font-size:10px;font-weight:700;">👨 ذكر</span>`:_g==='f'?`<span style="background:#a21caf;color:#fff;padding:2px 7px;border-radius:20px;font-size:10px;font-weight:700;">👩 أنثى</span>`:'—';
+    const natLabel = item.nationality ? `<span style="background:#065f46;color:#fff;padding:2px 7px;border-radius:20px;font-size:10px;font-weight:700;">${displayNationality(item.nationality)}</span>` : '—';
+    const dateStr = src.visitDate ? formatDateAr(src.visitDate) : '<span style="color:#9ca3af;font-size:11px;">لا يوجد موعد</span>';
+    const svcLabel = (src.services && src.services.length) ? src.services.map(s=>`<span style="display:inline-block;background:#f3e8ff;color:#7c3aed;border:1px solid #c084fc;border-radius:20px;padding:2px 7px;font-size:10px;font-weight:700;margin:1px;">${s}</span>`).join('<br>') : '<span style="color:#9ca3af;">—</span>';
     const noteHtml = item.note ? `<span style="font-size:10px;color:#92400e;">${item.note}</span>` : '—';
     const phoneHtml = item.phone ? `<div style="color:#0369a1;direction:ltr;font-size:11px;font-weight:700;">📞 ${displayPhone(item.phone)}</div>` : '—';
     const civilHtml = item.civil ? `<div style="color:#0f766e;direction:ltr;font-size:11px;font-weight:700;">🪪 ${item.civil}</div>` : '—';
     const socialsHtml = buildSocialsHtml(item);
-    const tnHtml = buildTreatmentNotesHtml(item);
-    const sigHtml = item.signature ? `<img src="${item.signature}" style="width:120px;height:44px;object-fit:contain;display:block;border:1.5px solid #059669;border-radius:6px;" />` : '—';
-    return `<tr style="background:${i%2===0?'#fff8f0':'#ffffff'};border-right:4px solid #b91c1c;">
+    const tnHtml = buildTreatmentNotesHtml(src);
+    const sigHtml = src.signature ? `<img src="${src.signature}" style="width:120px;height:44px;object-fit:contain;display:block;border:1.5px solid #059669;border-radius:6px;" />` : '—';
+    return `<tr style="background:${i%2===0?'#fff8f0':'#ffffff'};border-right:4px solid #b91c1c;${entry.isExtra?'border-top:2px dashed #93c5fd;':''}">
       <td style="text-align:center;font-weight:900;color:${thBg};">${i+1}</td>
-      <td style="text-align:right;"><div style="font-weight:700;font-size:12px;color:#0a3d62;">${name}</div><div style="font-size:10px;color:#dc2626;font-weight:700;margin-top:2px;">⚠️ ألغيت الزيارة</div></td>
+      <td style="text-align:right;"><div style="font-weight:700;font-size:12px;color:#0a3d62;">${nameCell}</div><div style="font-size:10px;color:#dc2626;font-weight:700;margin-top:2px;">⚠️ ألغيت الزيارة</div></td>
       <td style="text-align:center;">${gLabel}</td>
       <td style="text-align:center;">${natLabel}</td>
       <td>${phoneHtml}</td>
@@ -4636,7 +4627,7 @@ function openCancelledHiddenReport() {
           <div style="font-size:17px;font-weight:900;">⚠️ كشف ألغيت زيارتهم</div>
           <div style="font-size:11px;opacity:.85;margin-top:2px;">مركز كيور الطبي —— ${today}</div>
         </div>
-        <div style="background:rgba(255,255,255,.15);border-radius:10px;padding:6px 16px;font-size:15px;font-weight:900;">${list.length} زيارة ملغية</div>
+        <div style="background:rgba(255,255,255,.15);border-radius:10px;padding:6px 16px;font-size:15px;font-weight:900;">${entries.length} زيارة ملغية</div>
       </div>
       <div style="padding:.6rem .5rem;">
         <div class="report-swipe-hint">👈 اسحب يميناً أو يساراً لرؤية الجدول كاملاً 👉</div>
@@ -4673,34 +4664,33 @@ function openCancelledHiddenReport() {
 
 async function shareCancelledHiddenReport() {
   logActivity('report', `مشاركة كشف: ألغيت الزيارة (مخفي)`);
-  const list = influencers
-    .filter(i => i.status === 'approved' && i.visitStatus === 'cancelled')
-    .sort((a, b) => {
-      const nameA = (a.name || a.ig || '').trim();
-      const nameB = (b.name || b.ig || '').trim();
-      const isArA = /[\u0600-\u06FF]/.test(nameA.charAt(0));
-      const isArB = /[\u0600-\u06FF]/.test(nameB.charAt(0));
-      if(isArA && !isArB) return -1;
-      if(!isArA && isArB) return 1;
-      return nameA.localeCompare(nameB, isArA ? 'ar' : 'en', {sensitivity:'base'});
-    });
-  if(!list.length) return;
+  const entries = _buildEntries('cancelled').sort((a,b)=>{
+    const nameA=(a.item.name||a.item.ig||'').trim(), nameB=(b.item.name||b.item.ig||'').trim();
+    const isArA=/[\u0600-\u06FF]/.test(nameA.charAt(0)), isArB=/[\u0600-\u06FF]/.test(nameB.charAt(0));
+    if(isArA&&!isArB)return -1; if(!isArA&&isArB)return 1;
+    return nameA.localeCompare(nameB,isArA?'ar':'en',{sensitivity:'base'});
+  });
+  if(!entries.length) return;
   const today = new Date().toLocaleDateString('ar-KW', {year:'numeric', month:'long', day:'numeric'});
   const thBg = '#92400e';
-  const rows = list.map((item, i) => {
-    const gLabel = item.gender === 'm' ? '👨 ذكر' : item.gender === 'f' ? '👩 أنثى' : '—';
+  const rows = entries.map((entry, i) => {
+    const {item} = entry;
+    const src = entry.isExtra ? entry.ev : item;
+    const _g=(['أنثى','انثى','female','f'].includes((item.gender||'').toLowerCase()))?'f':(['ذكر','male','m'].includes((item.gender||'').toLowerCase()))?'m':'';
+    const gLabel = _g==='m'?'👨 ذكر':_g==='f'?'👩 أنثى':'—';
     const natCell = item.nationality ? `🌍 ${displayNationality(item.nationality)}` : '—';
     const phoneCell = item.phone ? `<a href="tel:${item.phone}" style="color:#0369a1;text-decoration:none;direction:ltr;font-size:12px;">📞 ${displayPhone(item.phone)}</a>` : '—';
     const civilCell = item.civil || '—';
     const socialsCell = buildSocialsHtml(item);
-    const dateStr = item.visitDate ? formatDateAr(item.visitDate) : '—';
-    const svcLabel = (item.services && item.services.length) ? item.services.join(' · ') : '—';
-    const tnHtml = buildTreatmentNotesHtml(item);
-    const sigHtml = item.signature ? `<img src="${item.signature}" style="width:120px;height:44px;object-fit:contain;display:block;" />` : '—';
+    const dateStr = src.visitDate ? formatDateAr(src.visitDate) : '—';
+    const svcLabel = (src.services && src.services.length) ? src.services.join(' · ') : '—';
+    const tnHtml = buildTreatmentNotesHtml(src);
+    const sigHtml = src.signature ? `<img src="${src.signature}" style="width:120px;height:44px;object-fit:contain;display:block;" />` : '—';
+    const nameCell = entry.isExtra ? `${item.name||'—'} <span style="font-size:10px;background:#dbeafe;color:#1d4ed8;border-radius:10px;padding:1px 5px;font-weight:700;">🔄 زيارة ${entry.vi+2}</span>` : (item.name||'—');
     const rb = i%2===1 ? '#fff8f0' : '#ffffff';
-    return `<tr style="background:${rb};border-right:3px solid #b91c1c;">
+    return `<tr style="background:${rb};border-right:3px solid #b91c1c;${entry.isExtra?'border-top:2px dashed #93c5fd;':''}">
       <td style="text-align:center;font-weight:900;width:36px;">${i+1}</td>
-      <td style="font-weight:700;">${item.name||'—'}<br><span style="font-size:10px;color:#dc2626;">⚠️ ألغيت الزيارة</span></td>
+      <td style="font-weight:700;">${nameCell}<br><span style="font-size:10px;color:#dc2626;">⚠️ ألغيت الزيارة</span></td>
       <td>${gLabel}</td><td>${natCell}</td>
       <td style="direction:ltr;">${phoneCell}</td>
       <td style="font-size:11px;direction:ltr;">${civilCell}</td>
@@ -4725,7 +4715,7 @@ async function shareCancelledHiddenReport() {
     <th style="background:${thBg};min-width:140px;">💉 الجرعات</th>
     <th style="background:${thBg};">ملاحظة</th>
     <th style="background:${thBg};min-width:140px;">توقيع المؤثر</th>`;
-  const html = buildReportHTMLShell(thBg, '#ca8a04', '⚠️ كشف ألغيت زيارتهم', '⚠️', today, list.length, headersHTML, rows, false);
+  const html = buildReportHTMLShell(thBg, '#ca8a04', '⚠️ كشف ألغيت زيارتهم', '⚠️', today, entries.length, headersHTML, rows, false);
   const d = new Date(); const ds = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
   await downloadOrShare(html, `Cure-Cancelled-Visits-${ds}.html`);
 }
@@ -6131,24 +6121,37 @@ function openGuestReport() {
     return nameA.localeCompare(nameB, isArA ? 'ar' : 'en', {sensitivity:'base'});
   });
   const today = new Date().toLocaleDateString('ar-KW', {year:'numeric', month:'long', day:'numeric'});
-  const rows = list.map((item, i) => {
+  // Build entries including extraVisits
+  const guestEntries = _buildEntries('all').sort((a,b)=>{
+    const da=a.isExtra?a.ev.visitDate:a.item.visitDate;
+    const db=b.isExtra?b.ev.visitDate:b.item.visitDate;
+    const hasDA=!!da, hasDB=!!db;
+    if(hasDA&&!hasDB)return -1; if(!hasDA&&hasDB)return 1;
+    if(hasDA&&hasDB) return visitDateToSortKey(da).localeCompare(visitDateToSortKey(db));
+    const nameA=(a.item.name||a.item.ig||'').trim(), nameB=(b.item.name||b.item.ig||'').trim();
+    const isArA=/[\u0600-\u06FF]/.test(nameA.charAt(0)), isArB=/[\u0600-\u06FF]/.test(nameB.charAt(0));
+    if(isArA&&!isArB)return -1; if(!isArA&&isArB)return 1;
+    return nameA.localeCompare(nameB,isArA?'ar':'en',{sensitivity:'base'});
+  });
+  const rows = guestEntries.map((entry, i) => {
+    const {item} = entry;
+    const src = entry.isExtra ? entry.ev : item;
     const name = item.name || '—';
-    const gLabel = item.gender==='m'?'<span style="background:#1d4ed8;color:#fff;padding:2px 7px;border-radius:20px;font-size:10px;font-weight:700;">👨 ذكر</span>':item.gender==='f'?'<span style="background:#a21caf;color:#fff;padding:2px 7px;border-radius:20px;font-size:10px;font-weight:700;">👩 أنثى</span>':'—';
+    const nameCell = entry.isExtra ? `${name} <span style="font-size:10px;background:#dbeafe;color:#1d4ed8;border-radius:10px;padding:1px 5px;font-weight:700;">🔄 زيارة ${entry.vi+2}</span>` : name;
+    const _g=(['أنثى','انثى','female','f'].includes((item.gender||'').toLowerCase()))?'f':(['ذكر','male','m'].includes((item.gender||'').toLowerCase()))?'m':'';
+    const gLabel = _g==='m'?'<span style="background:#1d4ed8;color:#fff;padding:2px 7px;border-radius:20px;font-size:10px;font-weight:700;">👨 ذكر</span>':_g==='f'?'<span style="background:#a21caf;color:#fff;padding:2px 7px;border-radius:20px;font-size:10px;font-weight:700;">👩 أنثى</span>':'—';
     const natCell = item.nationality?`<span style="background:#e6f7f1;color:#0a7a55;padding:2px 7px;border-radius:10px;font-size:10px;font-weight:700;">${displayNationality(item.nationality)}</span>`:'—';
-    const dateStr = item.visitDate ? formatDateAr(item.visitDate) : '—';
-    const realIdx = influencers.indexOf(item);
-    const svcChecks = item.services && item.services.length
-      ? item.services.map(s => `<span style="display:inline-block;background:#f3e8ff;color:#7c3aed;border:1px solid #c084fc;border-radius:5px;padding:2px 7px;font-size:11px;margin:1px;">${s}</span>`).join(' ')
-      : '—';
-    const tnHtml = buildTreatmentNotesHtml(item);
-    const sigHtml = item.signature ? `<img src="${item.signature}" style="width:120px;height:44px;object-fit:contain;display:block;" />` : '—';
-    const isDone = item.visitStatus === 'done';
-    const isCancelled = item.visitStatus === 'cancelled';
+    const dateStr = src.visitDate ? formatDateAr(src.visitDate) : '—';
+    const svcChecks = src.services && src.services.length ? src.services.map(s=>`<span style="display:inline-block;background:#f3e8ff;color:#7c3aed;border:1px solid #c084fc;border-radius:5px;padding:2px 7px;font-size:11px;margin:1px;">${s}</span>`).join(' ') : '—';
+    const tnHtml = buildTreatmentNotesHtml(src);
+    const sigHtml = src.signature ? `<img src="${src.signature}" style="width:120px;height:44px;object-fit:contain;display:block;" />` : '—';
+    const isDone = src.visitStatus === 'done';
+    const isCancelled = src.visitStatus === 'cancelled';
     const rowBg = isDone ? '#bbf7d0' : isCancelled ? '#fef08a' : i%2===1?'#f8fafc':'#fff';
     const rowStyle = isDone ? `background:${rowBg};border-right:4px solid #16a34a;` : isCancelled ? `background:${rowBg};border-right:4px solid #ca8a04;` : `background:${rowBg};`;
-    return `<tr style="${rowStyle}">
+    return `<tr style="${rowStyle}${entry.isExtra?'border-top:2px dashed #93c5fd;':''}">
       <td style="text-align:center;font-weight:900;color:#0a3d62;width:28px;">${i+1}</td>
-      <td style="font-weight:700;font-size:11px;text-align:right;">${name}${isDone?'<br><span style="font-size:10px;color:#16a34a;font-weight:700;">✅ تمت الزيارة</span>':isCancelled?'<br><span style="font-size:10px;color:#ca8a04;font-weight:700;">⚠️ ألغيت الزيارة</span>':''}</td>
+      <td style="font-weight:700;font-size:11px;text-align:right;">${nameCell}${isDone?'<br><span style="font-size:10px;color:#16a34a;font-weight:700;">✅ تمت الزيارة</span>':isCancelled?'<br><span style="font-size:10px;color:#ca8a04;font-weight:700;">⚠️ ألغيت الزيارة</span>':''}</td>
       <td>${gLabel}</td>
       <td>${natCell}</td>
       <td><span style="color:#9ca3af;font-size:11px;">🔒 مخفي</span></td>
@@ -6171,7 +6174,7 @@ function openGuestReport() {
           <div style="font-size:17px;font-weight:900;">✅ كشف المؤثرين المقبولين</div>
           <div style="font-size:12px;opacity:.85;margin-top:2px;">مركز كيور الطبي — الحملة الإعلانية | ${today}</div>
         </div>
-        <div style="background:rgba(255,255,255,.15);border-radius:10px;padding:6px 16px;font-size:15px;font-weight:900;">${list.length} مؤثر</div>
+        <div style="background:rgba(255,255,255,.15);border-radius:10px;padding:6px 16px;font-size:15px;font-weight:900;">${guestEntries.length} مؤثر</div>
       </div>
       <div style="padding:.6rem .5rem;">
         <div class="report-swipe-hint">👈 اسحب يميناً أو يساراً لرؤية الجدول كاملاً 👉</div>
@@ -6235,15 +6238,24 @@ function _openGuestCancelledReport() {
     });
   if(!list.length){showToast('⚠️ لا يوجد زيارات ملغية!','#d97706');return;}
   const today=new Date().toLocaleDateString('ar-KW',{year:'numeric',month:'long',day:'numeric'});
-  const rows=list.map((item,i)=>{
-    const gLabel=item.gender==='m'?'<span style="background:#1d4ed8;color:#fff;padding:2px 7px;border-radius:20px;font-size:10px;font-weight:700;">👨 ذكر</span>':item.gender==='f'?'<span style="background:#a21caf;color:#fff;padding:2px 7px;border-radius:20px;font-size:10px;font-weight:700;">👩 أنثى</span>':'—';
+  const gcEntries = _buildEntries('cancelled').sort((a,b)=>{
+    const nameA=(a.item.name||a.item.ig||'').trim(), nameB=(b.item.name||b.item.ig||'').trim();
+    const isArA=/[\u0600-\u06FF]/.test(nameA.charAt(0)), isArB=/[\u0600-\u06FF]/.test(nameB.charAt(0));
+    if(isArA&&!isArB)return -1; if(!isArA&&isArB)return 1;
+    return nameA.localeCompare(nameB,isArA?'ar':'en',{sensitivity:'base'});
+  });
+  const rows=gcEntries.map((entry,i)=>{
+    const {item}=entry; const src=entry.isExtra?entry.ev:item;
+    const _g=(['أنثى','انثى','female','f'].includes((item.gender||'').toLowerCase()))?'f':(['ذكر','male','m'].includes((item.gender||'').toLowerCase()))?'m':'';
+    const gLabel=_g==='m'?'<span style="background:#1d4ed8;color:#fff;padding:2px 7px;border-radius:20px;font-size:10px;font-weight:700;">👨 ذكر</span>':_g==='f'?'<span style="background:#a21caf;color:#fff;padding:2px 7px;border-radius:20px;font-size:10px;font-weight:700;">👩 أنثى</span>':'—';
     const natLabel=item.nationality?`<span style="background:#065f46;color:#fff;padding:2px 7px;border-radius:20px;font-size:10px;font-weight:700;">${displayNationality(item.nationality)}</span>`:'—';
-    const dateStr=item.visitDate?formatDateAr(item.visitDate):'—';
-    const svcLabel=(item.services&&item.services.length)?item.services.map(s=>`<span style="display:inline-block;background:#f3e8ff;color:#7c3aed;border:1px solid #c084fc;border-radius:20px;padding:2px 7px;font-size:10px;font-weight:700;margin:1px;">${s}</span>`).join('<br>'):'—';
+    const dateStr=src.visitDate?formatDateAr(src.visitDate):'—';
+    const svcLabel=(src.services&&src.services.length)?src.services.map(s=>`<span style="display:inline-block;background:#f3e8ff;color:#7c3aed;border:1px solid #c084fc;border-radius:20px;padding:2px 7px;font-size:10px;font-weight:700;margin:1px;">${s}</span>`).join('<br>'):'—';
+    const nameCell=entry.isExtra?`${item.name||'—'} <span style="font-size:10px;background:#dbeafe;color:#1d4ed8;border-radius:10px;padding:1px 5px;font-weight:700;">🔄 زيارة ${entry.vi+2}</span>`:(item.name||'—');
     const rb=i%2===0?'#fff8f0':'#ffffff';
-    return `<tr style="background:${rb};border-right:4px solid #b91c1c;">
+    return `<tr style="background:${rb};border-right:4px solid #b91c1c;${entry.isExtra?'border-top:2px dashed #93c5fd;':''}">
       <td style="text-align:center;font-weight:900;color:#92400e;">${i+1}</td>
-      <td style="text-align:right;"><div style="font-weight:700;font-size:12px;color:#0a3d62;">${item.name||'—'}</div><div style="font-size:10px;color:#dc2626;font-weight:700;margin-top:2px;">⚠️ ألغيت الزيارة</div></td>
+      <td style="text-align:right;"><div style="font-weight:700;font-size:12px;color:#0a3d62;">${nameCell}</div><div style="font-size:10px;color:#dc2626;font-weight:700;margin-top:2px;">⚠️ ألغيت الزيارة</div></td>
       <td>${gLabel}</td>
       <td>${natLabel}</td>
       <td><span style="color:#9ca3af;font-size:11px;">🔒 مخفي</span></td>
@@ -6264,7 +6276,7 @@ function _openGuestCancelledReport() {
           <div style="font-size:17px;font-weight:900;">⚠️ كشف ألغيت زيارتهم</div>
           <div style="font-size:11px;opacity:.85;margin-top:2px;">مركز كيور الطبي —— ${today}</div>
         </div>
-        <div style="background:rgba(255,255,255,.15);border-radius:10px;padding:6px 16px;font-size:15px;font-weight:900;">${list.length} زيارة ملغية</div>
+        <div style="background:rgba(255,255,255,.15);border-radius:10px;padding:6px 16px;font-size:15px;font-weight:900;">${gcEntries.length} زيارة ملغية</div>
       </div>
       <div style="padding:.6rem .5rem;">
         <div class="report-swipe-hint">👈 اسحب يميناً أو يساراً لرؤية الجدول كاملاً 👉</div>
@@ -6308,16 +6320,15 @@ function openGuestReadOnlyReport() {
   const guest = isGuest();
   const thBg = '#0a3d62';
   const countColor = '#16a34a';
-  let list = influencers.filter(i => i.status === 'approved' && i.visitStatus === 'done');
-  list = list.sort((a, b) => {
-    const hasDateA = !!(a.visitDate), hasDateB = !!(b.visitDate);
-    if(hasDateA && !hasDateB) return -1;
-    if(!hasDateA && hasDateB) return 1;
-    if(hasDateA && hasDateB) return visitDateToSortKey(a.visitDate).localeCompare(visitDateToSortKey(b.visitDate));
-    const nameA = (a.name || a.ig || '').trim(), nameB = (b.name || b.ig || '').trim();
-    const isArA = /[\u0600-\u06FF]/.test(nameA.charAt(0)), isArB = /[\u0600-\u06FF]/.test(nameB.charAt(0));
-    if(isArA && !isArB) return -1; if(!isArA && isArB) return 1;
-    return nameA.localeCompare(nameB, isArA ? 'ar' : 'en', {sensitivity:'base'});
+  const list = _buildEntries('visited').sort((a,b)=>{
+    const da=a.isExtra?a.ev.visitDate:a.item.visitDate;
+    const db=b.isExtra?b.ev.visitDate:b.item.visitDate;
+    if(da&&!db)return -1; if(!da&&db)return 1;
+    if(da&&db) return visitDateToSortKey(da).localeCompare(visitDateToSortKey(db));
+    const nameA=(a.item.name||a.item.ig||'').trim(), nameB=(b.item.name||b.item.ig||'').trim();
+    const isArA=/[\u0600-\u06FF]/.test(nameA.charAt(0)), isArB=/[\u0600-\u06FF]/.test(nameB.charAt(0));
+    if(isArA&&!isArB)return -1; if(!isArA&&isArB)return 1;
+    return nameA.localeCompare(nameB,isArA?'ar':'en',{sensitivity:'base'});
   });
   if(!list.length){ showToast('⚠️ لا توجد زيارات مكتملة!','#d97706'); return; }
   const today = new Date().toLocaleDateString('ar-KW',{year:'numeric',month:'long',day:'numeric'});
@@ -6355,19 +6366,24 @@ function openGuestReadOnlyReport() {
     return 'background:#f8fafc;color:#64748b;border-color:#cbd5e1;';
   }
 
-  const rows = list.map((item, i) => {
+  const rows = list.map((entry, i) => {
+    const {item} = entry;
+    const src = entry.isExtra ? entry.ev : item;
     const realIdx = influencers.indexOf(item);
+    const vi = entry.isExtra ? entry.vi : null;
     const name = item.name || '—';
-    const vs = item.visitStatus || '';
-    const cs = item.contentStatus || '';
-    const bg = _rowBg(vs,cs,!!item.visitDate);
+    const vs = src.visitStatus || '';
+    const cs = src.contentStatus || '';
+    const bg = _rowBg(vs,cs,!!src.visitDate);
     const bc = _rowBorderColor(vs,cs);
-    const dateStr = item.visitDate ? formatDateAr(item.visitDate) : '<span style="color:#9ca3af;font-size:11px;">لا يوجد موعد</span>';
-    const gLabel = item.gender==='m'
+    const dateStr = src.visitDate ? formatDateAr(src.visitDate) : '<span style="color:#9ca3af;font-size:11px;">لا يوجد موعد</span>';
+    const _g=(['أنثى','انثى','female','f'].includes((item.gender||'').toLowerCase()))?'f':(['ذكر','male','m'].includes((item.gender||'').toLowerCase()))?'m':'';
+    const gLabel = _g==='m'
       ? '<span style="background:#1d4ed8;color:#fff;padding:2px 7px;border-radius:20px;font-size:10px;font-weight:700;">👨 ذكر</span>'
-      : item.gender==='f'
+      : _g==='f'
       ? '<span style="background:#a21caf;color:#fff;padding:2px 7px;border-radius:20px;font-size:10px;font-weight:700;">👩 أنثى</span>'
       : '—';
+    const nameCell = entry.isExtra ? `${name} <span style="font-size:10px;background:#dbeafe;color:#1d4ed8;border-radius:10px;padding:1px 5px;font-weight:700;">🔄 زيارة ${vi+2}</span>` : name;
     const natLabel = item.nationality
       ? `<span style="background:#065f46;color:#fff;padding:2px 7px;border-radius:20px;font-size:10px;font-weight:700;">${displayNationality(item.nationality)}</span>`
       : '—';
@@ -6382,31 +6398,30 @@ function openGuestReadOnlyReport() {
     const socialsCell = guest
       ? '<span style="color:#9ca3af;font-size:11px;">🔒 مخفي</span>'
       : `<div style="display:flex;flex-direction:column;gap:2px;">${buildSocialsHtml(item)}</div>`;
-    const svcLabel = (item.services&&item.services.length)
-      ? item.services.map(s=>`<span style="display:inline-block;background:#f3e8ff;color:#7c3aed;border:1px solid #c084fc;border-radius:20px;padding:2px 7px;font-size:10px;font-weight:700;margin:1px;">${s}</span>`).join('<br>')
+    const svcLabel = (src.services&&src.services.length)
+      ? src.services.map(s=>`<span style="display:inline-block;background:#f3e8ff;color:#7c3aed;border:1px solid #c084fc;border-radius:20px;padding:2px 7px;font-size:10px;font-weight:700;margin:1px;">${s}</span>`).join('<br>')
       : '<span style="color:#9ca3af;">—</span>';
     const stLbl = _statusLabel(vs,cs);
-    const sigCell = guest
-      ? (item.signature ? `<img src="${item.signature}" style="width:120px;height:44px;object-fit:contain;display:block;" />` : '—')
-      : item.signature
-      ? `<div style="position:relative;">
-           <img src="${item.signature}" class="sig-print-img" style="width:120px;height:44px;object-fit:contain;display:block;border:1.5px solid #059669;border-radius:6px;" />
-           <div style="display:flex;gap:3px;margin-top:3px;">
-             <button onclick="clearSignatureAndDraw(${realIdx})" style="flex:1;padding:3px;border:1px solid #dc2626;background:#fef2f2;color:#dc2626;border-radius:5px;font-size:10px;font-weight:700;cursor:pointer;font-family:Tajawal,sans-serif;">🗑 مسح</button>
-           </div>
-         </div>`
-      : `<canvas id="sigCanvas_${realIdx}" width="160" height="60"
-           style="border:1.5px dashed #6b7280;border-radius:6px;cursor:crosshair;touch-action:none;display:block;background:#fafafa;width:100%;max-width:160px;"
-           onmousedown="startSig(event,${realIdx})" ontouchstart="startSig(event,${realIdx})"></canvas>
-         <div style="display:flex;gap:3px;margin-top:3px;">
-           <button onclick="saveSig(${realIdx})" style="flex:1;padding:3px;border:1.5px solid #059669;background:#f0fdf4;color:#059669;border-radius:5px;font-size:10px;font-weight:700;cursor:pointer;font-family:Tajawal,sans-serif;">✓ حفظ</button>
-           <button onclick="clearCanvas(${realIdx})" style="flex:1;padding:3px;border:1.5px solid #9ca3af;background:#f9fafb;color:#555;border-radius:5px;font-size:10px;font-weight:700;cursor:pointer;font-family:Tajawal,sans-serif;">مسح</button>
-         </div>`;
+    const sigCell = entry.isExtra
+      ? (guest
+          ? (src.signature ? `<img src="${src.signature}" style="width:120px;height:44px;object-fit:contain;display:block;" />` : '—')
+          : src.signature
+            ? `<div><img src="${src.signature}" class="sig-print-img" style="width:120px;height:44px;object-fit:contain;display:block;border:1.5px solid #059669;border-radius:6px;" />
+               <div style="margin-top:3px;"><button onclick="clearExtraVisitSig(${realIdx},${vi})" style="width:100%;padding:3px;border:1px solid #dc2626;background:#fef2f2;color:#dc2626;border-radius:5px;font-size:10px;font-weight:700;cursor:pointer;font-family:Tajawal,sans-serif;">🗑 مسح</button></div></div>`
+            : `<div><canvas id="evSigCanvas_${realIdx}_${vi}" width="160" height="60" style="border:1.5px dashed #6b7280;border-radius:6px;cursor:crosshair;touch-action:none;display:block;background:#fafafa;width:100%;max-width:160px;" onmousedown="startEvSig(event,${realIdx},${vi})" ontouchstart="startEvSig(event,${realIdx},${vi})"></canvas>
+               <div style="display:flex;gap:3px;margin-top:3px;"><button onclick="saveEvSig(${realIdx},${vi})" style="flex:1;padding:3px;border:1.5px solid #059669;background:#f0fdf4;color:#059669;border-radius:5px;font-size:10px;font-weight:700;cursor:pointer;font-family:Tajawal,sans-serif;">✓ حفظ</button><button onclick="clearEvCanvas(${realIdx},${vi})" style="flex:1;padding:3px;border:1.5px solid #9ca3af;background:#f9fafb;color:#555;border-radius:5px;font-size:10px;font-weight:700;cursor:pointer;font-family:Tajawal,sans-serif;">مسح</button></div></div>`)
+      : guest
+        ? (item.signature ? `<img src="${item.signature}" style="width:120px;height:44px;object-fit:contain;display:block;" />` : '—')
+        : item.signature
+          ? `<div style="position:relative;"><img src="${item.signature}" class="sig-print-img" style="width:120px;height:44px;object-fit:contain;display:block;border:1.5px solid #059669;border-radius:6px;" /><div style="display:flex;gap:3px;margin-top:3px;"><button onclick="clearSignatureAndDraw(${realIdx})" style="flex:1;padding:3px;border:1px solid #dc2626;background:#fef2f2;color:#dc2626;border-radius:5px;font-size:10px;font-weight:700;cursor:pointer;font-family:Tajawal,sans-serif;">🗑 مسح</button></div></div>`
+          : `<canvas id="sigCanvas_${realIdx}" width="160" height="60" style="border:1.5px dashed #6b7280;border-radius:6px;cursor:crosshair;touch-action:none;display:block;background:#fafafa;width:100%;max-width:160px;" onmousedown="startSig(event,${realIdx})" ontouchstart="startSig(event,${realIdx})"></canvas><div style="display:flex;gap:3px;margin-top:3px;"><button onclick="saveSig(${realIdx})" style="flex:1;padding:3px;border:1.5px solid #059669;background:#f0fdf4;color:#059669;border-radius:5px;font-size:10px;font-weight:700;cursor:pointer;font-family:Tajawal,sans-serif;">✓ حفظ</button><button onclick="clearCanvas(${realIdx})" style="flex:1;padding:3px;border:1.5px solid #9ca3af;background:#f9fafb;color:#555;border-radius:5px;font-size:10px;font-weight:700;cursor:pointer;font-family:Tajawal,sans-serif;">مسح</button></div>`;
 
+    const vsOnChange = entry.isExtra ? `setExtraVisitStatus(${realIdx},${vi},this.value)` : `setVisitStatusFromSelect(${realIdx},this.value)`;
+    const vsId = entry.isExtra ? `evVsSel_${realIdx}_${vi}` : `vsSelect_${realIdx}`;
     const visitSel = guest
       ? `<div style="font-size:11px;font-weight:700;${vs==='done'?'color:#15803d;':vs==='cancelled'?'color:#92400e;':'color:#64748b;'}">${vs==='done'?'✅ تمت':vs==='cancelled'?'⚠️ ألغيت':'—'}</div>`
       : `<div style="position:relative;">
-          <select id="vsSelect_${realIdx}" onchange="setVisitStatusFromSelect(${realIdx},this.value)"
+          <select id="${vsId}" onchange="${vsOnChange}"
             style="width:100%;padding:4px 22px 4px 4px;border-radius:7px;border:1.5px solid;font-size:11px;font-weight:700;font-family:Tajawal,sans-serif;cursor:pointer;direction:rtl;appearance:none;-webkit-appearance:none;${_vsSel(vs)}">
             <option value="" ${vs===''?'selected':''}>— اختر —</option>
             <option value="done" ${vs==='done'?'selected':''}>✅ تمت</option>
@@ -6415,10 +6430,12 @@ function openGuestReadOnlyReport() {
           <span style="position:absolute;left:4px;top:50%;transform:translateY(-50%);pointer-events:none;font-size:11px;color:#374151;">▼</span>
         </div>`;
 
+    const csOnChange = entry.isExtra ? `setExtraContentStatus(${realIdx},${vi},this.value)` : `setContentStatusFromSelect(${realIdx},this.value)`;
+    const csId = entry.isExtra ? `evCsSel_${realIdx}_${vi}` : `csSelect_${realIdx}`;
     const contentSel = guest
       ? `<div style="font-size:11px;font-weight:700;${cs==='published'?'color:#92400e;':cs==='unpublished'?'color:#6d28d9;':'color:#64748b;'}">${cs==='published'?'🌟 تم النشر':cs==='unpublished'?'🟣 لم يتم':'—'}</div>`
       : `<div style="position:relative;">
-          <select id="csSelect_${realIdx}" onchange="setContentStatusFromSelect(${realIdx},this.value)"
+          <select id="${csId}" onchange="${csOnChange}"
             style="width:100%;padding:4px 22px 4px 4px;border-radius:7px;border:1.5px solid;font-size:11px;font-weight:700;font-family:Tajawal,sans-serif;cursor:pointer;direction:rtl;appearance:none;-webkit-appearance:none;${_csSel(cs)}">
             <option value="" ${cs===''?'selected':''}>— اختر —</option>
             <option value="published" ${cs==='published'?'selected':''}>🌟 تم النشر</option>
@@ -6427,10 +6444,16 @@ function openGuestReadOnlyReport() {
           <span style="position:absolute;left:4px;top:50%;transform:translateY(-50%);pointer-events:none;font-size:11px;color:#374151;">▼</span>
         </div>`;
 
-    return `<tr id="rrow_${realIdx}" style="background:${bg};border-right:4px solid ${bc};">
+    const trId = entry.isExtra ? `rrow_ev_${realIdx}_${vi}` : `rrow_${realIdx}`;
+    const svcEditBtn = !guest ? (entry.isExtra ? `<button onclick="openEvSvcEdit(${realIdx},${vi})" style="padding:2px 8px;border-radius:6px;border:1px solid #dc2626;background:#fff;color:#dc2626;font-size:10px;font-weight:700;cursor:pointer;font-family:Tajawal,sans-serif;">تعديل</button>` : `<button onclick="openInlineSvc(${realIdx},this,event)" style="padding:2px 8px;border-radius:6px;border:1px solid #dc2626;background:#fff;color:#dc2626;font-size:10px;font-weight:700;cursor:pointer;font-family:Tajawal,sans-serif;">تعديل</button>`) : '';
+    const tnId = entry.isExtra ? `evTnDisplay_${realIdx}_${vi}` : `tnDisplay_${realIdx}`;
+    const tnBtn = !guest ? (entry.isExtra ? `<button onclick="openExtraTreatmentNotes(${realIdx},${vi})" style="padding:2px 8px;border-radius:6px;border:1px solid #7c3aed;background:#f3e8ff;color:#7c3aed;font-size:10px;font-weight:700;cursor:pointer;font-family:Tajawal,sans-serif;margin-top:3px;">${src.treatmentNotes&&src.treatmentNotes.length?'✏️ تعديل':'+ إضافة'}</button>` : `<button onclick="openTreatmentNotes(${realIdx})" style="padding:2px 8px;border-radius:6px;border:1px solid #7c3aed;background:#f3e8ff;color:#7c3aed;font-size:10px;font-weight:700;cursor:pointer;font-family:Tajawal,sans-serif;margin-top:3px;">${item.treatmentNotes&&item.treatmentNotes.length?'✏️ تعديل':'+ إضافة'}</button>`) : '';
+    const dateEditBtn = !guest ? (entry.isExtra ? `<button onclick="openEvDateEdit(${realIdx},${vi})" style="padding:2px 8px;border-radius:6px;border:1px solid #dc2626;background:#fff;color:#dc2626;font-size:10px;font-weight:700;cursor:pointer;font-family:Tajawal,sans-serif;">تعديل</button>` : `<button onclick="openInlineDate(${realIdx},this,event)" style="padding:2px 8px;border-radius:6px;border:1px solid #dc2626;background:#fff;color:#dc2626;font-size:10px;font-weight:700;cursor:pointer;font-family:Tajawal,sans-serif;">تعديل</button>`) : '';
+    const svcCellId = entry.isExtra ? `evSvcCell_${realIdx}_${vi}` : `svcDisplay_${realIdx}`;
+    return `<tr id="${trId}" style="background:${bg};border-right:4px solid ${bc};${entry.isExtra?'border-top:2px dashed #93c5fd;':''}">
       <td style="text-align:center;font-weight:900;color:${thBg};">${i+1}</td>
       <td style="text-align:right;">
-        <div ${!guest?`onclick="showApptCard(${realIdx})" style="font-weight:700;font-size:11px;color:#0a3d62;cursor:pointer;"`:' style="font-weight:700;font-size:11px;color:#0a3d62;"'}>${name}</div>
+        <div ${!guest&&!entry.isExtra?`onclick="showApptCard(${realIdx})" style="font-weight:700;font-size:11px;color:#0a3d62;cursor:pointer;"`:' style="font-weight:700;font-size:11px;color:#0a3d62;"'}>${nameCell}</div>
         ${stLbl?`<div style="margin-top:2px;">${stLbl}</div>`:''}
       </td>
       <td style="text-align:center;">${gLabel}</td>
@@ -6438,16 +6461,16 @@ function openGuestReadOnlyReport() {
       <td>${phoneHtml}</td>
       <td>${civilHtml}</td>
       <td>${socialsCell}</td>
-      <td style="text-align:center;">
-        <div id="svcDisplay_${realIdx}" style="margin-bottom:3px;">${svcLabel}</div>
-        ${!guest?`<button onclick="openInlineSvc(${realIdx},this,event)" style="padding:2px 8px;border-radius:6px;border:1px solid #dc2626;background:#fff;color:#dc2626;font-size:10px;font-weight:700;cursor:pointer;font-family:Tajawal,sans-serif;">تعديل</button>`:''}
+      <td id="${svcCellId}" style="text-align:center;">
+        <div style="margin-bottom:3px;">${svcLabel}</div>
+        ${svcEditBtn}
       </td>
       <td style="text-align:right;vertical-align:top;padding:6px;">
-        <div id="tnDisplay_${realIdx}">${buildTreatmentNotesHtml(item)}</div>
-        ${!guest?`<button onclick="openTreatmentNotes(${realIdx})" style="padding:2px 8px;border-radius:6px;border:1px solid #7c3aed;background:#f3e8ff;color:#7c3aed;font-size:10px;font-weight:700;cursor:pointer;font-family:Tajawal,sans-serif;margin-top:3px;">${item.treatmentNotes&&item.treatmentNotes.length?'✏️ تعديل':'+ إضافة'}</button>`:''}</td>
-      <td style="text-align:center;">
+        <div id="${tnId}">${buildTreatmentNotesHtml(src)}</div>
+        ${tnBtn}</td>
+      <td id="${entry.isExtra?`evDateCell_${realIdx}_${vi}`:`dateCell_${realIdx}`}" style="text-align:center;">
         <div style="font-weight:700;color:${thBg};font-size:11px;margin-bottom:3px;">${dateStr}</div>
-        ${!guest?`<button onclick="openInlineDate(${realIdx},this,event)" style="padding:2px 8px;border-radius:6px;border:1px solid #dc2626;background:#fff;color:#dc2626;font-size:10px;font-weight:700;cursor:pointer;font-family:Tajawal,sans-serif;">تعديل</button>`:''}
+        ${dateEditBtn}
       </td>
       <td class="no-print">${visitSel}</td>
       <td class="no-print">${contentSel}</td>
@@ -6464,12 +6487,13 @@ function openGuestReadOnlyReport() {
     if(p[1]){const t=p[1].replace('AM','').replace('PM','').trim();const isPM=p[1].includes('PM');const [hh,mm]=(t+':00').split(':');h=parseInt(hh);mn=parseInt(mm)||0;if(isPM&&h!==12)h+=12;if(!isPM&&h===12)h=0;}
     return new Date(y,m-1,d,h,mn).getTime();
   }
-  const cntDone      = list.filter(i=>i.visitStatus==='done').length;
-  const cntCancelled = list.filter(i=>i.visitStatus==='cancelled').length;
-  const cntUpcoming2 = list.filter(i=>i.visitDate && i.visitStatus!=='done' && i.visitStatus!=='cancelled' && _parseDateTs2(i.visitDate)>=_nowTs2).length;
-  const cntNoDate    = list.filter(i=>!i.visitDate && i.visitStatus!=='done' && i.visitStatus!=='cancelled').length;
-  const cntPublished = list.filter(i=>i.contentStatus==='published').length;
-  const cntUnpub     = list.filter(i=>i.contentStatus==='unpublished').length;
+  const _getSrc = e => e.isExtra ? e.ev : e.item;
+  const cntDone      = list.filter(e=>_getSrc(e).visitStatus==='done').length;
+  const cntCancelled = list.filter(e=>_getSrc(e).visitStatus==='cancelled').length;
+  const cntUpcoming2 = list.filter(e=>{const s=_getSrc(e);return s.visitDate&&s.visitStatus!=='done'&&s.visitStatus!=='cancelled'&&_parseDateTs2(s.visitDate)>=_nowTs2;}).length;
+  const cntNoDate    = list.filter(e=>{const s=_getSrc(e);return !s.visitDate&&s.visitStatus!=='done'&&s.visitStatus!=='cancelled';}).length;
+  const cntPublished = list.filter(e=>_getSrc(e).contentStatus==='published').length;
+  const cntUnpub     = list.filter(e=>_getSrc(e).contentStatus==='unpublished').length;
 
   const legendHtml = `<div class="no-print" id="reportLegend" style="display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-bottom:1rem;">
     <span data-filter="done" onclick="filterReportRows('done')" style="display:flex;align-items:center;gap:6px;cursor:pointer;padding:5px 12px;border-radius:20px;border:2px solid #16a34a;background:#f0fdf4;font-size:12px;font-weight:700;color:#15803d;user-select:none;transition:all .15s;">
@@ -6507,7 +6531,7 @@ function openGuestReadOnlyReport() {
           <div style="font-size:17px;font-weight:900;">🏁 كشف الزيارات المكتملة</div>
           <div style="font-size:12px;opacity:.85;margin-top:2px;">مركز كيور الطبي —— ${today}</div>
         </div>
-        <div style="background:rgba(255,255,255,.15);border-radius:10px;padding:6px 16px;font-size:15px;font-weight:900;">${list.length} مؤثر</div>
+        <div style="background:rgba(255,255,255,.15);border-radius:10px;padding:6px 16px;font-size:15px;font-weight:900;">${list.length} زيارة مكتملة</div>
       </div>
       <div style="padding:.6rem .5rem;">
         ${legendHtml}
