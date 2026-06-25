@@ -619,6 +619,7 @@ body{font-family:'Tajawal',sans-serif;direction:rtl;background:#0d1117;color:#e6
   <button id="visitedBtn" style="display:none;padding:7px 14px;border-radius:9px;border:1px solid #059669;font-size:13px;cursor:pointer;font-family:Tajawal,sans-serif;white-space:nowrap;font-weight:700;background:#0d1f14;color:#34d399;transition:.15s;" onclick="openStatusReport('visited')">🏁 كشف اكتملت زيارتهم</button>
   <button id="cancelledBtn" style="display:none;padding:7px 14px;border-radius:9px;border:1px solid #dc2626;font-size:13px;cursor:pointer;font-family:Tajawal,sans-serif;white-space:nowrap;font-weight:700;background:#1a0808;color:#f87171;transition:.15s;" onclick="openStatusReport('cancelled')">❌ كشف ألغيت زيارتهم</button>
   <button id="reportBtn" style="display:none;padding:7px 14px;border-radius:9px;border:1px solid #1a6fa8;font-size:13px;cursor:pointer;font-family:Tajawal,sans-serif;white-space:nowrap;font-weight:700;background:#1e3a5f;color:#60a5fa;transition:.15s;" onclick="openReportFromBtn()">📋 كشف</button>
+  <button id="featuredReportBtn" style="display:none;padding:7px 14px;border-radius:9px;border:1px solid #a16207;font-size:13px;cursor:pointer;font-family:Tajawal,sans-serif;white-space:nowrap;font-weight:700;background:#1c1400;color:#fbbf24;transition:.15s;" onclick="openFeaturedReport()">⭐ كشف المؤثرين المتميزين</button>
 </div>
 
 <div class="grid" id="grid"></div>
@@ -1319,9 +1320,9 @@ function getStatusPath() {
   return DB_STATUS_BASE + '/' + _selectedFloor + '/' + safeCamp;
 }
 
-// ── هل الدور الحالي هو الدور العاشر (الأصلي)؟ ──
+// ── هل الدور والحملة الحالية هما الأصليان؟ ──
 function isDefaultFloor() {
-  return _selectedFloor === 'floor_10';
+  return _selectedFloor === 'floor_10' && _selectedCampaign === 'حملة 1';
 }
 
 // ── حفظ statuses الدور الحالي على Firebase ──
@@ -1369,17 +1370,17 @@ async function loadStatusFromFirebase() {
             item.visitDate   = s.visitDate   || null;
             item.extraVisits = s.extraVisits || [];
           } else {
-            // مش موجود في الـ status node → pending
-            item.status      = 'pending';
+            // مش موجود في الـ status node → pending (ماعدا المرفوضين)
+            item.status      = (item.status === 'rejected') ? 'rejected' : 'pending';
             item.visitStatus = null;
             item.visitDate   = null;
             item.extraVisits = [];
           }
         });
       } else {
-        // node فاضي تماماً → كل المؤثرين pending
+        // node فاضي تماماً → حملة جديدة: pending للكل ماعدا المرفوضين
         influencers.forEach(function(item) {
-          item.status      = 'pending';
+          item.status      = (item.status === 'rejected') ? 'rejected' : 'pending';
           item.visitStatus = null;
           item.visitDate   = null;
           item.extraVisits = [];
@@ -1931,10 +1932,12 @@ function updateReportBtn(f) {
   const vBtn=document.getElementById('visitedBtn');
   const cBtn=document.getElementById('cancelledBtn');
   const grb=document.getElementById('guestReportToolbarBtn');
+  const fBtn=document.getElementById('featuredReportBtn');
   const showSub=(f==='approved');
   if(vBtn) vBtn.style.display=showSub?'block':'none';
   if(cBtn) cBtn.style.display=showSub?'block':'none';
   if(grb) grb.style.display=(f==='approved'||f==='visited')?'none':'';
+  if(fBtn) fBtn.style.display=(f==='featured')?'block':'none';
   if(REPORT_FILTERS.includes(f)){
     btn.style.display='block'; btn.textContent=REPORT_LABELS[f];
     const colors={approved:'#1e5c2d',rejected:'#5c1e1e',male:'#1e3a5f',female:'#4a044e',visited:'#1e5c2d',cancelled:'#7f1d1d'};
@@ -7895,4 +7898,114 @@ window.setContentStatus=setContentStatus;
 window.shareStatusReport=shareStatusReport; window.shareGenderReport=shareGenderReport;
 </script>
 </body>
-</html>
+</html><script>
+// ── كشف المؤثرين المتميزين ──
+function openFeaturedReport() {
+  var list = influencers.filter(function(i){ return (i.rating||0) >= 4; })
+    .sort(function(a,b){
+      if((b.rating||0) !== (a.rating||0)) return (b.rating||0) - (a.rating||0);
+      var nameA=(a.name||a.ig||'').trim(), nameB=(b.name||b.ig||'').trim();
+      var isArA=/[\u0600-\u06FF]/.test(nameA.charAt(0)), isArB=/[\u0600-\u06FF]/.test(nameB.charAt(0));
+      if(isArA&&!isArB)return -1; if(!isArA&&isArB)return 1;
+      return nameA.localeCompare(nameB,isArA?'ar':'en',{sensitivity:'base'});
+    });
+  if(!list.length){ showToast('⭐ لا يوجد مؤثرون متميزون بعد!','#a16207'); return; }
+  logActivity('report','فتح كشف: المؤثرين المتميزين');
+  var today = new Date().toLocaleDateString('ar-KW',{year:'numeric',month:'long',day:'numeric'});
+  var thBg = '#92400e';
+  function starsHtml(r){ return [1,2,3,4,5].map(function(s){ return '<span style="color:'+(r>=s?'#f59e0b':'#d1d5db')+';font-size:14px;">★</span>'; }).join(''); }
+  var rows = list.map(function(item,i){
+    var name = item.name||'—';
+    var _g = (['أنثى','انثى','female','f'].indexOf((item.gender||'').toLowerCase())>=0)?'f':(['ذكر','male','m'].indexOf((item.gender||'').toLowerCase())>=0)?'m':'';
+    var gLabel = _g==='m'?'<span style="background:#1d4ed8;color:#fff;padding:2px 7px;border-radius:20px;font-size:10px;font-weight:700;">👨 ذكر</span>':_g==='f'?'<span style="background:#a21caf;color:#fff;padding:2px 7px;border-radius:20px;font-size:10px;font-weight:700;">👩 أنثى</span>':'—';
+    var natLabel = item.nationality?'<span style="background:#065f46;color:#fff;padding:2px 7px;border-radius:20px;font-size:10px;font-weight:700;">'+displayNationality(item.nationality)+'</span>':'—';
+    var phoneHtml = item.phone?'<div style="color:#0369a1;direction:ltr;font-size:11px;font-weight:700;">📞 '+displayPhone(item.phone)+'</div>':'—';
+    var civilHtml = item.civil?'<div style="color:#0f766e;direction:ltr;font-size:11px;font-weight:700;">🪪 '+item.civil+'</div>':'—';
+    var socialsHtml = buildSocialsHtml(item);
+    var ratingCell = '<div style="display:flex;gap:1px;justify-content:center;">'+starsHtml(item.rating||0)+'</div><div style="font-size:10px;color:#a16207;font-weight:700;text-align:center;margin-top:2px;">'+(item.rating||0)+'/5</div>';
+    var statusLabel = item.status==='approved'?'<span style="background:#14532d;color:#4ade80;padding:2px 7px;border-radius:20px;font-size:10px;font-weight:700;">✅ مقبول</span>':item.status==='rejected'?'<span style="background:#450a0a;color:#f87171;padding:2px 7px;border-radius:20px;font-size:10px;font-weight:700;">❌ مرفوض</span>':'<span style="background:#21262d;color:#8b949e;padding:2px 7px;border-radius:20px;font-size:10px;font-weight:700;">⏳ قيد المراجعة</span>';
+    var bg = i%2===0?'#fff8f0':'#ffffff';
+    return '<tr style="background:'+bg+';border-right:4px solid #a16207;"><td style="text-align:center;font-weight:900;color:'+thBg+';">'+(i+1)+'</td><td style="text-align:right;"><div style="font-weight:700;font-size:12px;color:#0a3d62;">'+name+'</div><div style="margin-top:3px;">'+statusLabel+'</div></td><td style="text-align:center;">'+gLabel+'</td><td style="text-align:center;">'+natLabel+'</td><td>'+phoneHtml+'</td><td>'+civilHtml+'</td><td><div style="display:flex;flex-direction:column;gap:2px;">'+socialsHtml+'</div></td><td style="text-align:center;">'+ratingCell+'</td></tr>';
+  }).join('');
+  var html = '<div class="report-overlay open" id="reportOverlay" onclick="if(event.target===this)closeReport()">'
+    +'<div class="report-modal" style="max-width:100%;width:100%;margin:0;border-radius:0;min-height:100vh;padding:0;background:#f1f5f9;">'
+    +'<div class="report-actions no-print" style="position:sticky;top:0;background:#fff;z-index:10;padding:.6rem 1.2rem;border-bottom:2px solid #e5e7eb;display:flex;gap:8px;align-items:center;">'
+    +'<button class="report-btn-close" onclick="closeReport()">✕ إغلاق</button>'
+    +'<button class="report-btn-print" style="background:'+thBg+'" onclick="window.print()">🖨️ طباعة / PDF</button>'
+    +'<button class="report-btn-share" onclick="shareFeaturedReport()">📤 مشاركة</button>'
+    +'</div>'
+    +'<div style="background:linear-gradient(135deg,#92400e 0%,#ca8a04 100%);color:#fff;padding:.8rem 1.2rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;">'
+    +'<div><div style="font-size:17px;font-weight:900;">⭐ كشف المؤثرين المتميزين</div><div style="font-size:11px;opacity:.85;margin-top:2px;">مركز كيور الطبي —— '+today+'</div></div>'
+    +'<div style="background:rgba(255,255,255,.15);border-radius:10px;padding:6px 16px;font-size:15px;font-weight:900;">'+list.length+' مؤثر متميز</div>'
+    +'</div>'
+    +'<div style="padding:.6rem .5rem;">'
+    +'<div class="report-swipe-hint">👈 اسحب يميناً أو يساراً لرؤية الجدول كاملاً 👉</div>'
+    +'<div class="report-table-wrap">'
+    +'<table class="report-table" style="direction:rtl;">'
+    +'<thead><tr>'
+    +'<th style="width:28px;">#</th>'
+    +'<th style="text-align:right;min-width:100px;">الاسم</th>'
+    +'<th style="min-width:40px;">الجنس</th>'
+    +'<th style="min-width:52px;">الجنسية</th>'
+    +'<th style="min-width:80px;">الموبايل</th>'
+    +'<th style="min-width:80px;">الرقم المدني</th>'
+    +'<th style="min-width:80px;">السوشيال</th>'
+    +'<th style="min-width:80px;background:#92400e;color:#fbbf24;">⭐ التقييم</th>'
+    +'</tr></thead>'
+    +'<tbody>'+rows+'</tbody>'
+    +'</table>'
+    +'</div></div>'
+    +'<div class="report-footer-note" style="margin:0;border-radius:0;">هذا الكشف سري ومخصص للاستخدام الداخلي — مركز كيور الطبي © 2026</div>'
+    +'</div></div>';
+  var div = document.createElement('div');
+  div.id = 'reportContainer';
+  div.innerHTML = html;
+  document.body.appendChild(div);
+  document.body.style.overflow = 'hidden';
+  _hideBannerForReport();
+}
+window.openFeaturedReport = openFeaturedReport;
+
+async function shareFeaturedReport() {
+  var guest = isGuest();
+  logActivity('report','مشاركة كشف: المؤثرين المتميزين');
+  var list = influencers.filter(function(i){ return (i.rating||0) >= 4; })
+    .sort(function(a,b){
+      if((b.rating||0) !== (a.rating||0)) return (b.rating||0) - (a.rating||0);
+      var nameA=(a.name||a.ig||'').trim(), nameB=(b.name||b.ig||'').trim();
+      var isArA=/[\u0600-\u06FF]/.test(nameA.charAt(0)), isArB=/[\u0600-\u06FF]/.test(nameB.charAt(0));
+      if(isArA&&!isArB)return -1; if(!isArA&&isArB)return 1;
+      return nameA.localeCompare(nameB,isArA?'ar':'en',{sensitivity:'base'});
+    });
+  if(!list.length) return;
+  var today = new Date().toLocaleDateString('ar-KW',{year:'numeric',month:'long',day:'numeric'});
+  var thBg = '#92400e';
+  function starsHtml(r){ return [1,2,3,4,5].map(function(s){ return '<span style="color:'+(r>=s?'#f59e0b':'#d1d5db')+';font-size:14px;">★</span>'; }).join(''); }
+  var rows = list.map(function(item,i){
+    var name = item.name||'—';
+    var _g = (['أنثى','انثى','female','f'].indexOf((item.gender||'').toLowerCase())>=0)?'f':(['ذكر','male','m'].indexOf((item.gender||'').toLowerCase())>=0)?'m':'';
+    var gLabel = _g==='m'?'👨 ذكر':_g==='f'?'👩 أنثى':'—';
+    var natCell = item.nationality ? displayNationality(item.nationality) : '—';
+    var phoneCell = guest?'🔒 مخفي':item.phone?'<a href="tel:'+item.phone+'" style="color:#0369a1;text-decoration:none;direction:ltr;font-size:12px;">📞 '+displayPhone(item.phone)+'</a>':'—';
+    var civilCell = guest?'🔒 مخفي':(item.civil||'—');
+    var socialsCell = guest?'🔒 مخفي':buildSocialsHtml(item);
+    var ratingCell = '<div style="display:flex;gap:1px;justify-content:center;">'+starsHtml(item.rating||0)+'</div><div style="font-size:10px;color:#a16207;font-weight:700;text-align:center;margin-top:2px;">'+(item.rating||0)+'/5</div>';
+    var statusLabel = item.status==='approved'?'✅ مقبول':item.status==='rejected'?'❌ مرفوض':'⏳ قيد المراجعة';
+    var rb = i%2===1?'#fff8f0':'#ffffff';
+    return '<tr style="background:'+rb+';border-right:3px solid #a16207;"><td style="text-align:center;font-weight:900;width:36px;">'+(i+1)+'</td><td style="font-weight:700;">'+name+'<br><span style="font-size:10px;color:#a16207;">'+statusLabel+'</span></td><td>'+gLabel+'</td><td>'+natCell+'</td><td style="direction:ltr;">'+phoneCell+'</td><td style="font-size:11px;direction:ltr;">'+civilCell+'</td><td>'+socialsCell+'</td><td style="text-align:center;">'+ratingCell+'</td></tr>';
+  }).join('');
+  var headersHTML =
+    '<th style="background:'+thBg+';width:36px;text-align:center;">#</th>'
+    +'<th style="background:'+thBg+';">الاسم</th>'
+    +'<th style="background:'+thBg+';min-width:40px;">الجنس</th>'
+    +'<th style="background:'+thBg+';min-width:52px;">الجنسية</th>'
+    +'<th style="background:'+thBg+';">الموبايل</th>'
+    +'<th style="background:'+thBg+';">الرقم المدني</th>'
+    +'<th style="background:'+thBg+';">السوشيال</th>'
+    +'<th style="background:#92400e;color:#fbbf24;min-width:80px;">⭐ التقييم</th>';
+  var html = buildReportHTMLShell(thBg, '#ca8a04', '⭐ كشف المؤثرين المتميزين', '⭐', today, list.length, headersHTML, rows, false);
+  var d = new Date(); var ds = d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+  await downloadOrShare(html, 'Cure-Featured-Influencers-'+ds+'.html');
+}
+window.shareFeaturedReport = shareFeaturedReport;
+</script>
