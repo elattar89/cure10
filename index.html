@@ -1367,10 +1367,8 @@ async function saveStatusToFirebase() {
   } catch(e) {}
 }
 
-// ── تحميل statuses الدور الحالي وتطبيقها على المؤثرين ──
+// ── تحميل statuses الدور والحملة الحالية من Firebase وتطبيقها ──
 async function loadStatusFromFirebase() {
-  // الدور العاشر حملة 1 (الافتراضي) — الـ status محفوظ في cure_influencers_data نفسه
-  if (isDefaultFloor()) return;
   var path = getStatusPath();
   if(!path) return;
   try {
@@ -1492,11 +1490,20 @@ async function saveToStorage() {
   _lastSaveTime = Date.now();
   // تأكد كل شخص عنده _uid قبل الحفظ
   influencers.forEach(ensureUID);
+  // احفظ البيانات بدون status — الـ status محفوظ في cure_status منفصل
+  var dataToSave = influencers.map(function(item) {
+    var clean = Object.assign({}, item);
+    delete clean.status;
+    delete clean.visitStatus;
+    delete clean.visitDate;
+    delete clean.extraVisits;
+    return clean;
+  });
   try {
     const res = await Promise.race([
       fetch(`${DB_URL}/${DB_PATH}.json`, {
         method:'PUT', headers:{'Content-Type':'application/json'},
-        body: JSON.stringify({ data: JSON.stringify(influencers) })
+        body: JSON.stringify({ data: JSON.stringify(dataToSave) })
       }),
       new Promise((_,rej) => setTimeout(() => rej(new Error('timeout')), 5000))
     ]);
@@ -1529,10 +1536,16 @@ async function saveOneToFirebase(idx) {
       if(val && val.data) { try { remote = JSON.parse(val.data); } catch(e) {} }
       if(!Array.isArray(remote)) remote = [];
       const local = influencers[idx];
+      // نسخة نظيفة بدون status للحفظ في cure_influencers_data
+      const localClean = (function(item) {
+        var c = Object.assign({}, item);
+        delete c.status; delete c.visitStatus; delete c.visitDate; delete c.extraVisits;
+        return c;
+      })(local);
       // ── البحث بـ _uid أولاً (الأكثر أماناً) ──
       let found = false;
       remote = remote.map(r => {
-        if(local._uid && r._uid && r._uid === local._uid) { found = true; return {...r, ...local}; }
+        if(local._uid && r._uid && r._uid === local._uid) { found = true; return {...r, ...localClean}; }
         return r;
       });
       // لو مش موجود بالـ _uid → ابحث بالـ key (للسجلات القديمة اللي مالهاش _uid)
@@ -1541,11 +1554,11 @@ async function saveOneToFirebase(idx) {
         remote = remote.map(r => {
           if(found) return r;
           const rKey = [r.phone||'', r.ig||'', r.tt||'', r.snap||'', r.civil||'', r.name||''].join('|');
-          if(rKey === key && rKey !== '|||||') { found = true; return {...r, ...local}; }
+          if(rKey === key && rKey !== '|||||') { found = true; return {...r, ...localClean}; }
           return r;
         });
       }
-      if(!found) remote.push(local);
+      if(!found) remote.push(localClean);
       await fetch(`${DB_URL}/${DB_PATH}.json`, {
         method:'PUT', headers:{'Content-Type':'application/json'},
         body: JSON.stringify({ data: JSON.stringify(remote) })
@@ -4122,18 +4135,30 @@ function exportCurrentToExcel() {
   buildExcelFromData(influencers, `مؤثرين-كيور-${today}.csv`);
 }
 
-function exportFullJSON() {
+async function exportFullJSON() {
   try {
+    showToast('⏳ جاري التصدير...', '#1a6fa8');
+    // جيب كل الـ statuses من Firebase
+    let allStatus = {};
+    try {
+      const sRes = await fetch(`${DB_URL}/cure_status.json`, { method:'GET', headers:{'Accept':'application/json'}, mode:'cors' });
+      if(sRes && sRes.ok) { allStatus = await sRes.json() || {}; }
+    } catch(e) {}
     const today = new Date().toISOString().slice(0,10);
     const time = new Date().toLocaleTimeString('ar-KW', {hour:'2-digit', minute:'2-digit'}).replace(':','-');
     const fileName = `cure-full-backup-${today}_${time}_(${influencers.length}-influencers).json`;
-    const jsonStr = JSON.stringify({ exportedAt: new Date().toISOString(), count: influencers.length, data: influencers }, null, 2);
+    const jsonStr = JSON.stringify({
+      exportedAt: new Date().toISOString(),
+      count: influencers.length,
+      data: influencers,
+      status: allStatus
+    }, null, 2);
     const blob = new Blob([jsonStr], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url; a.download = fileName; a.click();
     URL.revokeObjectURL(url);
-    showToast(`✅ تم حفظ ${influencers.length} مؤثر بالتوقيعات`, '#16a34a');
+    showToast(`✅ تم حفظ ${influencers.length} مؤثر بالتوقيعات والـ status`, '#16a34a');
   } catch(e) { showToast('❌ خطأ: ' + e.message, '#dc2626'); }
 }
 
@@ -4164,18 +4189,37 @@ function handleJsonImport(event) {
       const confirmed = confirm(`هتستورد ${list.length} مؤثر من JSON (مع التوقيعات)، هذا سيستبدل البيانات الحالية. متأكد؟`);
       if(!confirmed) return;
 
-      // Save to Firebase
+      _isRecovering = true;
       influencers = list;
+      // احفظ بدون status في cure_influencers_data
+      var dataToSave = influencers.map(function(item) {
+        var clean = Object.assign({}, item);
+        delete clean.status; delete clean.visitStatus;
+        delete clean.visitDate; delete clean.extraVisits;
+        return clean;
+      });
       const res = await fetch(DB_URL + '/' + DB_PATH + '.json', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ data: JSON.stringify(influencers) })
+        body: JSON.stringify({ data: JSON.stringify(dataToSave) })
       });
       if(!res.ok) throw new Error('Firebase error');
-
-      renderAll();
-      updateStats();
-      showToast(`✅ تم استيراد ${list.length} مؤثر بالتوقيعات`, '#16a34a');
+      // لو في status في الـ JSON → احفظه في cure_status
+      if(json.status && typeof json.status === 'object') {
+        await fetch(`${DB_URL}/cure_status.json`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(json.status)
+        });
+        // طبق الـ status على الحملة الحالية
+        await loadStatusFromFirebase();
+      } else if(list.some(i => i.status && i.status !== 'pending')) {
+        // JSON قديم فيه status جوه كل item → احفظه في الحملة الحالية
+        await saveStatusToFirebase();
+      }
+      _isRecovering = false;
+      renderGrid(); updateStats();
+      showToast(`✅ تم استيراد ${list.length} مؤثر بالتوقيعات والـ status`, '#16a34a');
       event.target.value = '';
     } catch(e) {
       showToast('❌ خطأ: ' + e.message, '#dc2626');
@@ -7926,7 +7970,7 @@ async function init() {
   setTimeout(function() {
     const dupGroups = findAllDuplicates();
     const newCount = influencers.filter(i => isNewItem(i)).length;
-    const dupCount = dupGroups.length; // عدد مجموعات التكرار مش عدد الأشخاص
+    const dupCount = dupGroups.length;
     if((dupGroups.length > 0 || newCount > 0) && !document.getElementById('dupWarningBanner')) {
       const banner = document.createElement('div');
       banner.id = 'dupWarningBanner';
