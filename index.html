@@ -132,6 +132,8 @@ body{font-family:'Tajawal',sans-serif;direction:rtl;background:#0d1117;color:#e6
 .save-bottom-btn.saving{background:linear-gradient(135deg,#0f3a22,#15803d);}
 .fab{position:fixed;top:12px;right:12px;width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,#0a3d62,#1a6fa8);border:none;color:#fff;font-size:22px;cursor:pointer;box-shadow:0 4px 20px rgba(26,111,168,0.5);display:flex;align-items:center;justify-content:center;z-index:9999;transition:transform .2s;}
 #newUserNotifBar.visible ~ * .fab, .fab.notif-visible{z-index:99!important;}
+#newUserNotifBar.visible{display:flex;}
+#newUserNotifBar.visible + * .fab { top: 60px !important; }
 .fab:hover{transform:scale(1.1);}
 .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:999999;display:flex;align-items:center;justify-content:center;padding:1rem;}
 .modal-overlay.hidden{display:none;}
@@ -512,7 +514,7 @@ body{font-family:'Tajawal',sans-serif;direction:rtl;background:#0d1117;color:#e6
   </div>
   <div class="notif-actions">
     <button class="notif-view-btn" id="newUserNotifBtn">👁 عرض الجدد</button>
-    <button class="notif-close-btn" onclick="document.getElementById('newUserNotifBar').classList.remove('visible');">✕</button>
+    <button class="notif-close-btn" onclick="document.getElementById('newUserNotifBar').classList.remove('visible');_moveFab(false);">✕</button>
   </div>
 </div>
 <div class="header">
@@ -7974,6 +7976,10 @@ async function init() {
 }
 // ── Notification Banner (new users + pending updates) ────────────────
 let _notifBannerTimer = null;
+function _moveFab(down) {
+  var fab = document.getElementById('fabBtn');
+  if (fab) fab.style.top = down ? '58px' : '12px';
+}
 function _showNotifBar(type, icon, title, sub, btnLabel, btnAction) {
   const bar = document.getElementById('newUserNotifBar');
   if(!bar) return;
@@ -7986,9 +7992,9 @@ function _showNotifBar(type, icon, title, sub, btnLabel, btnAction) {
   if(iconEl) iconEl.textContent = icon;
   if(titleEl) titleEl.textContent = title;
   if(subEl) subEl.textContent = sub;
-  if(btn) { btn.textContent = btnLabel; btn.onclick = function(){ btnAction(); bar.classList.remove('visible'); }; }
+  if(btn) { btn.textContent = btnLabel; btn.onclick = function(){ btnAction(); bar.classList.remove('visible'); _moveFab(false); }; }
   bar.style.animation = 'none';
-  requestAnimationFrame(() => { bar.style.animation = ''; bar.classList.add('visible'); });
+  requestAnimationFrame(() => { bar.style.animation = ''; bar.classList.add('visible'); _moveFab(true); });
   if(_notifBannerTimer) clearTimeout(_notifBannerTimer);
   // تم إزالة الإغلاق التلقائي — الـ bar يُغلق فقط بزر X
 }
