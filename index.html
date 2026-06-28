@@ -368,7 +368,7 @@ body{font-family:'Tajawal',sans-serif;direction:rtl;background:#0d1117;color:#e6
     window.location.href = window.location.pathname;
     return;
   }
-  var isGuest = window.location.search.indexOf('guest=1') !== -1;
+  var isGuest = false; // النظام الجديد بيعتمد على sessionStorage مش URL param
   if(isGuest) {
     var s = document.getElementById('guestStyle');
     s.textContent = '#fabBtn,.fab,.page-footer,.toolbar,#grid{display:none!important}.stat{cursor:default!important;pointer-events:none!important}#guestBtns{display:flex!important}';
@@ -453,6 +453,12 @@ body{font-family:'Tajawal',sans-serif;direction:rtl;background:#0d1117;color:#e6
       <div id="floorCards" style="display:flex;flex-direction:column;gap:10px;"></div>
     </div>
   </div>
+  <!-- ── فوتر الأدمن ── -->
+  <div id="floorAdminFooter" style="display:none;position:relative;z-index:10;padding:10px 18px;background:rgba(0,0,0,0.28);border-top:1px solid rgba(255,255,255,0.1);display:flex;gap:8px;justify-content:center;flex-wrap:wrap;flex-shrink:0;">
+    <button onclick="openActivityLog()" style="padding:7px 14px;border-radius:8px;border:1px solid rgba(255,255,255,0.2);background:rgba(30,58,95,0.6);color:#93c5fd;font-size:12px;font-weight:700;cursor:pointer;font-family:Tajawal,sans-serif;">📋 سجل النشاط</button>
+    <button onclick="openRecovery()" style="padding:7px 14px;border-radius:8px;border:1px solid rgba(239,68,68,0.4);background:rgba(127,29,29,0.5);color:#fca5a5;font-size:12px;font-weight:700;cursor:pointer;font-family:Tajawal,sans-serif;">🚨 حالات الطوارئ</button>
+    <button onclick="openUsersManager()" style="padding:7px 14px;border-radius:8px;border:1px solid rgba(124,58,237,0.4);background:rgba(59,7,100,0.5);color:#c4b5fd;font-size:12px;font-weight:700;cursor:pointer;font-family:Tajawal,sans-serif;">👥 إدارة الحسابات</button>
+  </div>
 </div>
 
 <!-- ══════════════════════════════════════════════
@@ -485,6 +491,12 @@ body{font-family:'Tajawal',sans-serif;direction:rtl;background:#0d1117;color:#e6
       </div>
       <div id="campaignCards" style="display:flex;flex-direction:column;gap:10px;"></div>
     </div>
+  </div>
+  <!-- ── فوتر الأدمن ── -->
+  <div id="campaignAdminFooter" style="display:none;position:relative;z-index:10;padding:10px 18px;background:rgba(0,0,0,0.28);border-top:1px solid rgba(255,255,255,0.1);display:flex;gap:8px;justify-content:center;flex-wrap:wrap;flex-shrink:0;">
+    <button onclick="openActivityLog()" style="padding:7px 14px;border-radius:8px;border:1px solid rgba(255,255,255,0.2);background:rgba(30,58,95,0.6);color:#93c5fd;font-size:12px;font-weight:700;cursor:pointer;font-family:Tajawal,sans-serif;">📋 سجل النشاط</button>
+    <button onclick="openRecovery()" style="padding:7px 14px;border-radius:8px;border:1px solid rgba(239,68,68,0.4);background:rgba(127,29,29,0.5);color:#fca5a5;font-size:12px;font-weight:700;cursor:pointer;font-family:Tajawal,sans-serif;">🚨 حالات الطوارئ</button>
+    <button onclick="openUsersManager()" style="padding:7px 14px;border-radius:8px;border:1px solid rgba(124,58,237,0.4);background:rgba(59,7,100,0.5);color:#c4b5fd;font-size:12px;font-weight:700;cursor:pointer;font-family:Tajawal,sans-serif;">👥 إدارة الحسابات</button>
   </div>
 </div>
 
@@ -1357,38 +1369,63 @@ async function loadStatusFromFirebase() {
   var path = getStatusPath();
   if(!path) return;
   try {
+    // جيب الـ statuses للحملة الحالية
     var res = await Promise.race([
       fetch(DB_URL + '/' + path + '.json', { method: 'GET', headers: { 'Accept': 'application/json' }, mode: 'cors' }),
       new Promise(function(_,rej){ setTimeout(function(){ rej(new Error('timeout')); }, 7000); })
     ]);
-    if(res && res.ok) {
-      var val = await res.json();
-      if(val && typeof val === 'object') {
-        influencers.forEach(function(item) {
-          if(!item._uid) return;
-          var s = val[item._uid];
-          if(s) {
-            item.status      = s.status      || 'pending';
-            item.visitStatus = s.visitStatus || null;
-            item.visitDate   = s.visitDate   || null;
-            item.extraVisits = s.extraVisits || [];
-          } else {
-            // مش موجود في الـ status node → pending (ماعدا المرفوضين)
-            item.status      = (item.status === 'rejected') ? 'rejected' : 'pending';
-            item.visitStatus = null;
-            item.visitDate   = null;
-            item.extraVisits = [];
-          }
-        });
-      } else {
-        // node فاضي تماماً → حملة جديدة: pending للكل ماعدا المرفوضين
-        influencers.forEach(function(item) {
-          item.status      = (item.status === 'rejected') ? 'rejected' : 'pending';
+    if(!res || !res.ok) return;
+    var val = await res.json();
+
+    // جيب كل حملات نفس الدور عشان نعرف مين مرفوض على مستوى الدور
+    var floorRejected = {}; // _uid → true لو مرفوض في أي حملة في نفس الدور
+    try {
+      var floorRes = await Promise.race([
+        fetch(DB_URL + '/cure_status/' + _selectedFloor + '.json', { method: 'GET', headers: { 'Accept': 'application/json' }, mode: 'cors' }),
+        new Promise(function(_,rej){ setTimeout(function(){ rej(new Error('timeout')); }, 5000); })
+      ]);
+      if (floorRes && floorRes.ok) {
+        var floorData = await floorRes.json();
+        if (floorData && typeof floorData === 'object') {
+          Object.values(floorData).forEach(function(campStatuses) {
+            if (!campStatuses || typeof campStatuses !== 'object') return;
+            Object.keys(campStatuses).forEach(function(uid) {
+              if (campStatuses[uid] && campStatuses[uid].status === 'rejected') {
+                floorRejected[uid] = true;
+              }
+            });
+          });
+        }
+      }
+    } catch(e) {}
+
+    if (val && typeof val === 'object') {
+      influencers.forEach(function(item) {
+        if(!item._uid) return;
+        var s = val[item._uid];
+        if (s) {
+          item.status      = s.status      || 'pending';
+          item.visitStatus = s.visitStatus || null;
+          item.visitDate   = s.visitDate   || null;
+          item.extraVisits = s.extraVisits || [];
+        } else {
+          // مش موجود في الحملة الحالية
+          // لو مرفوض في حملة تانية في نفس الدور → مرفوض
+          // غير كده → pending دايماً (حتى لو جديد)
+          item.status      = floorRejected[item._uid] ? 'rejected' : 'pending';
           item.visitStatus = null;
           item.visitDate   = null;
           item.extraVisits = [];
-        });
-      }
+        }
+      });
+    } else {
+      // node فاضي → حملة جديدة
+      influencers.forEach(function(item) {
+        item.status      = floorRejected[item._uid] ? 'rejected' : 'pending';
+        item.visitStatus = null;
+        item.visitDate   = null;
+        item.extraVisits = [];
+      });
     }
   } catch(e) {}
 }
@@ -1450,8 +1487,8 @@ async function saveToStorage() {
       method:'PUT', headers:{'Content-Type':'application/json'},
       body: JSON.stringify({ data: JSON.stringify(deletedInfluencers) })
     });
-    // لو مش الدور الافتراضي → احفظ الـ statuses في node منفصل كمان
-    if(!isDefaultFloor()) { await saveStatusToFirebase(); }
+    // احفظ الـ statuses في cure_status دايماً (عشان الأدوار التانية تشوف الـ rejected)
+    await saveStatusToFirebase();
     if(res && res.ok) { showSaveIndicator(); _isSaving = false; return; }
   } catch(e) {}
   _isSaving = false;
@@ -1496,8 +1533,8 @@ async function saveOneToFirebase(idx) {
         method:'PUT', headers:{'Content-Type':'application/json'},
         body: JSON.stringify({ data: JSON.stringify(remote) })
       });
-      // لو مش الدور الافتراضي → احفظ الـ statuses في node منفصل كمان
-      if(!isDefaultFloor()) { await saveStatusToFirebase(); }
+      // احفظ الـ statuses في cure_status دايماً
+      await saveStatusToFirebase();
       showSaveIndicator(); _isSaving = false; return;
     }
   } catch(e) {}
@@ -6354,6 +6391,9 @@ function showFloorScreen() {
   renderFloorCards();
   document.getElementById('campaignScreen').style.display = 'none';
   document.getElementById('floorScreen').style.display    = 'flex';
+  // فوتر الأدمن فقط
+  var f = document.getElementById('floorAdminFooter');
+  if (f) f.style.display = (sessionStorage.getItem('cure_auth_role') === 'admin') ? 'flex' : 'none';
 }
 window.showFloorScreen = showFloorScreen;
 
@@ -6436,6 +6476,9 @@ function showCampaignScreen(floorId) {
   renderCampaignCards();
   document.getElementById('floorScreen').style.display    = 'none';
   document.getElementById('campaignScreen').style.display = 'flex';
+  // فوتر الأدمن فقط
+  var f = document.getElementById('campaignAdminFooter');
+  if (f) f.style.display = (sessionStorage.getItem('cure_auth_role') === 'admin') ? 'flex' : 'none';
 }
 window.showCampaignScreen = showCampaignScreen;
 
@@ -6509,14 +6552,10 @@ function goBackToFloors() {
 }
 window.goBackToFloors = goBackToFloors;
 // ══════════════════════════════════════════════════════
-function guestLogin() {
-  window.location.href = window.location.pathname + '?guest=1';
-}
-window.guestLogin = guestLogin;
-function logout() {
+
+async function logout() {
   logActivity('logout', `تسجيل خروج: ${getAuth()||''}`);
-  clearAuth();
-  // Remove ?guest=1 from URL and reload
+  await clearAuth();
   window.location.href = window.location.pathname;
 }
 window.logout = logout;
@@ -6574,10 +6613,11 @@ async function setAuth(user) {
   if(_rememberMe && user !== 'guest') {
     // حفظ remember-me في Firebase مرتبط بالجهاز
     const deviceId = getDeviceId();
+    const role = sessionStorage.getItem('cure_auth_role') || 'admin';
     try {
       await fetch(`${DB_URL}/cure_sessions/${deviceId}.json`, {
         method:'PUT', headers:{'Content-Type':'application/json'},
-        body: JSON.stringify({ user, savedAt: Date.now() })
+        body: JSON.stringify({ user, role, savedAt: Date.now() })
       });
     } catch(e) {}
   } else {
@@ -6607,6 +6647,7 @@ async function tryAutoLogin() {
       // remember-me صالح لمدة 30 يوم
       if(val && val.user && val.savedAt && (Date.now() - val.savedAt) < 30 * 24 * 60 * 60 * 1000) {
         sessionStorage.setItem('cure_auth', val.user);
+        sessionStorage.setItem('cure_auth_role', val.role || 'admin');
         return true;
       } else if(val) {
         // انتهت صلاحيته — نمسحه
@@ -6616,12 +6657,16 @@ async function tryAutoLogin() {
   } catch(e) {}
   return false;
 }
-function clearAuth() {
+async function clearAuth() {
   sessionStorage.removeItem('cure_auth');
+  sessionStorage.removeItem('cure_auth_role');
+  sessionStorage.removeItem('cure_guest_floors');
   const deviceId = getDeviceId();
-  fetch(`${DB_URL}/cure_sessions/${deviceId}.json`, { method:'DELETE' }).catch(()=>{});
+  try { await fetch(`${DB_URL}/cure_sessions/${deviceId}.json`, { method:'DELETE' }); } catch(e) {}
 }
-function isGuest() { return getAuth() === 'guest'; }
+function isGuest() {
+  return sessionStorage.getItem('cure_auth_role') === 'guest' || getAuth() === 'guest';
+}
 function updateWelcome() {
   const user = getAuth() || '';
   const el = document.getElementById('welcomeMsg');
@@ -7837,7 +7882,7 @@ async function init() {
       if(_isSaving || (Date.now() - _lastSaveTime) < 15000) return;
       tryLoadFirebase().then(async function(loaded) {
         if(loaded) {
-          if(!isDefaultFloor()) { await loadStatusFromFirebase(); }
+          await loadStatusFromFirebase();
           renderGrid(); updateStats();
         }
       }).catch(function(){});
@@ -7854,7 +7899,7 @@ async function init() {
   });
   if(phonesMigrated) saveToStorage();
   // لو مش الدور الافتراضي → حمّل الـ statuses المنفصلة وطبّقها
-  if(!isDefaultFloor()) { await loadStatusFromFirebase(); }
+  await loadStatusFromFirebase();
   renderGrid();
   setTimeout(()=>{const ol=document.getElementById("loadingOverlay");if(ol)ol.style.display="none";},200);
   updateDupReviewBtn(); updateUpdReviewBtn();
@@ -7899,7 +7944,7 @@ async function init() {
     if(_isSaving || (Date.now() - _lastSaveTime) < 15000) return;
     tryLoadFirebase().then(async function(loaded) {
       if(loaded) {
-        if(!isDefaultFloor()) { await loadStatusFromFirebase(); }
+        await loadStatusFromFirebase();
         renderGrid(); updateStats(); updateDupReviewBtn(); updateUpdReviewBtn();
       }
     }).catch(function(){});
