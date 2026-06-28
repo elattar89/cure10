@@ -1437,8 +1437,19 @@ async function saveDailyBackup() {
     const res = await fetch(`${DB_URL}/${DB_BACKUP_PATH}.json`, { method:'GET', headers:{'Accept':'application/json'}, mode:'cors' });
     let backups = {};
     if(res && res.ok) { try { backups = await res.json() || {}; } catch(e) {} }
+    // جيب الـ cure_status الحالي كله
+    let statusSnap = {};
+    try {
+      const sRes = await fetch(`${DB_URL}/cure_status.json`, { method:'GET', headers:{'Accept':'application/json'}, mode:'cors' });
+      if(sRes && sRes.ok) { statusSnap = await sRes.json() || {}; }
+    } catch(e) {}
     // أضف النسخة دي
-    backups[today] = { data: JSON.stringify(influencers), savedAt: Date.now(), count: influencers.length };
+    backups[today] = {
+      data: JSON.stringify(influencers),
+      status: statusSnap,
+      savedAt: Date.now(),
+      count: influencers.length
+    };
     // احتفظ بآخر 5 أيام بس
     const keys = Object.keys(backups).sort().reverse();
     if(keys.length > 5) keys.slice(5).forEach(k => delete backups[k]);
@@ -1454,6 +1465,7 @@ async function saveDailyBackup() {
 try { localStorage.removeItem('cure_influencers_v18'); localStorage.removeItem('cure_deleted_v18'); } catch(e) {}
 
 let _isSaving = false;
+let _isRecovering = false; // لو شغال استرجاع → وقف الـ polling
 let _lastSaveTime = 0;
 
 // توليد ID فريد لكل مؤثر — بيتعمل مرة واحدة ومش بيتغير أبداً
@@ -1561,6 +1573,7 @@ async function tryLoadFirebase() {
         if(val && val.data) {
           const parsed = JSON.parse(val.data);
           if(Array.isArray(parsed) && parsed.length > 0) {
+            if(_isRecovering) return false; // لو في استرجاع → مش نلمس البيانات
             if(influencers.length > 0) {
               const _cc = c => (c||'').replace(/[٠-٩]/g,d=>'٠١٢٣٤٥٦٧٨٩'.indexOf(d).toString()).replace(/\D/g,'');
 
@@ -3954,6 +3967,7 @@ function openRecovery() {
 async function recoverFromFirebaseBackup(date) {
   if(!confirm(`هتسترجع نسخة ${date}؟ البيانات الحالية هتتبدل.`)) return;
   try {
+    _isRecovering = true;
     showToast('⏳ جاري الاسترجاع...', '#1a6fa8');
     const res = await fetch(`${DB_URL}/${DB_BACKUP_PATH}/${date}.json`, { method:'GET', headers:{'Accept':'application/json'}, mode:'cors' });
     if(!res || !res.ok) throw new Error('failed');
@@ -3962,11 +3976,21 @@ async function recoverFromFirebaseBackup(date) {
     const arr = JSON.parse(snap.data);
     if(!Array.isArray(arr)) throw new Error('invalid');
     influencers = arr;
+    // استرجاع الـ status لو موجود في الـ backup
+    if(snap.status && typeof snap.status === 'object') {
+      await fetch(`${DB_URL}/cure_status.json`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(snap.status)
+      });
+    }
     await saveToStorage();
+    _isRecovering = false;
     renderGrid(); updateStats();
     document.getElementById('recoveryOverlay').remove();
     showToast(`✅ تم استرجاع ${arr.length} شخص من نسخة ${date}`, '#16a34a');
   } catch(e) {
+    _isRecovering = false;
     showToast('❌ فشل الاسترجاع: ' + e.message, '#dc2626');
   }
 }
