@@ -1327,9 +1327,20 @@ function getStatusPath() {
   return DB_STATUS_BASE + '/' + _selectedFloor + '/' + safeCamp;
 }
 
+// ── الدور والحملة الافتراضيان ──
+function getDefaultFloor() {
+  if (typeof FLOORS_DATA === 'undefined' || !FLOORS_DATA) return { floor: 'floor_10', campaign: 'حملة 1' };
+  var keys = Object.keys(FLOORS_DATA);
+  if (!keys.length) return { floor: 'floor_10', campaign: 'حملة 1' };
+  var fid = keys[0];
+  var camp = (FLOORS_DATA[fid].campaigns || [])[0] || null;
+  return { floor: fid, campaign: camp };
+}
+
 // ── هل الدور والحملة الحالية هما الأصليان؟ ──
 function isDefaultFloor() {
-  return _selectedFloor === 'floor_10' && _selectedCampaign === 'حملة 1';
+  var def = getDefaultFloor();
+  return _selectedFloor === def.floor && _selectedCampaign === def.campaign;
 }
 
 // ── حفظ statuses الدور الحالي على Firebase ──
@@ -6341,19 +6352,6 @@ var FLOORS_DATA = {
 };
 var _selectedFloor    = null;
 var _selectedCampaign = null;
-
-// ── الدور والحملة الافتراضيان (أول دور + أول حملة فيه) ──
-function getDefaultFloor() {
-  var keys = Object.keys(FLOORS_DATA);
-  if (!keys.length) return { floor: null, campaign: null };
-  var fid = keys[0];
-  var camp = (FLOORS_DATA[fid].campaigns || [])[0] || null;
-  return { floor: fid, campaign: camp };
-}
-function isDefaultFloor() {
-  var def = getDefaultFloor();
-  return _selectedFloor === def.floor && _selectedCampaign === def.campaign;
-}
 
 // ── حفظ FLOORS_DATA على Firebase ──
 async function saveFloorsToFirebase() {
