@@ -368,11 +368,7 @@ body{font-family:'Tajawal',sans-serif;direction:rtl;background:#0d1117;color:#e6
     window.location.href = window.location.pathname;
     return;
   }
-  var isGuest = false; // النظام الجديد بيعتمد على sessionStorage مش URL param
-  if(isGuest) {
-    var s = document.getElementById('guestStyle');
-    s.textContent = '#fabBtn,.fab,.page-footer,.toolbar,#grid{display:none!important}.stat{cursor:default!important;pointer-events:none!important}#guestBtns{display:flex!important}';
-  }
+  var isGuest = false; // النظام الجديد بيعتمد على sessionStorage
 })();
 </script>
 </head>
@@ -6310,15 +6306,12 @@ async function doLogin() {
       // مسح remember-me URL param لو موجود
       window.history.replaceState({}, '', window.location.pathname);
       // تطبيق CSS الـ guest
-      var gs = document.getElementById('guestStyle');
-      if (gs) gs.textContent = '#fabBtn,.fab,.page-footer,.toolbar,#grid{display:none!important}.stat{cursor:default!important;pointer-events:none!important}#guestBtns{display:flex!important}';
+      applyGuestCSS(true);
     } else {
       sessionStorage.setItem('cure_auth', user);
       sessionStorage.setItem('cure_auth_role', 'admin');
       sessionStorage.removeItem('cure_guest_floors');
-      // مسح guest CSS لو موجود
-      var gs2 = document.getElementById('guestStyle');
-      if (gs2) gs2.textContent = '';
+      applyGuestCSS(false);
     }
     logActivity('login', `تسجيل دخول: ${user} (${isGuest?'guest':'admin'})`);
     document.getElementById('loginScreen').style.display = 'none';
@@ -6346,6 +6339,47 @@ var FLOORS_DATA = {
 };
 var _selectedFloor    = null;
 var _selectedCampaign = null;
+
+// ── الدور والحملة الافتراضيان (أول دور + أول حملة فيه) ──
+function getDefaultFloor() {
+  var keys = Object.keys(FLOORS_DATA);
+  if (!keys.length) return { floor: null, campaign: null };
+  var fid = keys[0];
+  var camp = (FLOORS_DATA[fid].campaigns || [])[0] || null;
+  return { floor: fid, campaign: camp };
+}
+function isDefaultFloor() {
+  var def = getDefaultFloor();
+  return _selectedFloor === def.floor && _selectedCampaign === def.campaign;
+}
+
+// ── حفظ FLOORS_DATA على Firebase ──
+async function saveFloorsToFirebase() {
+  try {
+    await fetch(`${DB_URL}/cure_floors.json`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(FLOORS_DATA)
+    });
+  } catch(e) {}
+}
+
+// ── تحميل FLOORS_DATA من Firebase ──
+async function loadFloorsFromFirebase() {
+  try {
+    var res = await fetch(`${DB_URL}/cure_floors.json`, { method: 'GET', headers: { 'Accept': 'application/json' }, mode: 'cors' });
+    if (res && res.ok) {
+      var data = await res.json();
+      if (data && typeof data === 'object' && Object.keys(data).length > 0) {
+        FLOORS_DATA = data;
+        return true;
+      }
+    }
+  } catch(e) {}
+  // لو Firebase فاضي → احفظ الافتراضيين
+  await saveFloorsToFirebase();
+  return false;
+}
 
 /* ── مساعد: نقل اللوجو من شاشة اللوجن ── */
 function _setLogos() {
@@ -6421,6 +6455,7 @@ function addNewFloor() {
   var name = prompt('اسم الدور الجديد:');
   if (!name || !name.trim()) return;
   FLOORS_DATA['floor_' + Date.now()] = { name: name.trim(), campaigns: [] };
+  saveFloorsToFirebase();
   renderFloorCards();
 }
 window.addNewFloor = addNewFloor;
@@ -6430,6 +6465,7 @@ function renameFloor(fid) {
   var n = prompt('تعديل اسم الدور:', cur);
   if (!n || !n.trim() || n.trim() === cur) return;
   FLOORS_DATA[fid].name = n.trim();
+  saveFloorsToFirebase();
   renderFloorCards();
 }
 window.renameFloor = renameFloor;
@@ -6437,6 +6473,7 @@ window.renameFloor = renameFloor;
 function deleteFloor(fid) {
   if (!confirm('حذف الدور "' + FLOORS_DATA[fid].name + '" بكل حملاته؟')) return;
   delete FLOORS_DATA[fid];
+  saveFloorsToFirebase();
   renderFloorCards();
 }
 window.deleteFloor = deleteFloor;
@@ -6506,6 +6543,7 @@ function addNewCampaign() {
   var name = prompt('اسم الحملة الجديدة:');
   if (!name || !name.trim()) return;
   FLOORS_DATA[_selectedFloor].campaigns.push(name.trim());
+  saveFloorsToFirebase();
   renderCampaignCards();
 }
 window.addNewCampaign = addNewCampaign;
@@ -6515,6 +6553,7 @@ function renameCampaign(idx) {
   var n = prompt('تعديل اسم الحملة:', cur);
   if (!n || !n.trim() || n.trim() === cur) return;
   FLOORS_DATA[_selectedFloor].campaigns[idx] = n.trim();
+  saveFloorsToFirebase();
   renderCampaignCards();
 }
 window.renameCampaign = renameCampaign;
@@ -6523,6 +6562,7 @@ function deleteCampaign(idx) {
   var name = FLOORS_DATA[_selectedFloor].campaigns[idx];
   if (!confirm('حذف الحملة "' + name + '"؟')) return;
   FLOORS_DATA[_selectedFloor].campaigns.splice(idx, 1);
+  saveFloorsToFirebase();
   renderCampaignCards();
 }
 window.deleteCampaign = deleteCampaign;
@@ -6588,9 +6628,7 @@ function checkAuth() {
   var role = sessionStorage.getItem('cure_auth_role');
   if (role === 'guest') {
     try { _guestAllowedFloors = JSON.parse(sessionStorage.getItem('cure_guest_floors') || '[]'); } catch(e){ _guestAllowedFloors = []; }
-    // تطبيق CSS الـ guest
-    var gs = document.getElementById('guestStyle');
-    if (gs) gs.textContent = '#fabBtn,.fab,.page-footer,.toolbar,#grid{display:none!important}.stat{cursor:default!important;pointer-events:none!important}#guestBtns{display:flex!important}';
+    applyGuestCSS(true);
   } else {
     _guestAllowedFloors = null;
   }
@@ -6604,9 +6642,11 @@ try { localStorage.removeItem('cure_auth_v2'); } catch(e) {}
 
 // بداية التشغيل — نحاول auto-login من Firebase لو في remember-me
 (async function startup() {
+  // تحميل الأدوار والحملات من Firebase
+  await loadFloorsFromFirebase();
   // تأكد إن الحسابات موجودة في Firebase
   await ensureUsersInFirebase();
-  // دايماً ابدأ من شاشة اللوجن — مش بنعمل auto-login
+  // دايماً ابدأ من شاشة اللوجن
   init();
   updateManageUsersBtn();
 })();
@@ -6618,60 +6658,20 @@ window.addEventListener('pageshow', function(e) {
   }
 });
 
-var _rememberMe = false;
-function toggleRemember() {
-  var cb = document.getElementById('rememberCb');
-  _rememberMe = cb ? cb.checked : false;
-}
-window.toggleRemember = toggleRemember;
-async function setAuth(user) {
-  sessionStorage.setItem('cure_auth', user);
-  if(_rememberMe && user !== 'guest') {
-    // حفظ remember-me في Firebase مرتبط بالجهاز
-    const deviceId = getDeviceId();
-    const role = sessionStorage.getItem('cure_auth_role') || 'admin';
-    try {
-      await fetch(`${DB_URL}/cure_sessions/${deviceId}.json`, {
-        method:'PUT', headers:{'Content-Type':'application/json'},
-        body: JSON.stringify({ user, role, savedAt: Date.now() })
-      });
-    } catch(e) {}
-  } else {
-    // مسح remember-me لو مش محدد
-    const deviceId = getDeviceId();
-    try { await fetch(`${DB_URL}/cure_sessions/${deviceId}.json`, { method:'DELETE' }); } catch(e) {}
-  }
+function applyGuestCSS(isGuest) {
+  var gs = document.getElementById('guestStyle');
+  if (!gs) return;
+  gs.textContent = isGuest
+    ? '#fabBtn,.fab,.page-footer,.toolbar,#grid{display:none!important}.stat{cursor:default!important;pointer-events:none!important}#guestBtns{display:flex!important}'
+    : '';
 }
 function getDeviceId() {
-  // ID فريد للجهاز محفوظ في localStorage (مش بيانات مهمة — مجرد معرّف)
   let id = localStorage.getItem('cure_device_id');
   if(!id) { id = 'dev_' + Date.now().toString(36) + Math.random().toString(36).substr(2,6); localStorage.setItem('cure_device_id', id); }
   return id;
 }
 function getAuth() {
   return sessionStorage.getItem('cure_auth');
-}
-async function tryAutoLogin() {
-  // لو في session حالية اشتغل عادي
-  if(sessionStorage.getItem('cure_auth')) return true;
-  // شوف لو في remember-me محفوظ على Firebase لهذا الجهاز
-  const deviceId = getDeviceId();
-  try {
-    const res = await fetch(`${DB_URL}/cure_sessions/${deviceId}.json`, { method:'GET', mode:'cors' });
-    if(res && res.ok) {
-      const val = await res.json();
-      // remember-me صالح لمدة 30 يوم
-      if(val && val.user && val.savedAt && (Date.now() - val.savedAt) < 30 * 24 * 60 * 60 * 1000) {
-        sessionStorage.setItem('cure_auth', val.user);
-        sessionStorage.setItem('cure_auth_role', val.role || 'admin');
-        return true;
-      } else if(val) {
-        // انتهت صلاحيته — نمسحه
-        fetch(`${DB_URL}/cure_sessions/${deviceId}.json`, { method:'DELETE' }).catch(()=>{});
-      }
-    }
-  } catch(e) {}
-  return false;
 }
 async function clearAuth() {
   sessionStorage.removeItem('cure_auth');
@@ -8048,8 +8048,7 @@ window.setVisitStatus=setVisitStatus;
 window.setContentStatus=setContentStatus;
 window.shareStatusReport=shareStatusReport; window.shareGenderReport=shareGenderReport;
 </script>
-</body>
-</html><script>
+<script>
 // ── كشف المؤثرين المتميزين ──
 function openFeaturedReport() {
   var list = influencers.filter(function(i){ return (i.rating||0) >= 4; })
@@ -8452,3 +8451,6 @@ async function saveUsersToFirebase(data) {
 
 window.openUsersManager = openUsersManager;
 </script>
+</script>
+</body>
+</html>
