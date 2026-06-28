@@ -411,10 +411,6 @@ body{font-family:'Tajawal',sans-serif;direction:rtl;background:#0d1117;color:#e6
         <input type="checkbox" id="showPassCb" onchange="togglePassView()" style="width:15px;height:15px;cursor:pointer;accent-color:#22c55e;">
         <span>إظهار كلمة المرور</span>
       </label>
-      <label style="display:flex;align-items:center;gap:6px;cursor:pointer;color:rgba(255,255,255,0.8);font-size:13px;font-family:Tajawal,sans-serif;user-select:none;">
-        <input type="checkbox" id="rememberCb" onchange="toggleRemember()" style="width:15px;height:15px;cursor:pointer;accent-color:#22c55e;">
-        <span>تذكرني</span>
-      </label>
     </div>
     <div id="loginError" style="display:none;color:#f87171;font-size:13px;text-align:center;margin-bottom:1rem;background:rgba(220,38,38,0.15);padding:8px;border-radius:8px;">❌ اسم المستخدم أو كلمة المرور غلط</div>
     <button onclick="doLogin()" style="width:100%;padding:13px;border-radius:12px;border:none;background:#fff;color:#0a3d62;font-size:15px;font-weight:900;cursor:pointer;font-family:Tajawal,sans-serif;transition:.2s;">دخول ←</button>
@@ -6586,19 +6582,15 @@ try { localStorage.removeItem('cure_auth_v2'); } catch(e) {}
 (async function startup() {
   // تأكد إن الحسابات موجودة في Firebase
   await ensureUsersInFirebase();
-  // لو في session محفوظة
-  if (!sessionStorage.getItem('cure_auth')) {
-    await tryAutoLogin();
-  }
+  // دايماً ابدأ من شاشة اللوجن — مش بنعمل auto-login
   init();
   updateManageUsersBtn();
 })();
 
 // إعادة المحاولة لو رجع المستخدم للصفحة بـ back button
-window.addEventListener('pageshow', async function(e) {
+window.addEventListener('pageshow', function(e) {
   if(e.persisted && !sessionStorage.getItem('cure_auth')) {
-    const loggedIn = await tryAutoLogin();
-    if(!loggedIn) window.location.reload();
+    window.location.reload();
   }
 });
 
