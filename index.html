@@ -31,10 +31,10 @@ body{font-family:'Tajawal',sans-serif;direction:rtl;background:#0d1117;color:#e6
   28%{opacity:0.5; filter:brightness(2.6);}
   38%{opacity:1; filter:brightness(1);}
 }
-.header .bubble{position:absolute;border-radius:50%;background:rgba(255,255,255,0.3);bottom:-10px;animation:floatUp linear infinite;pointer-events:none;}
-@keyframes floatUp{0%{bottom:-10px;opacity:0}20%{opacity:1}100%{bottom:260px;opacity:0}}
+.header .bubble{position:absolute;border-radius:50%;background:rgba(255,255,255,0.3);bottom:-10px;animation:floatUp linear infinite;pointer-events:none;will-change:transform,opacity;}
+@keyframes floatUp{0%{transform:translateY(0);opacity:0}20%{opacity:1}100%{transform:translateY(-270px);opacity:0}}
 .login-logo-pulse{animation:logoGlitch 1.6s infinite;}
-.login-bubble{position:absolute;border-radius:50%;background:rgba(255,255,255,0.3);bottom:-10px;animation:floatUp linear infinite;pointer-events:none;}
+.login-bubble{position:absolute;border-radius:50%;background:rgba(255,255,255,0.3);bottom:-10px;animation:floatUp linear infinite;pointer-events:none;will-change:transform,opacity;}
 .stats-bar{display:flex;justify-content:center;gap:1rem;margin-top:1.2rem;position:relative;z-index:1;flex-wrap:wrap;}
 .stat{text-align:center;background:rgba(255,255,255,0.1);border-radius:12px;padding:.6rem 1.2rem;min-width:80px;}
 .stat-num{font-size:22px;font-weight:900;color:#fff;}
@@ -377,7 +377,7 @@ body{font-family:'Tajawal',sans-serif;direction:rtl;background:#0d1117;color:#e6
 <body>
 
 <!-- Login Screen -->
-<div id="loginScreen" style="position:fixed;inset:0;z-index:99999;background:linear-gradient(135deg,#0a3d62 0%,#1a6fa8 60%,#22a6d6 100%);display:flex;flex-direction:column;align-items:center;justify-content:center;padding-top:6vh;padding-bottom:6vh;overflow-y:auto;overflow-x:hidden;font-family:Tajawal,sans-serif;direction:rtl;">
+<div id="loginScreen" style="position:fixed;inset:0;z-index:99999;background:linear-gradient(135deg,#0a3d62 0%,#1a6fa8 60%,#22a6d6 100%);display:flex;flex-direction:column;align-items:center;justify-content:center;padding-top:6vh;padding-bottom:6vh;overflow-y:auto;overflow-x:hidden;scrollbar-gutter:stable;font-family:Tajawal,sans-serif;direction:rtl;">
   <div style="position:absolute;top:16px;left:16px;z-index:10;"><button onclick="window.location.href='https://elattar89.github.io/ABQ8/'" style="background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.3);color:#fff;padding:6px 16px;border-radius:8px;cursor:pointer;font-size:13px;font-weight:700;font-family:'Orbitron',sans-serif;letter-spacing:0.5px;">AlphaBoost</button></div>
   <div class="login-bubble" style="width:8px;height:8px;left:10%;animation-duration:5s;"></div>
   <div class="login-bubble" style="width:5px;height:5px;left:25%;animation-duration:4s;animation-delay:1s;"></div>
@@ -484,7 +484,7 @@ body{font-family:'Tajawal',sans-serif;direction:rtl;background:#0d1117;color:#e6
     <img id="vCampPoweredLogo" src="" style="height:160px;object-fit:contain;" alt="AlphaBoost Kuwait">
   </div>
 </div>
-<div id="floorScreen" style="position:fixed;inset:0;z-index:99998;background:linear-gradient(135deg,#0a3d62 0%,#1a6fa8 60%,#22a6d6 100%);display:none;flex-direction:column;font-family:Tajawal,sans-serif;direction:rtl;overflow-y:auto;overflow-x:hidden;">
+<div id="floorScreen" style="position:fixed;inset:0;z-index:99998;background:linear-gradient(135deg,#0a3d62 0%,#1a6fa8 60%,#22a6d6 100%);display:none;flex-direction:column;font-family:Tajawal,sans-serif;direction:rtl;overflow-y:auto;overflow-x:hidden;scrollbar-gutter:stable;">
   <div class="login-bubble" style="width:8px;height:8px;left:10%;animation-duration:5s;"></div>
   <div class="login-bubble" style="width:5px;height:5px;left:25%;animation-duration:4s;animation-delay:1s;"></div>
   <div class="login-bubble" style="width:10px;height:10px;left:40%;animation-duration:6s;animation-delay:2s;"></div>
@@ -527,7 +527,7 @@ body{font-family:'Tajawal',sans-serif;direction:rtl;background:#0d1117;color:#e6
 <!-- ══════════════════════════════════════════════
      شاشة اختيار الحملة
      ══════════════════════════════════════════════ -->
-<div id="campaignScreen" style="position:fixed;inset:0;z-index:99997;background:linear-gradient(135deg,#0a3d62 0%,#1a6fa8 60%,#22a6d6 100%);display:none;flex-direction:column;font-family:Tajawal,sans-serif;direction:rtl;overflow-y:auto;overflow-x:hidden;">
+<div id="campaignScreen" style="position:fixed;inset:0;z-index:99997;background:linear-gradient(135deg,#0a3d62 0%,#1a6fa8 60%,#22a6d6 100%);display:none;flex-direction:column;font-family:Tajawal,sans-serif;direction:rtl;overflow-y:auto;overflow-x:hidden;scrollbar-gutter:stable;">
   <div class="login-bubble" style="width:8px;height:8px;left:10%;animation-duration:5s;"></div>
   <div class="login-bubble" style="width:5px;height:5px;left:25%;animation-duration:4s;animation-delay:1s;"></div>
   <div class="login-bubble" style="width:10px;height:10px;left:40%;animation-duration:6s;animation-delay:2s;"></div>
